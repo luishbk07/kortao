@@ -95,6 +95,17 @@ interface defined earlier, with functions to: fetch a negocio's citas
 within a date range, create a cita, cancel a cita. Only use the Supabase
 client inside this file, never exposed directly to application or
 domain.
+
+Important: the database columns are snake_case (negocio_id, fecha_hora,
+cliente_nombre...) because that's standard Postgres convention, but the
+domain types from Phase 2 are camelCase (negocioId, fechaHora,
+clienteNombre...). This file is the ONLY place where that translation
+happens. Add small private mapping functions (e.g. mapearFilaACita,
+mapearCitaAFila) that convert between the snake_case Supabase row shape
+and the camelCase domain types on the way in and out. Nothing outside
+this file should ever see snake_case field names. For reading
+availability, query the disponibilidad_citas view (not the citas table
+directly) since it's the one safe for public/anonymous reads.
 ```
 
 ---
@@ -104,17 +115,33 @@ domain.
 **Prompt for Cursor:**
 
 ```
-Create the page
-src/presentation/app/(cliente)/reservar/[negocioSlug]/page.tsx showing:
-business info, list of servicios (using MUI Card components), a date
-picker, and the available time slots for that day using
-generarSlotsDisponibles. When a slot is selected, ask for the client's
-name and phone in a simple form, and on confirm call the crearReserva
-use case. Use the theme from DISEÑO.md, MUI Icons in outlined style,
-mobile-first layout, no inline styles unless truly necessary. All UI
-copy (labels, buttons, messages) must be in Spanish since that's the
-app's language — only the code itself follows the English-instruction,
-Spanish-domain-naming convention.
+Create the page src/app/(cliente)/reservar/[negocioSlug]/page.tsx
+that:
+
+- Fetches the negocio by slug, its active servicios, and its
+  horariosNegocio (server-side, via a Supabase query — this page-level
+  data fetching can query Supabase directly since it's just reading
+  public data, not going through the booking use cases)
+- Renders the negocio's name and info, and a list of servicios using MUI
+  Card components (extract this into a reusable component under
+  src/presentation/components/booking, don't inline it all in page.tsx)
+- Lets the user pick a servicio, then a date, then shows available time
+  slots for that day by calling the crearObtenerDisponibilidad use case
+  (wired with bookingRepositorySupabase)
+- On selecting a time slot, shows a simple form (MUI TextField) asking
+  for clienteNombre and clienteTelefono
+- On confirm, calls the crearCrearReserva use case (wired with
+  bookingRepositorySupabase and a temporary no-op NotificationService
+  implementation, since WhatsApp isn't built yet) and shows a success
+  message with MUI Alert, or an error message if HorarioNoDisponibleError
+  is thrown (meaning someone else just took that slot)
+
+Use the theme from DISEÑO.md, MUI Icons in outlined style, mobile-first
+layout, no inline styles unless truly necessary. All UI copy (labels,
+buttons, messages) must be in Spanish. Follow .cursorrules for all code
+style. Keep page.tsx thin — it fetches data and wires dependencies, the
+actual rendering logic belongs in components under
+src/presentation/components/booking.
 ```
 
 ---
@@ -125,7 +152,7 @@ Spanish-domain-naming convention.
 
 ```
 Implement authentication with Supabase Auth (email/password) for the
-business panel at src/presentation/app/(negocio)/panel. Create the
+business panel at src/app/(negocio)/panel. Create the
 pages: citas/page.tsx (list of today's citas with status, using MUI
 DataGrid or a list of Cards), servicios/page.tsx (CRUD for servicios),
 horarios/page.tsx (configure business hours per day of week). Protect

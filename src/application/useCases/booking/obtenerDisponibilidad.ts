@@ -22,7 +22,8 @@ export const crearObtenerDisponibilidad = (
       horariosNegocio,
       slotsOcupados,
       fecha,
-      duracionServicio
+      duracionServicio,
+      new Date()
     )
   }
 }

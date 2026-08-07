@@ -26,7 +26,8 @@ export const crearCrearReserva = (
       horariosNegocio,
       slotsOcupados,
       input.fechaHora,
-      input.duracionMinutos
+      input.duracionMinutos,
+      new Date()
     )
 
     if (!disponible) {

@@ -50,12 +50,6 @@ terms.
       whatsappNotificationService.ts    → implements notificationService.port
 
   /presentation
-    /app                       → Next.js routes (App Router)
-      /(cliente)/reservar/[negocioSlug]/page.tsx
-      /(negocio)/panel/citas/page.tsx
-      /(negocio)/panel/servicios/page.tsx
-      /(negocio)/panel/horarios/page.tsx
-      layout.tsx
     /components
       /ui                      → MUI wrappers (Button, Card, Input...)
       /booking                 → AvailabilityCalendar, BookingCard...
@@ -74,6 +68,16 @@ terms.
     /constants
       diasSemana.ts
 ```
+
+> **Next.js constraint:** the App Router only works if the route folder is
+> literally named `app` at the project root or under `src/`. It cannot be
+> nested under `presentation/`. So actual routes live in `/src/app`
+> (`src/app/(cliente)/reservar/[negocioSlug]/page.tsx`,
+> `src/app/(negocio)/panel/citas/page.tsx`, etc.), while everything else
+> that belongs to the presentation layer — components, hooks, the theme —
+> stays under `/src/presentation` as shown above. Route files in
+> `src/app` should stay thin: fetch data, then delegate rendering to
+> components imported from `src/presentation/components`.
 
 ## Booking flow (concrete example)
 

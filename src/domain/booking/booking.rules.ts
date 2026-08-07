@@ -80,9 +80,14 @@ export const esHorarioDisponible = (
   horariosNegocio: BusinessHours[],
   citasExistentes: OccupiedSlot[],
   fechaHoraPropuesta: Date,
-  duracionServicio: number
+  duracionServicio: number,
+  ahora: Date
 ): boolean => {
   if (duracionServicio <= 0) {
+    return false
+  }
+
+  if (!(fechaHoraPropuesta > ahora)) {
     return false
   }
 
@@ -101,7 +106,8 @@ const generarSlotsEnHorario = (
   fecha: Date,
   horario: BusinessHours,
   citasExistentes: OccupiedSlot[],
-  duracionServicio: number
+  duracionServicio: number,
+  ahora: Date
 ): TimeSlot[] => {
   const inicioMinutos = parseHoraAMinutos(horario.horaInicio)
   const finMinutos = parseHoraAMinutos(horario.horaFin)
@@ -122,6 +128,10 @@ const generarSlotsEnHorario = (
       return slots
     }
 
+    if (!(inicio > ahora)) {
+      return slots
+    }
+
     if (seSolapaConCitas(inicio, fin, citasExistentes)) {
       return slots
     }
@@ -134,7 +144,8 @@ export const generarSlotsDisponibles = (
   horariosNegocio: BusinessHours[],
   citasExistentes: OccupiedSlot[],
   fecha: Date,
-  duracionServicio: number
+  duracionServicio: number,
+  ahora: Date
 ): TimeSlot[] => {
   if (duracionServicio <= 0) {
     return []
@@ -147,7 +158,8 @@ export const generarSlotsDisponibles = (
       fecha,
       horario,
       citasExistentes,
-      duracionServicio
+      duracionServicio,
+      ahora
     )
   })
 }
