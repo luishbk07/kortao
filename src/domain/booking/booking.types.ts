@@ -12,6 +12,12 @@ export type Booking = {
   creadoEn: Date
 }
 
+export type OccupiedSlot = {
+  fechaHora: Date
+  duracionMinutos: number
+  estado: EstadoCita
+}
+
 export type TimeSlot = {
   inicio: Date
   fin: Date

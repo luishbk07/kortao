@@ -42,6 +42,7 @@ create table public.citas (
   cliente_nombre text not null,
   cliente_telefono text not null,
   fecha_hora timestamptz not null,
+  duracion_minutos integer not null check (duracion_minutos > 0),
   estado text not null default 'pendiente'
     check (estado in ('pendiente', 'confirmada', 'cancelada', 'completada')),
   creado_en timestamptz not null default now()
@@ -186,7 +187,7 @@ create policy "horarios_negocio_delete_miembro"
   using (public.es_miembro_del_negocio(negocio_id));
 
 -- citas: members manage their rows; anon books via insert.
--- Public slot occupancy (no cliente PII) is exposed through citas_ocupacion.
+-- Public slot occupancy (no cliente PII) is exposed through disponibilidad_citas.
 
 create policy "citas_select_miembro"
   on public.citas
@@ -222,22 +223,19 @@ create policy "citas_delete_miembro"
   to authenticated
   using (public.es_miembro_del_negocio(negocio_id));
 
-create or replace view public.citas_ocupacion
+create or replace view public.disponibilidad_citas
 with (security_invoker = false)
 as
 select
-  c.id,
   c.negocio_id,
-  c.servicio_id,
   c.fecha_hora,
-  c.estado,
-  s.duracion_minutos
+  c.duracion_minutos,
+  c.estado
 from public.citas c
-join public.servicios s on s.id = c.servicio_id
 where c.estado <> 'cancelada';
 
-revoke all on public.citas_ocupacion from public;
-grant select on public.citas_ocupacion to anon, authenticated;
+revoke all on public.disponibilidad_citas from public;
+grant select on public.disponibilidad_citas to anon, authenticated;
 
 -- usuarios_negocio: users see their memberships; can link themselves to a negocio
 

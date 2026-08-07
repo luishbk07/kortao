@@ -8,13 +8,13 @@
     "start": "next start",
     "lint": "next lint"
   },
-
   "dependencies": {
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^5.18.0",
     "@mui/material": "^5.18.0",
+    "@supabase/supabase-js": "^2.112.2",
     "next": "14.2.35",
     "react": "^18",
     "react-dom": "^18"

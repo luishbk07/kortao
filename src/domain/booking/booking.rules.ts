@@ -1,4 +1,4 @@
-import type { Booking, BusinessHours, TimeSlot } from './booking.types'
+import type { BusinessHours, OccupiedSlot, TimeSlot } from './booking.types'
 
 const INTERVALO_SLOT_MINUTOS = 15
 
@@ -17,11 +17,11 @@ const combinarFechaYMinutos = (fecha: Date, minutosDelDia: number): Date => {
   return resultado
 }
 
-const obtenerFinCita = (cita: Booking): Date => {
+const obtenerFinCita = (cita: OccupiedSlot): Date => {
   return new Date(cita.fechaHora.getTime() + cita.duracionMinutos * 60_000)
 }
 
-const citasActivas = (citasExistentes: Booking[]): Booking[] => {
+const citasActivas = (citasExistentes: OccupiedSlot[]): OccupiedSlot[] => {
   return citasExistentes.filter((cita) => cita.estado !== 'cancelada')
 }
 
@@ -37,7 +37,7 @@ const haySolapamiento = (
 const seSolapaConCitas = (
   inicio: Date,
   fin: Date,
-  citasExistentes: Booking[]
+  citasExistentes: OccupiedSlot[]
 ): boolean => {
   return citasActivas(citasExistentes).some((cita) => {
     return haySolapamiento(inicio, fin, cita.fechaHora, obtenerFinCita(cita))
@@ -78,7 +78,7 @@ const estaDentroDeHorarios = (
 
 export const esHorarioDisponible = (
   horariosNegocio: BusinessHours[],
-  citasExistentes: Booking[],
+  citasExistentes: OccupiedSlot[],
   fechaHoraPropuesta: Date,
   duracionServicio: number
 ): boolean => {
@@ -100,7 +100,7 @@ export const esHorarioDisponible = (
 const generarSlotsEnHorario = (
   fecha: Date,
   horario: BusinessHours,
-  citasExistentes: Booking[],
+  citasExistentes: OccupiedSlot[],
   duracionServicio: number
 ): TimeSlot[] => {
   const inicioMinutos = parseHoraAMinutos(horario.horaInicio)
@@ -132,7 +132,7 @@ const generarSlotsEnHorario = (
 
 export const generarSlotsDisponibles = (
   horariosNegocio: BusinessHours[],
-  citasExistentes: Booking[],
+  citasExistentes: OccupiedSlot[],
   fecha: Date,
   duracionServicio: number
 ): TimeSlot[] => {
