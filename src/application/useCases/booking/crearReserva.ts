@@ -6,18 +6,7 @@ import type { NotificationService } from '@/application/ports/notificationServic
 import { HorarioNoDisponibleError } from '@/domain/booking/booking.errors'
 import { esHorarioDisponible } from '@/domain/booking/booking.rules'
 import type { Booking, BusinessHours } from '@/domain/booking/booking.types'
-
-const inicioDelDia = (fecha: Date): Date => {
-  const inicio = new Date(fecha)
-  inicio.setHours(0, 0, 0, 0)
-  return inicio
-}
-
-const finDelDia = (fecha: Date): Date => {
-  const fin = new Date(fecha)
-  fin.setHours(23, 59, 59, 999)
-  return fin
-}
+import { finDelDia, inicioDelDia } from '@/shared/utils/fechas'
 
 export const crearCrearReserva = (
   bookingRepository: BookingRepository,
