@@ -1,0 +1,84 @@
+# Code style rules — Kortao (barbershops & salons booking app)
+
+These rules are mandatory for all code generated in this project.
+If a Cursor suggestion contradicts them, this file takes priority.
+
+Note: the app's domain language (table names, business fields, UI copy)
+is Spanish, since the product is Spanish-speaking. Keep domain terms
+(e.g. `citas`, `negocio`, `crearReserva`) in Spanish exactly as defined
+in ARQUITECTURA.md and the database schema. These rules govern *how* to
+write code, not the language of domain naming.
+
+## Syntax and formatting
+
+- Never use `;` at the end of a line (ASI-style, no semicolons)
+- Always single quotes `''`, never `""` (except where JSX/HTML requires it)
+- Always arrow functions (`const doSomething = () => {}`), never
+  `function someFunction() {}`
+- Variables and functions in camelCase. React components in PascalCase.
+- No semicolons after imports/exports either
+- 2-space indentation
+- Prefer `const` over `let`. Never `var`.
+- Descriptive, full names — no cryptic abbreviations
+
+## Paradigm
+
+- Functional programming: pure functions wherever possible, no hidden
+  side effects
+- Avoid classes unless the framework strictly requires them
+- Avoid mutation: use spread (`...`), `map`, `filter`, `reduce` instead
+  of loops that mutate state
+- Compose small functions rather than writing large functions that do
+  everything
+- Each function does exactly one thing (Single Responsibility, even at
+  function level)
+
+## SOLID principles applied to this project
+
+- **S**: each module/file has a single reason to change
+- **O**: extend behavior by adding new functions/modules, not modifying
+  existing ones
+- **L**: implementations of a "port" (e.g. `bookingRepository`) must be
+  swappable without breaking whoever consumes them
+- **I**: small, specific interfaces/types — no giant types that force
+  consumers to implement things they don't use
+- **D**: business logic (`domain`, `application`) never imports directly
+  from Supabase or any external library — it depends on an interface
+  (a `port`), and the concrete implementation lives in `infrastructure`
+
+## Folder architecture (see ARQUITECTURA.md for full detail)
+
+- `domain/` → pure business rules, no external dependencies
+- `application/` → use cases, orchestrate domain + ports
+- `infrastructure/` → concrete implementations (Supabase, WhatsApp API)
+- `presentation/` → Next.js UI (pages, components, hooks)
+
+Never import `infrastructure` directly from `domain` or `application`.
+Dependency direction is always: `presentation → application → domain`,
+and `infrastructure` implements interfaces defined in `application/ports`.
+
+## UI
+
+- MUI (Material UI) + MUI Icons exclusively. No emojis anywhere in code,
+  UI, or copy.
+- No inline styles (`style={{ }}`) unless truly unavoidable
+- Use the centralized theme (`presentation/theme`) for colors, typography
+  and spacing — never hardcode loose hex colors in a component
+- Small, reusable components, no component over ~150-200 lines (split if
+  it grows past that)
+- Mobile-first: design for small screens first, expand with MUI
+  breakpoints
+
+## TypeScript
+
+- The entire project is TypeScript, not plain JavaScript
+- Explicit types on public function signatures (parameters and return
+  type)
+- Avoid `any` — if something is genuinely unknown, use `unknown` and
+  validate it
+
+## Testing (once added)
+
+- Pure functions in `domain` and `application` are the easiest and
+  highest-priority to test
+- Name tests after the behavior they verify, not the implementation
