@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import type { BusinessHours } from '@/domain/booking/booking.types'
-import { supabaseClient } from '@/infrastructure/supabase/supabaseClient'
+import { crearClienteServidor } from '@/infrastructure/supabase/clienteServidor'
 import { ReservarNegocio } from '@/presentation/components/booking/ReservarNegocio'
 import type {
   NegocioPublico,
@@ -58,7 +58,9 @@ const mapearHorario = (fila: HorarioFila): BusinessHours => ({
 })
 
 const ReservarPage = async ({ params }: ReservarPageProps) => {
-  const { data: negocioFila, error: errorNegocio } = await supabaseClient
+  const supabase = crearClienteServidor()
+
+  const { data: negocioFila, error: errorNegocio } = await supabase
     .from('negocios')
     .select('id, nombre, slug, telefono_whatsapp, direccion, color_acento')
     .eq('slug', params.negocioSlug)
@@ -71,13 +73,13 @@ const ReservarPage = async ({ params }: ReservarPageProps) => {
   const negocio = mapearNegocio(negocioFila as NegocioFila)
 
   const [resultadoServicios, resultadoHorarios] = await Promise.all([
-    supabaseClient
+    supabase
       .from('servicios')
       .select('id, nombre, duracion_minutos, precio')
       .eq('negocio_id', negocio.id)
       .eq('activo', true)
       .order('nombre', { ascending: true }),
-    supabaseClient
+    supabase
       .from('horarios_negocio')
       .select('dia_semana, hora_inicio, hora_fin')
       .eq('negocio_id', negocio.id)

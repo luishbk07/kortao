@@ -7,7 +7,7 @@ import type {
   EstadoCita,
   OccupiedSlot
 } from '@/domain/booking/booking.types'
-import { supabaseClient } from './supabaseClient'
+import { crearClienteNavegador } from './clienteNavegador'
 
 type CitaFila = {
   id: string
@@ -19,6 +19,7 @@ type CitaFila = {
   duracion_minutos: number
   estado: EstadoCita
   creado_en: string
+  servicios?: { nombre: string } | { nombre: string }[] | null
 }
 
 type SlotOcupadoFila = {
@@ -39,10 +40,25 @@ type CitaInsertFila = {
   creado_en: string
 }
 
+const obtenerNombreServicio = (
+  servicios: CitaFila['servicios']
+): string => {
+  if (!servicios) {
+    return 'Servicio'
+  }
+
+  if (Array.isArray(servicios)) {
+    return servicios[0]?.nombre ?? 'Servicio'
+  }
+
+  return servicios.nombre
+}
+
 const mapearFilaACita = (fila: CitaFila): Booking => ({
   id: fila.id,
   negocioId: fila.negocio_id,
   servicioId: fila.servicio_id,
+  servicioNombre: obtenerNombreServicio(fila.servicios),
   clienteNombre: fila.cliente_nombre,
   clienteTelefono: fila.cliente_telefono,
   fechaHora: new Date(fila.fecha_hora),
@@ -79,9 +95,21 @@ const lanzarErrorSupabase = (error: { message: string }): never => {
 
 export const bookingRepositorySupabase: BookingRepository = {
   obtenerCitasPorRango: async (negocioId, desde, hasta) => {
-    const { data, error } = await supabaseClient
+    const cliente = crearClienteNavegador()
+    const { data, error } = await cliente
       .from('citas')
-      .select('*')
+      .select(`
+        id,
+        negocio_id,
+        servicio_id,
+        cliente_nombre,
+        cliente_telefono,
+        fecha_hora,
+        duracion_minutos,
+        estado,
+        creado_en,
+        servicios ( nombre )
+      `)
       .eq('negocio_id', negocioId)
       .gte('fecha_hora', desde.toISOString())
       .lte('fecha_hora', hasta.toISOString())
@@ -95,7 +123,8 @@ export const bookingRepositorySupabase: BookingRepository = {
   },
 
   obtenerSlotsOcupados: async (negocioId, desde, hasta) => {
-    const { data, error } = await supabaseClient
+    const cliente = crearClienteNavegador()
+    const { data, error } = await cliente
       .from('disponibilidad_citas')
       .select('fecha_hora, duracion_minutos, estado')
       .eq('negocio_id', negocioId)
@@ -111,9 +140,10 @@ export const bookingRepositorySupabase: BookingRepository = {
   },
 
   crearCita: async (input) => {
+    const cliente = crearClienteNavegador()
     const fila = mapearCitaAFila(input)
 
-    const { error } = await supabaseClient.from('citas').insert(fila)
+    const { error } = await cliente.from('citas').insert(fila)
 
     if (error) {
       lanzarErrorSupabase(error)
@@ -123,11 +153,23 @@ export const bookingRepositorySupabase: BookingRepository = {
   },
 
   cancelarCita: async (citaId) => {
-    const { data, error } = await supabaseClient
+    const cliente = crearClienteNavegador()
+    const { data, error } = await cliente
       .from('citas')
       .update({ estado: 'cancelada' })
       .eq('id', citaId)
-      .select('*')
+      .select(`
+        id,
+        negocio_id,
+        servicio_id,
+        cliente_nombre,
+        cliente_telefono,
+        fecha_hora,
+        duracion_minutos,
+        estado,
+        creado_en,
+        servicios ( nombre )
+      `)
       .single()
 
     if (error) {

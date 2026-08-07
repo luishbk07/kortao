@@ -4,6 +4,7 @@ export type Booking = {
   id: string
   negocioId: string
   servicioId: string
+  servicioNombre: string
   clienteNombre: string
   clienteTelefono: string
   fechaHora: Date
