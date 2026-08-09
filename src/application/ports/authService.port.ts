@@ -1,6 +1,11 @@
 export type UsuarioAutenticado = {
   id: string
   email: string
+  metadata?: {
+    nombreNegocio?: string
+    telefonoWhatsapp?: string
+    direccion?: string
+  }
 }
 
 export type AuthService = {

@@ -1,8 +1,37 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
-import type { AuthService } from '@/application/ports/authService.port'
+import type { SupabaseClient, User } from '@supabase/supabase-js'
+import type {
+  AuthService,
+  UsuarioAutenticado
+} from '@/application/ports/authService.port'
 
 const lanzarErrorSupabase = (error: { message: string }): never => {
   throw new Error(error.message)
+}
+
+const leerTextoMetadata = (
+  metadata: Record<string, unknown>,
+  clave: string
+): string | undefined => {
+  const valor = metadata[clave]
+  return typeof valor === 'string' && valor.length > 0 ? valor : undefined
+}
+
+const mapearUsuario = (user: User): UsuarioAutenticado | null => {
+  if (!user.email) {
+    return null
+  }
+
+  const userMetadata = (user.user_metadata ?? {}) as Record<string, unknown>
+
+  return {
+    id: user.id,
+    email: user.email,
+    metadata: {
+      nombreNegocio: leerTextoMetadata(userMetadata, 'nombreNegocio'),
+      telefonoWhatsapp: leerTextoMetadata(userMetadata, 'telefonoWhatsapp'),
+      direccion: leerTextoMetadata(userMetadata, 'direccion')
+    }
+  }
 }
 
 export const crearAuthService = (cliente: SupabaseClient): AuthService => ({
@@ -16,14 +45,13 @@ export const crearAuthService = (cliente: SupabaseClient): AuthService => ({
       lanzarErrorSupabase(error)
     }
 
-    if (!data.user || !data.user.email) {
+    const usuario = data.user ? mapearUsuario(data.user) : null
+
+    if (!usuario) {
       throw new Error('No se pudo iniciar sesión')
     }
 
-    return {
-      id: data.user.id,
-      email: data.user.email
-    }
+    return usuario
   },
 
   cerrarSesion: async () => {
@@ -44,13 +72,10 @@ export const crearAuthService = (cliente: SupabaseClient): AuthService => ({
       lanzarErrorSupabase(error)
     }
 
-    if (!user || !user.email) {
+    if (!user) {
       return null
     }
 
-    return {
-      id: user.id,
-      email: user.email
-    }
+    return mapearUsuario(user)
   }
 })
