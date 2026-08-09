@@ -5,9 +5,9 @@ import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined
 import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
 import Stack from '@mui/material/Stack'
-import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import type { BloqueHorario } from '@/domain/business/business.types'
+import { SelectorHora } from '@/presentation/components/ui/SelectorHora'
 import { bloquePorDefecto } from './configuradorHorarios.helpers'
 
 type EditorBloquesHorarioProps = {
@@ -53,25 +53,17 @@ export const EditorBloquesHorario = ({
           spacing={1}
           alignItems={{ sm: 'center' }}
         >
-          <TextField
+          <SelectorHora
             label='Hora inicio'
-            type='time'
-            value={bloque.horaInicio}
-            onChange={(evento) =>
-              actualizarBloque(indice, { horaInicio: evento.target.value })
+            valor={bloque.horaInicio}
+            onChange={(horaInicio) =>
+              actualizarBloque(indice, { horaInicio })
             }
-            InputLabelProps={{ shrink: true }}
-            fullWidth
           />
-          <TextField
+          <SelectorHora
             label='Hora fin'
-            type='time'
-            value={bloque.horaFin}
-            onChange={(evento) =>
-              actualizarBloque(indice, { horaFin: evento.target.value })
-            }
-            InputLabelProps={{ shrink: true }}
-            fullWidth
+            valor={bloque.horaFin}
+            onChange={(horaFin) => actualizarBloque(indice, { horaFin })}
           />
           <IconButton
             aria-label='Eliminar bloque'
