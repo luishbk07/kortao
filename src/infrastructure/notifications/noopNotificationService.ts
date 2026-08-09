@@ -2,5 +2,6 @@ import type { NotificationService } from '@/application/ports/notificationServic
 
 export const noopNotificationService: NotificationService = {
   enviarConfirmacion: async () => undefined,
-  enviarRecordatorio: async () => undefined
+  enviarRecordatorio: async () => undefined,
+  enviarCancelacion: async () => undefined
 }

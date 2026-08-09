@@ -116,6 +116,27 @@ export const crearBusinessRepository = (
     return data?.slug ?? null
   },
 
+  obtenerNegocioPublicoPorId: async (negocioId) => {
+    const { data, error } = await cliente
+      .from('negocios')
+      .select('nombre, slug')
+      .eq('id', negocioId)
+      .maybeSingle()
+
+    if (error) {
+      lanzarErrorSupabase(error)
+    }
+
+    if (!data?.nombre || !data?.slug) {
+      return null
+    }
+
+    return {
+      nombre: data.nombre,
+      slug: data.slug
+    }
+  },
+
   listarServicios: async (negocioId) => {
     const { data, error } = await cliente
       .from('servicios')

@@ -11,9 +11,8 @@ import CardContent from '@mui/material/CardContent'
 import Chip from '@mui/material/Chip'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import { crearCancelarReserva } from '@/application/useCases/booking/cancelarReserva'
+import { cancelarCitaAction } from '@/app/(negocio)/panel/citas/actions'
 import type { Booking, EstadoCita } from '@/domain/booking/booking.types'
-import { bookingRepositorySupabase } from '@/infrastructure/supabase/bookingRepository.supabase'
 
 type ListaCitasPanelProps = {
   citas: Booking[]
@@ -75,8 +74,7 @@ export const ListaCitasPanel = ({
     setError(null)
 
     try {
-      const cancelarReserva = crearCancelarReserva(bookingRepositorySupabase)
-      await cancelarReserva(citaId)
+      await cancelarCitaAction(citaId)
       onCitaCancelada()
     } catch {
       setError('No se pudo cancelar la cita. Inténtalo de nuevo.')

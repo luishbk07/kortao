@@ -19,9 +19,17 @@ export type ActualizarServicioInput = {
   activo: boolean
 }
 
+export type NegocioPublico = {
+  nombre: string
+  slug: string
+}
+
 export type BusinessRepository = {
   obtenerNegocioIdPorUsuario: (authUserId: string) => Promise<string | null>
   obtenerSlugPorNegocioId: (negocioId: string) => Promise<string | null>
+  obtenerNegocioPublicoPorId: (
+    negocioId: string
+  ) => Promise<NegocioPublico | null>
   listarServicios: (negocioId: string) => Promise<Servicio[]>
   crearServicio: (input: CrearServicioInput) => Promise<Servicio>
   actualizarServicio: (
