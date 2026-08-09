@@ -21,6 +21,7 @@ export type ActualizarServicioInput = {
 
 export type BusinessRepository = {
   obtenerNegocioIdPorUsuario: (authUserId: string) => Promise<string | null>
+  obtenerSlugPorNegocioId: (negocioId: string) => Promise<string | null>
   listarServicios: (negocioId: string) => Promise<Servicio[]>
   crearServicio: (input: CrearServicioInput) => Promise<Servicio>
   actualizarServicio: (

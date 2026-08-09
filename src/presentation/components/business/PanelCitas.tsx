@@ -14,10 +14,12 @@ import {
   obtenerRangoTabCitas,
   type TabCitas
 } from '@/shared/utils/rangosCitas'
+import { EnlaceReservaPublica } from './EnlaceReservaPublica'
 import { ListaCitasPanel } from './ListaCitasPanel'
 
 type PanelCitasProps = {
   negocioId: string
+  negocioSlug: string
 }
 
 const obtenerCitasPorRango = crearObtenerCitasPorRango(
@@ -40,7 +42,7 @@ const ordenarCitas = (citas: Booking[], tab: TabCitas): Booking[] => {
   )
 }
 
-export const PanelCitas = ({ negocioId }: PanelCitasProps) => {
+export const PanelCitas = ({ negocioId, negocioSlug }: PanelCitasProps) => {
   const [tab, setTab] = useState<TabCitas>('hoy')
   const [citas, setCitas] = useState<Booking[]>([])
   const [cargando, setCargando] = useState(true)
@@ -89,6 +91,10 @@ export const PanelCitas = ({ negocioId }: PanelCitasProps) => {
           {fechaHoy}
         </Typography>
       </Stack>
+
+      {negocioSlug ? (
+        <EnlaceReservaPublica negocioSlug={negocioSlug} />
+      ) : null}
 
       <Tabs
         value={tab}
