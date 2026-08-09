@@ -141,8 +141,10 @@ export const whatsappNotificationService: NotificationService = {
     return undefined
   },
 
-  // Template name 'cita_cancelada' must match exactly what's approved in Meta
-  // WhatsApp Manager (including language code es / es_DO).
+  // Temporary: uses jaspers_market_order_confirmation_v1 (en_US) until
+  // 'cita_cancelada' is approved in Meta. Swap back to that template with
+  // its 4 body params (clienteNombre, negocioNombre, fecha, hora) and
+  // parametroBotonUrl (negocioSlug) once available.
   enviarCancelacion: async (input: EnviarCancelacionInput) => {
     const telefonoDestino = normalizarTelefono(input.clienteTelefono)
 
@@ -150,16 +152,13 @@ export const whatsappNotificationService: NotificationService = {
       throw new Error('El teléfono del cliente no es válido')
     }
 
+    const referencia = input.negocioSlug.slice(0, 6)
+    const fechaHora = formatearFechaHora(input.fechaHora)
+
     await enviarMensajePlantilla(telefonoDestino, {
-      nombre: 'cita_cancelada',
-      idioma: 'es',
-      parametrosCuerpo: [
-        input.clienteNombre,
-        input.negocioNombre,
-        formatearFecha(input.fechaHora),
-        formatearHora(input.fechaHora)
-      ],
-      parametroBotonUrl: input.negocioSlug
+      nombre: 'jaspers_market_order_confirmation_v1',
+      idioma: 'en_US',
+      parametrosCuerpo: [input.clienteNombre, referencia, fechaHora]
     })
   }
 }
