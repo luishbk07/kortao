@@ -52,16 +52,25 @@ export const ListaSlots = ({
       ) : (
         <Stack direction='row' flexWrap='wrap' useFlexGap spacing={1}>
           {slots.map((slot) => {
-            const seleccionado = slotSeleccionado
-              ? esMismoSlot(slot, slotSeleccionado)
-              : false
+            const seleccionado =
+              slot.disponible && slotSeleccionado
+                ? esMismoSlot(slot, slotSeleccionado)
+                : false
 
             return (
               <Button
                 key={slot.inicio.toISOString()}
                 variant={seleccionado ? 'contained' : 'outlined'}
                 color={seleccionado ? 'secondary' : 'primary'}
+                disabled={!slot.disponible}
                 onClick={() => onSeleccionar(slot)}
+                sx={{
+                  '&.Mui-disabled': {
+                    opacity: 0.45,
+                    borderColor: 'action.disabled',
+                    color: 'text.disabled'
+                  }
+                }}
               >
                 {formatearHora(slot.inicio)}
               </Button>

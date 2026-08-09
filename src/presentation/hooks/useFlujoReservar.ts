@@ -125,6 +125,10 @@ export const useFlujoReservar = ({
   }
 
   const seleccionarSlot = (slot: TimeSlot) => {
+    if (!slot.disponible) {
+      return
+    }
+
     setSlotSeleccionado(slot)
     setMensajeExito(null)
     setMensajeError(null)

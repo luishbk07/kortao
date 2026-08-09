@@ -22,6 +22,7 @@ export type OccupiedSlot = {
 export type TimeSlot = {
   inicio: Date
   fin: Date
+  disponible: boolean
 }
 
 export type BusinessHours = {
