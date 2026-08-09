@@ -35,7 +35,13 @@ export const crearCrearReserva = (
     }
 
     const cita = await bookingRepository.crearCita(input)
-    await notificationService.enviarConfirmacion(cita)
+
+    try {
+      await notificationService.enviarConfirmacion(cita)
+    } catch (error) {
+      // Booking already succeeded; WhatsApp must not fail the reservation.
+      console.error('No se pudo enviar la confirmación por WhatsApp', error)
+    }
 
     return cita
   }

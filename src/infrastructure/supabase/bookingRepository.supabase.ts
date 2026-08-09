@@ -1,3 +1,4 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
   BookingRepository,
   CrearCitaInput
@@ -93,9 +94,10 @@ const lanzarErrorSupabase = (error: { message: string }): never => {
   throw new Error(error.message)
 }
 
-export const bookingRepositorySupabase: BookingRepository = {
+export const crearBookingRepository = (
+  cliente: SupabaseClient
+): BookingRepository => ({
   obtenerCitasPorRango: async (negocioId, desde, hasta) => {
-    const cliente = crearClienteNavegador()
     const { data, error } = await cliente
       .from('citas')
       .select(`
@@ -123,7 +125,6 @@ export const bookingRepositorySupabase: BookingRepository = {
   },
 
   obtenerSlotsOcupados: async (negocioId, desde, hasta) => {
-    const cliente = crearClienteNavegador()
     const { data, error } = await cliente
       .from('disponibilidad_citas')
       .select('fecha_hora, duracion_minutos, estado')
@@ -140,9 +141,9 @@ export const bookingRepositorySupabase: BookingRepository = {
   },
 
   crearCita: async (input) => {
-    const cliente = crearClienteNavegador()
     const fila = mapearCitaAFila(input)
 
+    // Insert without SELECT: anon RLS allows insert but not reading citas (PII).
     const { error } = await cliente.from('citas').insert(fila)
 
     if (error) {
@@ -153,7 +154,6 @@ export const bookingRepositorySupabase: BookingRepository = {
   },
 
   cancelarCita: async (citaId) => {
-    const cliente = crearClienteNavegador()
     const { data, error } = await cliente
       .from('citas')
       .update({ estado: 'cancelada' })
@@ -182,4 +182,23 @@ export const bookingRepositorySupabase: BookingRepository = {
 
     return mapearFilaACita(data as CitaFila)
   }
+})
+
+export const bookingRepositorySupabase: BookingRepository = {
+  obtenerCitasPorRango: (negocioId, desde, hasta) =>
+    crearBookingRepository(crearClienteNavegador()).obtenerCitasPorRango(
+      negocioId,
+      desde,
+      hasta
+    ),
+  obtenerSlotsOcupados: (negocioId, desde, hasta) =>
+    crearBookingRepository(crearClienteNavegador()).obtenerSlotsOcupados(
+      negocioId,
+      desde,
+      hasta
+    ),
+  crearCita: (input) =>
+    crearBookingRepository(crearClienteNavegador()).crearCita(input),
+  cancelarCita: (citaId) =>
+    crearBookingRepository(crearClienteNavegador()).cancelarCita(citaId)
 }

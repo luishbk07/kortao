@@ -6,6 +6,11 @@ import Button from '@mui/material/Button'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import {
+  esTelefonoCompleto,
+  formatearTelefonoVisual,
+  normalizarTelefonoValor
+} from '@/shared/utils/telefono'
 
 type FormularioClienteProps = {
   clienteNombre: string
@@ -25,11 +30,15 @@ export const FormularioCliente = ({
   onConfirmar
 }: FormularioClienteProps) => {
   const formularioValido =
-    clienteNombre.trim().length > 1 && clienteTelefono.trim().length >= 8
+    clienteNombre.trim().length > 1 && esTelefonoCompleto(clienteTelefono)
 
-const handleSubmit = (evento: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault()
     onConfirmar()
+  }
+
+  const handleCambiarTelefono = (entrada: string) => {
+    onCambiarTelefono(normalizarTelefonoValor(entrada))
   }
 
   return (
@@ -50,10 +59,14 @@ const handleSubmit = (evento: FormEvent<HTMLFormElement>) => {
       />
       <TextField
         label='Teléfono'
-        value={clienteTelefono}
-        onChange={(evento) => onCambiarTelefono(evento.target.value)}
+        value={formatearTelefonoVisual(clienteTelefono)}
+        onChange={(evento) => handleCambiarTelefono(evento.target.value)}
+        placeholder='+1(809) 000-0000'
         autoComplete='tel'
-        inputProps={{ inputMode: 'tel' }}
+        inputProps={{
+          inputMode: 'tel',
+          maxLength: 16
+        }}
         fullWidth
         required
       />

@@ -1,11 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { crearCrearReserva } from '@/application/useCases/booking/crearReserva'
+import { confirmarReserva as confirmarReservaAction } from '@/app/(cliente)/reservar/[negocioSlug]/actions'
 import { crearObtenerDisponibilidad } from '@/application/useCases/booking/obtenerDisponibilidad'
 import { HorarioNoDisponibleError } from '@/domain/booking/booking.errors'
 import type { BusinessHours, TimeSlot } from '@/domain/booking/booking.types'
-import { noopNotificationService } from '@/infrastructure/notifications/noopNotificationService'
 import { bookingRepositorySupabase } from '@/infrastructure/supabase/bookingRepository.supabase'
 import type { ServicioPublico } from '@/presentation/components/booking/tiposReservar'
 
@@ -19,10 +18,16 @@ const obtenerDisponibilidad = crearObtenerDisponibilidad(
   bookingRepositorySupabase
 )
 
-const crearReserva = crearCrearReserva(
-  bookingRepositorySupabase,
-  noopNotificationService
-)
+const esErrorHorarioNoDisponible = (error: unknown): boolean => {
+  if (error instanceof HorarioNoDisponibleError) {
+    return true
+  }
+
+  return (
+    error instanceof Error &&
+    error.message === 'El horario ya no está disponible'
+  )
+}
 
 const formatearFechaLocal = (fecha: Date): string => {
   const anio = fecha.getFullYear()
@@ -135,17 +140,14 @@ export const useFlujoReservar = ({
     setMensajeExito(null)
 
     try {
-      await crearReserva(
-        {
-          negocioId,
-          servicioId: servicioSeleccionado.id,
-          clienteNombre: clienteNombre.trim(),
-          clienteTelefono: clienteTelefono.trim(),
-          fechaHora: slotSeleccionado.inicio,
-          duracionMinutos: servicioSeleccionado.duracionMinutos
-        },
-        horariosNegocio
-      )
+      await confirmarReservaAction({
+        negocioId,
+        servicioId: servicioSeleccionado.id,
+        clienteNombre: clienteNombre.trim(),
+        clienteTelefono: clienteTelefono.trim(),
+        fechaHora: slotSeleccionado.inicio,
+        duracionMinutos: servicioSeleccionado.duracionMinutos
+      })
 
       setMensajeExito(
         'Tu reserva está confirmada. Te esperamos en el horario elegido.'
@@ -162,7 +164,7 @@ export const useFlujoReservar = ({
       )
       setSlots(disponibles)
     } catch (error) {
-      if (error instanceof HorarioNoDisponibleError) {
+      if (esErrorHorarioNoDisponible(error)) {
         setMensajeError(
           'Ese horario ya no está disponible. Elige otro e inténtalo de nuevo.'
         )
