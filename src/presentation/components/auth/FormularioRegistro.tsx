@@ -1,0 +1,200 @@
+'use client'
+
+import { useState, type FormEvent } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import MarkEmailReadOutlinedIcon from '@mui/icons-material/MarkEmailReadOutlined'
+import PersonAddAltOutlinedIcon from '@mui/icons-material/PersonAddAltOutlined'
+import Alert from '@mui/material/Alert'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import Container from '@mui/material/Container'
+import Stack from '@mui/material/Stack'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
+import { crearClienteNavegador } from '@/infrastructure/supabase/clienteNavegador'
+import {
+  esTelefonoCompleto,
+  formatearTelefonoVisual,
+  normalizarTelefonoValor
+} from '@/shared/utils/telefono'
+
+export const FormularioRegistro = () => {
+  const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [nombreNegocio, setNombreNegocio] = useState('')
+  const [telefonoWhatsapp, setTelefonoWhatsapp] = useState('')
+  const [direccion, setDireccion] = useState('')
+  const [enviando, setEnviando] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [correoEnviado, setCorreoEnviado] = useState(false)
+
+  const formularioValido =
+    email.trim().length > 3 &&
+    password.length >= 6 &&
+    nombreNegocio.trim().length > 1 &&
+    esTelefonoCompleto(telefonoWhatsapp)
+
+  const handleSubmit = async (evento: FormEvent<HTMLFormElement>) => {
+    evento.preventDefault()
+
+    if (!formularioValido) {
+      return
+    }
+
+    setEnviando(true)
+    setError(null)
+
+    try {
+      const supabase = crearClienteNavegador()
+
+      const { data, error: errorSignup } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          data: {
+            nombreNegocio: nombreNegocio.trim(),
+            telefonoWhatsapp,
+            direccion: direccion.trim()
+          }
+        }
+      })
+
+      if (errorSignup) {
+        throw errorSignup
+      }
+
+      if (!data.session) {
+        setCorreoEnviado(true)
+        return
+      }
+
+      router.replace('/panel/onboarding')
+      router.refresh()
+    } catch (err) {
+      const mensaje =
+        err instanceof Error
+          ? err.message
+          : 'No se pudo crear la cuenta. Inténtalo de nuevo.'
+
+      if (mensaje.toLowerCase().includes('already registered')) {
+        setError('Ese correo ya está registrado. Inicia sesión.')
+      } else {
+        setError('No se pudo crear la cuenta. Inténtalo de nuevo.')
+      }
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  return (
+    <Box component='main' bgcolor='background.default' minHeight='100vh'>
+      <Container maxWidth='xs' sx={{ py: { xs: 5, sm: 8 } }}>
+        <Stack spacing={3}>
+          <Stack spacing={1} alignItems='center'>
+            <PersonAddAltOutlinedIcon color='primary' fontSize='large' />
+            <Typography variant='h4' component='h1' color='primary'>
+              Crear cuenta
+            </Typography>
+            <Typography color='text.secondary' textAlign='center'>
+              Registra tu negocio y empieza a recibir reservas.
+            </Typography>
+          </Stack>
+
+          {correoEnviado ? (
+            <Stack spacing={2} alignItems='center'>
+              <MarkEmailReadOutlinedIcon color='primary' sx={{ fontSize: 48 }} />
+              <Alert severity='success' icon={false} sx={{ width: '100%' }}>
+                Revisa tu correo y confirma tu cuenta para continuar. Cuando
+                confirmes, inicia sesión y termina de configurar tu negocio.
+              </Alert>
+              <Button component={Link} href='/login' color='secondary' variant='contained'>
+                Ir a iniciar sesión
+              </Button>
+            </Stack>
+          ) : (
+            <>
+              {error ? <Alert severity='error'>{error}</Alert> : null}
+
+              <Stack
+                component='form'
+                spacing={2}
+                onSubmit={(evento) => {
+                  void handleSubmit(evento)
+                }}
+              >
+                <TextField
+                  label='Correo electrónico'
+                  type='email'
+                  value={email}
+                  onChange={(evento) => setEmail(evento.target.value)}
+                  autoComplete='email'
+                  fullWidth
+                  required
+                />
+                <TextField
+                  label='Contraseña'
+                  type='password'
+                  value={password}
+                  onChange={(evento) => setPassword(evento.target.value)}
+                  autoComplete='new-password'
+                  helperText='Mínimo 6 caracteres'
+                  fullWidth
+                  required
+                />
+                <TextField
+                  label='Nombre del negocio'
+                  value={nombreNegocio}
+                  onChange={(evento) => setNombreNegocio(evento.target.value)}
+                  fullWidth
+                  required
+                />
+                <TextField
+                  label='Teléfono WhatsApp'
+                  value={formatearTelefonoVisual(telefonoWhatsapp)}
+                  onChange={(evento) =>
+                    setTelefonoWhatsapp(
+                      normalizarTelefonoValor(evento.target.value)
+                    )
+                  }
+                  placeholder='+1(809) 000-0000'
+                  inputProps={{ inputMode: 'tel', maxLength: 16 }}
+                  fullWidth
+                  required
+                />
+                <TextField
+                  label='Dirección'
+                  value={direccion}
+                  onChange={(evento) => setDireccion(evento.target.value)}
+                  fullWidth
+                />
+                <Button
+                  type='submit'
+                  variant='contained'
+                  color='secondary'
+                  size='large'
+                  disabled={!formularioValido || enviando}
+                  fullWidth
+                >
+                  {enviando ? 'Creando cuenta...' : 'Crear cuenta'}
+                </Button>
+              </Stack>
+
+              <Typography textAlign='center' color='text.secondary'>
+                <Button
+                  component={Link}
+                  href='/login'
+                  color='primary'
+                  sx={{ textTransform: 'none' }}
+                >
+                  Ya tengo cuenta, iniciar sesión
+                </Button>
+              </Typography>
+            </>
+          )}
+        </Stack>
+      </Container>
+    </Box>
+  )
+}

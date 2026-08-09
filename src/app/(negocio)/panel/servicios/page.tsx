@@ -1,17 +1,12 @@
 import { crearListarServicios } from '@/application/useCases/business/listarServicios'
-import { crearObtenerNegocioActual } from '@/application/useCases/business/obtenerNegocioActual'
 import { PanelServicios } from '@/presentation/components/business/PanelServicios'
 import { crearDependenciasPanelServidor } from '@/presentation/lib/crearDependenciasPanelServidor'
+import { obtenerNegocioIdORedirigir } from '@/presentation/lib/obtenerNegocioIdORedirigir'
 
 const ServiciosPanelPage = async () => {
-  const { authService, businessRepository } = crearDependenciasPanelServidor()
-  const obtenerNegocioActual = crearObtenerNegocioActual(
-    authService,
-    businessRepository
-  )
+  const negocioId = await obtenerNegocioIdORedirigir()
+  const { businessRepository } = crearDependenciasPanelServidor()
   const listarServicios = crearListarServicios(businessRepository)
-
-  const negocioId = await obtenerNegocioActual()
   const servicios = await listarServicios(negocioId)
 
   return (

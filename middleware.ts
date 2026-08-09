@@ -19,7 +19,9 @@ export const middleware = async (request: NextRequest) => {
   const { pathname } = request.nextUrl
   const esRutaPanel = pathname.startsWith('/panel')
   const esLogin = pathname === '/login'
+  const esRegistro = pathname === '/registro'
 
+  // Only /panel/* requires auth. '/' stays public for the landing page.
   if (esRutaPanel && !usuario) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/login'
@@ -27,15 +29,16 @@ export const middleware = async (request: NextRequest) => {
     return redirigirConSesion(loginUrl, respuesta)
   }
 
-  if (esLogin && usuario) {
-    const panelUrl = request.nextUrl.clone()
-    panelUrl.pathname = '/panel/citas'
-    return redirigirConSesion(panelUrl, respuesta)
+  // Authenticated users hitting auth screens go through '/' for routing.
+  if ((esLogin || esRegistro) && usuario) {
+    const inicioUrl = request.nextUrl.clone()
+    inicioUrl.pathname = '/'
+    return redirigirConSesion(inicioUrl, respuesta)
   }
 
   return respuesta
 }
 
 export const config = {
-  matcher: ['/panel/:path*', '/login']
+  matcher: ['/panel/:path*', '/login', '/registro']
 }

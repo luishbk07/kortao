@@ -25,9 +25,13 @@ export type CitaPanel = {
   duracionMinutos: number
 }
 
+export type BloqueHorario = {
+  horaInicio: string
+  horaFin: string
+}
+
 export type HorarioDiaInput = {
   diaSemana: number
   cerrado: boolean
-  horaInicio: string
-  horaFin: string
+  bloques: BloqueHorario[]
 }

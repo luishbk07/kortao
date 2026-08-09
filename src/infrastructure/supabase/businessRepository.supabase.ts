@@ -182,12 +182,14 @@ export const crearBusinessRepository = (
 
     const filas = horarios
       .filter((horario) => !horario.cerrado)
-      .map((horario) => ({
-        negocio_id: negocioId,
-        dia_semana: horario.diaSemana,
-        hora_inicio: horario.horaInicio,
-        hora_fin: horario.horaFin
-      }))
+      .flatMap((horario) =>
+        horario.bloques.map((bloque) => ({
+          negocio_id: negocioId,
+          dia_semana: horario.diaSemana,
+          hora_inicio: bloque.horaInicio,
+          hora_fin: bloque.horaFin
+        }))
+      )
 
     if (filas.length === 0) {
       return []

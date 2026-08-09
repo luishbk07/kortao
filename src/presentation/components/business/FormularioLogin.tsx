@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import Alert from '@mui/material/Alert'
@@ -29,7 +30,7 @@ export const FormularioLogin = () => {
       const { authService } = crearDependenciasPanelNavegador()
       const iniciarSesion = crearIniciarSesion(authService)
       await iniciarSesion(email, password)
-      router.replace('/panel/citas')
+      router.replace('/')
       router.refresh()
     } catch {
       setError('Correo o contraseña incorrectos. Inténtalo de nuevo.')
@@ -90,6 +91,17 @@ export const FormularioLogin = () => {
               {enviando ? 'Entrando...' : 'Entrar'}
             </Button>
           </Stack>
+
+          <Typography textAlign='center' color='text.secondary'>
+            <Button
+              component={Link}
+              href='/registro'
+              color='primary'
+              sx={{ textTransform: 'none' }}
+            >
+              Crear cuenta
+            </Button>
+          </Typography>
         </Stack>
       </Container>
     </Box>

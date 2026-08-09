@@ -1,15 +1,8 @@
-import { crearObtenerNegocioActual } from '@/application/useCases/business/obtenerNegocioActual'
 import { PanelCitas } from '@/presentation/components/business/PanelCitas'
-import { crearDependenciasPanelServidor } from '@/presentation/lib/crearDependenciasPanelServidor'
+import { obtenerNegocioIdORedirigir } from '@/presentation/lib/obtenerNegocioIdORedirigir'
 
 const CitasPanelPage = async () => {
-  const { authService, businessRepository } = crearDependenciasPanelServidor()
-  const obtenerNegocioActual = crearObtenerNegocioActual(
-    authService,
-    businessRepository
-  )
-
-  const negocioId = await obtenerNegocioActual()
+  const negocioId = await obtenerNegocioIdORedirigir()
 
   return <PanelCitas negocioId={negocioId} />
 }
