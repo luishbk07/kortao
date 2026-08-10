@@ -13,6 +13,7 @@ import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { crearClienteNavegador } from '@/infrastructure/supabase/clienteNavegador'
+import { EncabezadoMarca } from '@/presentation/components/ui/EncabezadoMarca'
 import {
   esTelefonoCompleto,
   formatearTelefonoVisual,
@@ -90,7 +91,8 @@ export const FormularioRegistro = () => {
 
   return (
     <Box component='main' bgcolor='background.default' minHeight='100vh'>
-      <Container maxWidth='xs' sx={{ py: { xs: 5, sm: 8 } }}>
+      <EncabezadoMarca />
+      <Container maxWidth='xs' sx={{ py: { xs: 4, sm: 6 } }}>
         <Stack spacing={3}>
           <Stack spacing={1} alignItems='center'>
             <PersonAddAltOutlinedIcon color='primary' fontSize='large' />

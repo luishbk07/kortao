@@ -13,6 +13,7 @@ import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { crearIniciarSesion } from '@/application/useCases/auth/iniciarSesion'
 import { crearDependenciasPanelNavegador } from '@/presentation/lib/crearDependenciasPanelNavegador'
+import { EncabezadoMarca } from '@/presentation/components/ui/EncabezadoMarca'
 
 export const FormularioLogin = () => {
   const router = useRouter()
@@ -41,7 +42,8 @@ export const FormularioLogin = () => {
 
   return (
     <Box component='main' bgcolor='background.default' minHeight='100vh'>
-      <Container maxWidth='xs' sx={{ py: { xs: 6, sm: 10 } }}>
+      <EncabezadoMarca />
+      <Container maxWidth='xs' sx={{ py: { xs: 5, sm: 8 } }}>
         <Stack spacing={3}>
           <Stack spacing={1} alignItems='center'>
             <LockOutlinedIcon color='primary' fontSize='large' />

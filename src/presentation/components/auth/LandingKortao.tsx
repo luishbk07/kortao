@@ -6,18 +6,22 @@ import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+import { EncabezadoMarca } from '@/presentation/components/ui/EncabezadoMarca'
 
 export const LandingKortao = () => {
   return (
-    <Box
-      component='main'
-      bgcolor='background.default'
-      minHeight='100vh'
-      display='flex'
-      alignItems='center'
-    >
-      <Container maxWidth='sm'>
-        <Stack spacing={4} alignItems='center' textAlign='center'>
+    <Box component='main' bgcolor='background.default' minHeight='100vh'>
+      <EncabezadoMarca />
+      <Container
+        maxWidth='sm'
+        sx={{
+          py: { xs: 8, sm: 12 },
+          display: 'flex',
+          alignItems: 'center',
+          minHeight: { xs: 'calc(100vh - 64px)', sm: 'calc(100vh - 64px)' }
+        }}
+      >
+        <Stack spacing={4} alignItems='center' textAlign='center' width='100%'>
           <Stack spacing={1.5} alignItems='center'>
             <Typography variant='h2' component='h1' color='primary'>
               Kortao

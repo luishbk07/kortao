@@ -2,7 +2,7 @@
 
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined'
 import Button from '@mui/material/Button'
-import CircularProgress from '@mui/material/CircularProgress'
+import Skeleton from '@mui/material/Skeleton'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import type { TimeSlot } from '@/domain/booking/booking.types'
@@ -42,8 +42,15 @@ export const ListaSlots = ({
       </Stack>
 
       {cargando ? (
-        <Stack alignItems='center' py={3}>
-          <CircularProgress size={32} />
+        <Stack direction='row' flexWrap='wrap' useFlexGap spacing={1}>
+          {[0, 1, 2, 3, 4, 5].map((indice) => (
+            <Skeleton
+              key={indice}
+              variant='rounded'
+              width={96}
+              height={36}
+            />
+          ))}
         </Stack>
       ) : slots.length === 0 ? (
         <Typography color='text.secondary'>

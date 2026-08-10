@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState, type SyntheticEvent } from 'react'
 import Alert from '@mui/material/Alert'
-import CircularProgress from '@mui/material/CircularProgress'
 import Stack from '@mui/material/Stack'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
@@ -15,6 +14,7 @@ import {
   type TabCitas
 } from '@/shared/utils/rangosCitas'
 import { EnlaceReservaPublica } from './EnlaceReservaPublica'
+import { EsqueletoListaCitas } from './EsqueletoListaCitas'
 import { ListaCitasPanel } from './ListaCitasPanel'
 
 type PanelCitasProps = {
@@ -115,9 +115,7 @@ export const PanelCitas = ({ negocioId, negocioSlug }: PanelCitasProps) => {
       ) : null}
 
       {cargando ? (
-        <Stack alignItems='center' py={4}>
-          <CircularProgress size={32} />
-        </Stack>
+        <EsqueletoListaCitas />
       ) : (
         <ListaCitasPanel
           citas={citas}
