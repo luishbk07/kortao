@@ -16,6 +16,10 @@ import {
 } from '@/shared/utils/telefono'
 import { generarSlug } from '@/shared/utils/slug'
 import { ConfiguradorHorarios } from './ConfiguradorHorarios'
+import {
+  SelectorUbicacion,
+  type CoordenadasUbicacion
+} from './SelectorUbicacion'
 
 type OnboardingNegocioProps = {
   nombreNegocioInicial: string
@@ -34,6 +38,7 @@ export const OnboardingNegocio = ({
     normalizarTelefonoValor(telefonoWhatsappInicial)
   )
   const [direccion, setDireccion] = useState(direccionInicial)
+  const [ubicacion, setUbicacion] = useState<CoordenadasUbicacion | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const datosNegocioValidos =
@@ -84,6 +89,7 @@ export const OnboardingNegocio = ({
           onChange={(evento) => setDireccion(evento.target.value)}
           fullWidth
         />
+        <SelectorUbicacion onChange={setUbicacion} />
       </Stack>
 
       <Stack spacing={1}>
@@ -113,7 +119,9 @@ export const OnboardingNegocio = ({
               nombre_param: nombreNegocio.trim(),
               slug_param: generarSlug(nombreNegocio),
               telefono_whatsapp_param: telefonoWhatsapp,
-              direccion_param: direccion.trim() || null
+              direccion_param: direccion.trim() || null,
+              latitud_param: ubicacion?.latitud ?? null,
+              longitud_param: ubicacion?.longitud ?? null
             }
           )
 

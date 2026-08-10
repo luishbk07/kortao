@@ -19,9 +19,27 @@ export type ActualizarServicioInput = {
   activo: boolean
 }
 
+export type ActualizarNegocioInput = {
+  nombre: string
+  telefonoWhatsapp: string
+  direccion: string | null
+  latitud: number | null
+  longitud: number | null
+}
+
 export type NegocioPublico = {
   nombre: string
   slug: string
+}
+
+export type NegocioDetalle = {
+  id: string
+  nombre: string
+  slug: string
+  telefonoWhatsapp: string
+  direccion: string | null
+  latitud: number | null
+  longitud: number | null
 }
 
 export type BusinessRepository = {
@@ -30,6 +48,11 @@ export type BusinessRepository = {
   obtenerNegocioPublicoPorId: (
     negocioId: string
   ) => Promise<NegocioPublico | null>
+  obtenerNegocioPorId: (negocioId: string) => Promise<NegocioDetalle | null>
+  actualizarNegocio: (
+    negocioId: string,
+    input: ActualizarNegocioInput
+  ) => Promise<NegocioDetalle>
   listarServicios: (negocioId: string) => Promise<Servicio[]>
   crearServicio: (input: CrearServicioInput) => Promise<Servicio>
   actualizarServicio: (

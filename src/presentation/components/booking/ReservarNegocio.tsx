@@ -1,9 +1,11 @@
 'use client'
 
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+import DirectionsOutlinedIcon from '@mui/icons-material/DirectionsOutlined'
 import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
@@ -49,6 +51,21 @@ export const ReservarNegocio = ({
                   {negocio.direccion}
                 </Typography>
               </Stack>
+            ) : null}
+            {negocio.latitud !== null && negocio.longitud !== null ? (
+              <Button
+                component='a'
+                href={`https://www.google.com/maps/dir/?api=1&destination=${negocio.latitud},${negocio.longitud}`}
+                target='_blank'
+                rel='noopener noreferrer'
+                variant='outlined'
+                color='primary'
+                size='small'
+                startIcon={<DirectionsOutlinedIcon />}
+                sx={{ alignSelf: 'flex-start' }}
+              >
+                Cómo llegar
+              </Button>
             ) : null}
             <Typography color='text.secondary'>
               Reserva tu cita en unos pasos.

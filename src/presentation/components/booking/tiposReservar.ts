@@ -5,6 +5,8 @@ export type NegocioPublico = {
   telefonoWhatsapp: string
   direccion: string | null
   colorAcento: string | null
+  latitud: number | null
+  longitud: number | null
 }
 
 export type ServicioPublico = {

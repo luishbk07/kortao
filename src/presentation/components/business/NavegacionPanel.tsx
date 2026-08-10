@@ -9,6 +9,7 @@ import ContentCutOutlinedIcon from '@mui/icons-material/ContentCutOutlined'
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined'
 import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined'
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined'
+import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined'
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -41,6 +42,11 @@ const enlaces = [
     href: '/panel/horarios',
     etiqueta: 'Horarios',
     icono: ScheduleOutlinedIcon
+  },
+  {
+    href: '/panel/negocio',
+    etiqueta: 'Negocio',
+    icono: StorefrontOutlinedIcon
   }
 ]
 

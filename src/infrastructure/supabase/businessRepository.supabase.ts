@@ -1,8 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
+  ActualizarNegocioInput,
   ActualizarServicioInput,
   BusinessRepository,
-  CrearServicioInput
+  CrearServicioInput,
+  NegocioDetalle
 } from '@/application/ports/businessRepository.port'
 import type {
   CitaPanel,
@@ -13,6 +15,16 @@ import type {
 import type { EstadoCita } from '@/domain/booking/booking.types'
 import { finDelDia, inicioDelDia } from '@/shared/utils/fechas'
 
+type NegocioFila = {
+  id: string
+  nombre: string
+  slug: string
+  telefono_whatsapp: string
+  direccion: string | null
+  latitud: number | string | null
+  longitud: number | string | null
+}
+
 type ServicioFila = {
   id: string
   negocio_id: string
@@ -21,6 +33,27 @@ type ServicioFila = {
   precio: number | string
   activo: boolean
 }
+
+const mapearNumeroOpcional = (
+  valor: number | string | null | undefined
+): number | null => {
+  if (valor === null || valor === undefined || valor === '') {
+    return null
+  }
+
+  const numero = Number(valor)
+  return Number.isFinite(numero) ? numero : null
+}
+
+const mapearNegocioDetalle = (fila: NegocioFila): NegocioDetalle => ({
+  id: fila.id,
+  nombre: fila.nombre,
+  slug: fila.slug,
+  telefonoWhatsapp: fila.telefono_whatsapp,
+  direccion: fila.direccion,
+  latitud: mapearNumeroOpcional(fila.latitud),
+  longitud: mapearNumeroOpcional(fila.longitud)
+})
 
 type HorarioFila = {
   id: string
@@ -135,6 +168,49 @@ export const crearBusinessRepository = (
       nombre: data.nombre,
       slug: data.slug
     }
+  },
+
+  obtenerNegocioPorId: async (negocioId) => {
+    const { data, error } = await cliente
+      .from('negocios')
+      .select('id, nombre, slug, telefono_whatsapp, direccion, latitud, longitud')
+      .eq('id', negocioId)
+      .maybeSingle()
+
+    if (error) {
+      lanzarErrorSupabase(error)
+    }
+
+    if (!data) {
+      return null
+    }
+
+    return mapearNegocioDetalle(data as NegocioFila)
+  },
+
+  actualizarNegocio: async (negocioId, input: ActualizarNegocioInput) => {
+    const { data, error } = await cliente
+      .from('negocios')
+      .update({
+        nombre: input.nombre,
+        telefono_whatsapp: input.telefonoWhatsapp,
+        direccion: input.direccion,
+        latitud: input.latitud,
+        longitud: input.longitud
+      })
+      .eq('id', negocioId)
+      .select('id, nombre, slug, telefono_whatsapp, direccion, latitud, longitud')
+      .single()
+
+    if (error) {
+      lanzarErrorSupabase(error)
+    }
+
+    if (!data) {
+      throw new Error('No se pudo actualizar el negocio')
+    }
+
+    return mapearNegocioDetalle(data as NegocioFila)
   },
 
   listarServicios: async (negocioId) => {
