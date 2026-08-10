@@ -2,10 +2,12 @@ import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
 import Skeleton from '@mui/material/Skeleton'
 import Stack from '@mui/material/Stack'
+import { EncabezadoMarca } from '@/presentation/components/ui/EncabezadoMarca'
 
 const ReservarLoading = () => {
   return (
     <Box component='main' bgcolor='background.default' minHeight='100vh'>
+      <EncabezadoMarca />
       <Container maxWidth='sm' sx={{ py: { xs: 3, sm: 5 } }}>
         <Stack spacing={3}>
           <Stack spacing={1}>

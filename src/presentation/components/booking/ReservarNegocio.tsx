@@ -8,6 +8,7 @@ import Container from '@mui/material/Container'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import type { BusinessHours } from '@/domain/booking/booking.types'
+import { EncabezadoMarca } from '@/presentation/components/ui/EncabezadoMarca'
 import { useFlujoReservar } from '@/presentation/hooks/useFlujoReservar'
 import { FormularioCliente } from './FormularioCliente'
 import { ListaServicios } from './ListaServicios'
@@ -34,6 +35,7 @@ export const ReservarNegocio = ({
 
   return (
     <Box component='main' bgcolor='background.default' minHeight='100vh'>
+      <EncabezadoMarca />
       <Container maxWidth='sm' sx={{ py: { xs: 3, sm: 5 } }}>
         <Stack spacing={3}>
           <Stack spacing={1}>

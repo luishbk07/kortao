@@ -22,9 +22,9 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import Stack from '@mui/material/Stack'
 import Toolbar from '@mui/material/Toolbar'
-import Typography from '@mui/material/Typography'
 import { crearCerrarSesion } from '@/application/useCases/auth/cerrarSesion'
 import { crearDependenciasPanelNavegador } from '@/presentation/lib/crearDependenciasPanelNavegador'
+import { LogoKortao } from '@/presentation/components/ui/LogoKortao'
 
 const enlaces = [
   {
@@ -75,9 +75,16 @@ export const NavegacionPanel = () => {
       >
         <Container maxWidth='md'>
           <Toolbar disableGutters sx={{ py: 1, gap: 1 }}>
-            <Typography variant='h6' color='primary' sx={{ flexGrow: { xs: 1, sm: 0 }, mr: { sm: 2 } }}>
-              Kortao
-            </Typography>
+            <Box
+              sx={{
+                flexGrow: { xs: 1, sm: 0 },
+                mr: { sm: 2 },
+                display: 'inline-flex',
+                alignItems: 'center'
+              }}
+            >
+              <LogoKortao variant='horizontal' size={36} />
+            </Box>
 
             <Stack
               direction='row'
@@ -149,9 +156,7 @@ export const NavegacionPanel = () => {
           px={2}
           py={1.5}
         >
-          <Typography variant='h6' color='primary'>
-            Kortao
-          </Typography>
+          <LogoKortao variant='horizontal' size={32} />
           <IconButton
             color='primary'
             aria-label='Cerrar menú'

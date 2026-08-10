@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import AppBar from '@mui/material/AppBar'
+import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
 import Toolbar from '@mui/material/Toolbar'
-import Typography from '@mui/material/Typography'
+import { LogoKortao } from '@/presentation/components/ui/LogoKortao'
 
 export const EncabezadoMarca = () => {
   return (
@@ -18,18 +19,17 @@ export const EncabezadoMarca = () => {
     >
       <Container maxWidth='sm'>
         <Toolbar disableGutters sx={{ minHeight: 64 }}>
-          <Typography
+          <Box
             component={Link}
             href='/'
-            variant='h6'
-            color='primary'
             sx={{
-              textDecoration: 'none',
-              fontWeight: 700
+              display: 'inline-flex',
+              alignItems: 'center',
+              textDecoration: 'none'
             }}
           >
-            Kortao
-          </Typography>
+            <LogoKortao variant='horizontal' />
+          </Box>
         </Toolbar>
       </Container>
     </AppBar>
