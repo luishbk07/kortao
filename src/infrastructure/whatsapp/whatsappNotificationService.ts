@@ -8,7 +8,6 @@ type PlantillaWhatsapp = {
   nombre: string
   idioma: string
   parametrosCuerpo: string[]
-  parametroBotonUrl?: string
 }
 
 const PLANTILLA_MUESTRA: PlantillaWhatsapp = {
@@ -47,6 +46,13 @@ const formatearFecha = (fecha: Date): string => {
     day: 'numeric',
     month: 'short',
     year: 'numeric'
+  })
+}
+
+const formatearFechaSinAnio = (fecha: Date): string => {
+  return fecha.toLocaleDateString('es-DO', {
+    day: 'numeric',
+    month: 'long'
   })
 }
 
@@ -92,30 +98,6 @@ const enviarMensajePlantilla = async (
 ): Promise<void> => {
   const { accessToken, phoneNumberId } = obtenerCredencialesWhatsapp()
 
-  const componentes: Array<Record<string, unknown>> = [
-    {
-      type: 'body',
-      parameters: plantilla.parametrosCuerpo.map((texto) => ({
-        type: 'text',
-        text: texto
-      }))
-    }
-  ]
-
-  if (plantilla.parametroBotonUrl !== undefined) {
-    componentes.push({
-      type: 'button',
-      sub_type: 'url',
-      index: '0',
-      parameters: [
-        {
-          type: 'text',
-          text: plantilla.parametroBotonUrl
-        }
-      ]
-    })
-  }
-
   const respuesta = await fetch(
     `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`,
     {
@@ -133,7 +115,15 @@ const enviarMensajePlantilla = async (
           language: {
             code: plantilla.idioma
           },
-          components: componentes
+          components: [
+            {
+              type: 'body',
+              parameters: plantilla.parametrosCuerpo.map((texto) => ({
+                type: 'text',
+                text: texto
+              }))
+            }
+          ]
         }
       })
     }
@@ -237,10 +227,8 @@ export const whatsappNotificationService: NotificationService = {
     )
   },
 
-  // Temporary: uses jaspers_market_order_confirmation_v1 (en_US) until
-  // 'cita_cancelada' is approved in Meta. Swap back to that template with
-  // its 4 body params (clienteNombre, negocioNombre, fecha, hora) and
-  // parametroBotonUrl (negocioSlug) once available.
+  // Preferred: cita_cancelada (es_DO) — body only, no button.
+  // Params: clienteNombre, negocioNombre, fecha sin año, hora.
   enviarCancelacion: async (input: EnviarCancelacionInput) => {
     const telefonoDestino = normalizarTelefono(input.clienteTelefono)
 
@@ -248,8 +236,18 @@ export const whatsappNotificationService: NotificationService = {
       throw new Error('El teléfono del cliente no es válido')
     }
 
-    await enviarMensajePlantilla(
+    await enviarPlantillaConFallback(
       telefonoDestino,
+      {
+        nombre: 'cita_cancelada',
+        idioma: 'es_DO',
+        parametrosCuerpo: [
+          input.clienteNombre,
+          input.negocioNombre,
+          formatearFechaSinAnio(input.fechaHora),
+          formatearHora(input.fechaHora)
+        ]
+      },
       plantillaMuestraTresParametros(
         input.clienteNombre,
         input.negocioSlug.slice(0, 6),
