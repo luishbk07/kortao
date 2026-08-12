@@ -23,6 +23,12 @@ type CitaPendiente = {
   negocios: { nombre: string } | null;
 };
 
+type PlantillaWhatsapp = {
+  nombre: string;
+  idioma: string;
+  parametrosCuerpo: string[];
+};
+
 const normalizarTelefono = (telefono: string): string => {
   return telefono.replace(/\D/g, "");
 };
@@ -43,13 +49,38 @@ const formatearHora = (fecha: Date): string => {
   });
 };
 
-const enviarMensajeRecordatorio = async (
-  cita: CitaPendiente,
-): Promise<void> => {
-  const telefono = normalizarTelefono(cita.cliente_telefono);
-  const fecha = new Date(cita.fecha_hora);
-  const negocioNombre = cita.negocios?.nombre ?? "tu negocio";
+const formatearFechaHora = (fecha: Date): string => {
+  return `${formatearFecha(fecha)}, ${formatearHora(fecha)}`;
+};
 
+const extraerCodigoErrorMeta = (detalle: string): number | undefined => {
+  try {
+    const jsonTexto = detalle.replace(/^Error al enviar WhatsApp:\s*/, "");
+    const cuerpo = JSON.parse(jsonTexto) as {
+      error?: { code?: number };
+    };
+    return typeof cuerpo.error?.code === "number"
+      ? cuerpo.error.code
+      : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+const esPlantillaInexistenteONoAprobada = (detalle: string): boolean => {
+  const codigo = extraerCodigoErrorMeta(detalle);
+  if (codigo === 132001) {
+    return true;
+  }
+
+  const mensaje = detalle.toLowerCase();
+  return mensaje.includes("template") && mensaje.includes("does not exist");
+};
+
+const enviarMensajePlantilla = async (
+  telefonoDestino: string,
+  plantilla: PlantillaWhatsapp,
+): Promise<void> => {
   const respuesta = await fetch(
     `https://graph.facebook.com/v20.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
     {
@@ -60,24 +91,18 @@ const enviarMensajeRecordatorio = async (
       },
       body: JSON.stringify({
         messaging_product: "whatsapp",
-        to: telefono,
+        to: telefonoDestino,
         type: "template",
         template: {
-          // Placeholder while 'recordatorio_cita' is pending Meta approval.
-          // Swap to the real template + real body params once approved.
-          name: "jaspers_market_order_confirmation_v1",
-          language: { code: "en_US" },
+          name: plantilla.nombre,
+          language: { code: plantilla.idioma },
           components: [
             {
               type: "body",
-              parameters: [
-                { type: "text", text: cita.cliente_nombre },
-                { type: "text", text: cita.id.slice(0, 6) },
-                {
-                  type: "text",
-                  text: `${formatearFecha(fecha)}, ${formatearHora(fecha)}`,
-                },
-              ],
+              parameters: plantilla.parametrosCuerpo.map((texto) => ({
+                type: "text",
+                text: texto,
+              })),
             },
           ],
         },
@@ -89,6 +114,59 @@ const enviarMensajeRecordatorio = async (
     const detalle = await respuesta.text();
     throw new Error(`Error al enviar WhatsApp: ${detalle}`);
   }
+};
+
+const enviarPlantillaConFallback = async (
+  telefonoDestino: string,
+  preferida: PlantillaWhatsapp,
+  fallback: PlantillaWhatsapp,
+): Promise<void> => {
+  try {
+    await enviarMensajePlantilla(telefonoDestino, preferida);
+  } catch (error) {
+    const detalle = error instanceof Error ? error.message : String(error);
+
+    if (!esPlantillaInexistenteONoAprobada(detalle)) {
+      throw error;
+    }
+
+    console.warn(
+      `Plantilla WhatsApp '${preferida.nombre}' no disponible o no aprobada; usando fallback '${fallback.nombre}'.`,
+    );
+    await enviarMensajePlantilla(telefonoDestino, fallback);
+  }
+};
+
+const enviarMensajeRecordatorio = async (
+  cita: CitaPendiente,
+): Promise<void> => {
+  const telefono = normalizarTelefono(cita.cliente_telefono);
+  const fecha = new Date(cita.fecha_hora);
+  const negocioNombre = cita.negocios?.nombre ?? "tu negocio";
+
+  // Preferred: recordatorio_cita (pending Meta approval) — fallback expected until approved.
+  await enviarPlantillaConFallback(
+    telefono,
+    {
+      nombre: "recordatorio_cita",
+      idioma: "es_DO",
+      parametrosCuerpo: [
+        cita.cliente_nombre,
+        negocioNombre,
+        formatearFecha(fecha),
+        formatearHora(fecha),
+      ],
+    },
+    {
+      nombre: "jaspers_market_order_confirmation_v1",
+      idioma: "en_US",
+      parametrosCuerpo: [
+        cita.cliente_nombre,
+        cita.id.slice(0, 6),
+        formatearFechaHora(fecha),
+      ],
+    },
+  );
 };
 
 Deno.serve(async () => {

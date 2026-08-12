@@ -24,22 +24,38 @@ const normalizarInput = (input: CrearCitaInput): CrearCitaInput => ({
   fechaHora: new Date(input.fechaHora)
 })
 
-const obtenerHorariosNegocio = async (
+const obtenerDatosNegocio = async (
   negocioId: string
-): Promise<BusinessHours[]> => {
+): Promise<{ horarios: BusinessHours[]; nombre: string }> => {
   const supabase = crearClienteServidor()
 
-  const { data, error } = await supabase
-    .from('horarios_negocio')
-    .select('dia_semana, hora_inicio, hora_fin')
-    .eq('negocio_id', negocioId)
-    .order('dia_semana', { ascending: true })
+  const [resultadoHorarios, resultadoNegocio] = await Promise.all([
+    supabase
+      .from('horarios_negocio')
+      .select('dia_semana, hora_inicio, hora_fin')
+      .eq('negocio_id', negocioId)
+      .order('dia_semana', { ascending: true }),
+    supabase
+      .from('negocios')
+      .select('nombre')
+      .eq('id', negocioId)
+      .maybeSingle()
+  ])
 
-  if (error) {
+  if (resultadoHorarios.error) {
     throw new Error('No se pudieron cargar los horarios del negocio')
   }
 
-  return ((data as HorarioFila[] | null) ?? []).map(mapearHorario)
+  if (resultadoNegocio.error || !resultadoNegocio.data?.nombre) {
+    throw new Error('No se pudo cargar el negocio')
+  }
+
+  return {
+    horarios: ((resultadoHorarios.data as HorarioFila[] | null) ?? []).map(
+      mapearHorario
+    ),
+    nombre: resultadoNegocio.data.nombre
+  }
 }
 
 export const confirmarReserva = async (
@@ -52,9 +68,9 @@ export const confirmarReserva = async (
     bookingRepository,
     whatsappNotificationService
   )
-  const horariosNegocio = await obtenerHorariosNegocio(
+  const { horarios, nombre } = await obtenerDatosNegocio(
     inputNormalizado.negocioId
   )
 
-  return crearReserva(inputNormalizado, horariosNegocio)
+  return crearReserva(inputNormalizado, horarios, nombre)
 }

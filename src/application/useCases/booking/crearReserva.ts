@@ -14,7 +14,8 @@ export const crearCrearReserva = (
 ) => {
   return async (
     input: CrearCitaInput,
-    horariosNegocio: BusinessHours[]
+    horariosNegocio: BusinessHours[],
+    negocioNombre: string
   ): Promise<Booking> => {
     const slotsOcupados = await bookingRepository.obtenerSlotsOcupados(
       input.negocioId,
@@ -37,7 +38,13 @@ export const crearCrearReserva = (
     const cita = await bookingRepository.crearCita(input)
 
     try {
-      await notificationService.enviarConfirmacion(cita)
+      await notificationService.enviarConfirmacion({
+        id: cita.id,
+        clienteTelefono: cita.clienteTelefono,
+        clienteNombre: cita.clienteNombre,
+        negocioNombre,
+        fechaHora: cita.fechaHora
+      })
     } catch (error) {
       // Booking already succeeded; WhatsApp must not fail the reservation.
       console.error('No se pudo enviar la confirmación por WhatsApp', error)

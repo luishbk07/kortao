@@ -1,8 +1,21 @@
 import type {
   EnviarCancelacionInput,
+  EnviarConfirmacionInput,
   NotificationService
 } from '@/application/ports/notificationService.port'
-import type { Booking } from '@/domain/booking/booking.types'
+
+type PlantillaWhatsapp = {
+  nombre: string
+  idioma: string
+  parametrosCuerpo: string[]
+  parametroBotonUrl?: string
+}
+
+const PLANTILLA_MUESTRA: PlantillaWhatsapp = {
+  nombre: 'jaspers_market_order_confirmation_v1',
+  idioma: 'en_US',
+  parametrosCuerpo: []
+}
 
 const obtenerCredencialesWhatsapp = (): {
   accessToken: string
@@ -49,14 +62,33 @@ const formatearFechaHora = (fecha: Date): string => {
   return `${formatearFecha(fecha)}, ${formatearHora(fecha)}`
 }
 
+const extraerCodigoErrorMeta = (detalle: string): number | undefined => {
+  try {
+    const jsonTexto = detalle.replace(/^Error al enviar WhatsApp:\s*/, '')
+    const cuerpo = JSON.parse(jsonTexto) as {
+      error?: { code?: number }
+    }
+    return typeof cuerpo.error?.code === 'number'
+      ? cuerpo.error.code
+      : undefined
+  } catch {
+    return undefined
+  }
+}
+
+const esPlantillaInexistenteONoAprobada = (detalle: string): boolean => {
+  const codigo = extraerCodigoErrorMeta(detalle)
+  if (codigo === 132001) {
+    return true
+  }
+
+  const mensaje = detalle.toLowerCase()
+  return mensaje.includes('template') && mensaje.includes('does not exist')
+}
+
 const enviarMensajePlantilla = async (
   telefonoDestino: string,
-  plantilla: {
-    nombre: string
-    idioma: string
-    parametrosCuerpo: string[]
-    parametroBotonUrl?: string
-  }
+  plantilla: PlantillaWhatsapp
 ): Promise<void> => {
   const { accessToken, phoneNumberId } = obtenerCredencialesWhatsapp()
 
@@ -113,32 +145,96 @@ const enviarMensajePlantilla = async (
   }
 }
 
+const enviarPlantillaConFallback = async (
+  telefonoDestino: string,
+  preferida: PlantillaWhatsapp,
+  fallback: PlantillaWhatsapp
+): Promise<void> => {
+  try {
+    await enviarMensajePlantilla(telefonoDestino, preferida)
+  } catch (error) {
+    const detalle = error instanceof Error ? error.message : String(error)
+
+    if (!esPlantillaInexistenteONoAprobada(detalle)) {
+      throw error
+    }
+
+    console.warn(
+      `Plantilla WhatsApp '${preferida.nombre}' no disponible o no aprobada; usando fallback '${fallback.nombre}'.`
+    )
+    await enviarMensajePlantilla(telefonoDestino, fallback)
+  }
+}
+
+const plantillaMuestraTresParametros = (
+  clienteNombre: string,
+  referencia: string,
+  fechaHora: Date
+): PlantillaWhatsapp => ({
+  ...PLANTILLA_MUESTRA,
+  parametrosCuerpo: [
+    clienteNombre,
+    referencia,
+    formatearFechaHora(fechaHora)
+  ]
+})
+
 export const whatsappNotificationService: NotificationService = {
-  // Temporary placeholder: jaspers_market_order_confirmation_v1 (en_US) is a
-  // Meta sample template used only until we get a custom Spanish confirmation
-  // template approved in WhatsApp Manager. Replace name, language and body
-  // params with that custom template when available.
-  enviarConfirmacion: async (cita: Booking) => {
-    const telefonoDestino = normalizarTelefono(cita.clienteTelefono)
+  // Preferred: reserva_de_cita (es_DO)
+  // "Hola {{1}}, tu cita en {{2}} está confirmada para el {{3}} a las {{4}}. ¡Te esperamos!"
+  enviarConfirmacion: async (input: EnviarConfirmacionInput) => {
+    const telefonoDestino = normalizarTelefono(input.clienteTelefono)
 
     if (!telefonoDestino) {
       throw new Error('El teléfono del cliente no es válido')
     }
 
-    const referencia = cita.id.slice(0, 6)
-    const fechaHora = formatearFechaHora(cita.fechaHora)
-
-    await enviarMensajePlantilla(telefonoDestino, {
-      nombre: 'jaspers_market_order_confirmation_v1',
-      idioma: 'en_US',
-      parametrosCuerpo: [cita.clienteNombre, referencia, fechaHora]
-    })
+    await enviarPlantillaConFallback(
+      telefonoDestino,
+      {
+        nombre: 'reserva_de_cita',
+        idioma: 'es_DO',
+        parametrosCuerpo: [
+          input.clienteNombre,
+          input.negocioNombre,
+          formatearFecha(input.fechaHora),
+          formatearHora(input.fechaHora)
+        ]
+      },
+      plantillaMuestraTresParametros(
+        input.clienteNombre,
+        input.id.slice(0, 6),
+        input.fechaHora
+      )
+    )
   },
 
-  // Stub: scheduled reminders need a Supabase Edge Function with a cron
-  // job that checks upcoming citas and calls this (or Meta) later.
-  enviarRecordatorio: async (_cita) => {
-    return undefined
+  // Preferred: recordatorio_cita (pending Meta approval) — expects fallback until approved.
+  enviarRecordatorio: async (input: EnviarConfirmacionInput) => {
+    const telefonoDestino = normalizarTelefono(input.clienteTelefono)
+
+    if (!telefonoDestino) {
+      throw new Error('El teléfono del cliente no es válido')
+    }
+
+    await enviarPlantillaConFallback(
+      telefonoDestino,
+      {
+        nombre: 'recordatorio_cita',
+        idioma: 'es_DO',
+        parametrosCuerpo: [
+          input.clienteNombre,
+          input.negocioNombre,
+          formatearFecha(input.fechaHora),
+          formatearHora(input.fechaHora)
+        ]
+      },
+      plantillaMuestraTresParametros(
+        input.clienteNombre,
+        input.id.slice(0, 6),
+        input.fechaHora
+      )
+    )
   },
 
   // Temporary: uses jaspers_market_order_confirmation_v1 (en_US) until
@@ -152,13 +248,13 @@ export const whatsappNotificationService: NotificationService = {
       throw new Error('El teléfono del cliente no es válido')
     }
 
-    const referencia = input.negocioSlug.slice(0, 6)
-    const fechaHora = formatearFechaHora(input.fechaHora)
-
-    await enviarMensajePlantilla(telefonoDestino, {
-      nombre: 'jaspers_market_order_confirmation_v1',
-      idioma: 'en_US',
-      parametrosCuerpo: [input.clienteNombre, referencia, fechaHora]
-    })
+    await enviarMensajePlantilla(
+      telefonoDestino,
+      plantillaMuestraTresParametros(
+        input.clienteNombre,
+        input.negocioSlug.slice(0, 6),
+        input.fechaHora
+      )
+    )
   }
 }

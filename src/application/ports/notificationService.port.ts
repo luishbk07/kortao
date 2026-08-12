@@ -1,4 +1,10 @@
-import type { Booking } from '@/domain/booking/booking.types'
+export type EnviarConfirmacionInput = {
+  id: string
+  clienteTelefono: string
+  clienteNombre: string
+  negocioNombre: string
+  fechaHora: Date
+}
 
 export type EnviarCancelacionInput = {
   clienteTelefono: string
@@ -9,7 +15,7 @@ export type EnviarCancelacionInput = {
 }
 
 export type NotificationService = {
-  enviarConfirmacion: (cita: Booking) => Promise<void>
-  enviarRecordatorio: (cita: Booking) => Promise<void>
+  enviarConfirmacion: (input: EnviarConfirmacionInput) => Promise<void>
+  enviarRecordatorio: (input: EnviarConfirmacionInput) => Promise<void>
   enviarCancelacion: (input: EnviarCancelacionInput) => Promise<void>
 }
