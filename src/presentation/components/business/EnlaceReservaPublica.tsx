@@ -1,31 +1,24 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined'
 import Alert from '@mui/material/Alert'
 import Button from '@mui/material/Button'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import { construirUrlReserva } from '@/shared/utils/sitio'
 
 type EnlaceReservaPublicaProps = {
   negocioSlug: string
 }
 
-const construirRutaReserva = (slug: string): string => `/reservar/${slug}`
-
 export const EnlaceReservaPublica = ({
   negocioSlug
 }: EnlaceReservaPublicaProps) => {
-  const [urlPublica, setUrlPublica] = useState(construirRutaReserva(negocioSlug))
+  const urlPublica = construirUrlReserva(negocioSlug)
   const [mensaje, setMensaje] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    setUrlPublica(
-      `${window.location.origin}${construirRutaReserva(negocioSlug)}`
-    )
-  }, [negocioSlug])
 
   const copiarEnlace = async () => {
     setError(null)
