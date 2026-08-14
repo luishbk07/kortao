@@ -22,6 +22,7 @@ type NegocioFila = {
   color_acento: string | null
   latitud: number | string | null
   longitud: number | string | null
+  suscripcion_activa: boolean
 }
 
 const mapearNumeroOpcional = (
@@ -78,7 +79,7 @@ const ReservarPage = async ({ params }: ReservarPageProps) => {
   const { data: negocioFila, error: errorNegocio } = await supabase
     .from('negocios')
     .select(
-      'id, nombre, slug, telefono_whatsapp, direccion, color_acento, latitud, longitud'
+      'id, nombre, slug, telefono_whatsapp, direccion, color_acento, latitud, longitud, suscripcion_activa'
     )
     .eq('slug', params.negocioSlug)
     .maybeSingle()
@@ -87,7 +88,19 @@ const ReservarPage = async ({ params }: ReservarPageProps) => {
     notFound()
   }
 
-  const negocio = mapearNegocio(negocioFila as NegocioFila)
+  const negocioFilaTipada = negocioFila as NegocioFila
+  const negocio = mapearNegocio(negocioFilaTipada)
+
+  if (!negocioFilaTipada.suscripcion_activa) {
+    return (
+      <ReservarNegocio
+        negocio={negocio}
+        servicios={[]}
+        horariosNegocio={[]}
+        disponible={false}
+      />
+    )
+  }
 
   const [resultadoServicios, resultadoHorarios] = await Promise.all([
     supabase
@@ -118,6 +131,7 @@ const ReservarPage = async ({ params }: ReservarPageProps) => {
       negocio={negocio}
       servicios={servicios}
       horariosNegocio={horariosNegocio}
+      disponible
     />
   )
 }

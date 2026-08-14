@@ -22,18 +22,38 @@ type ReservarNegocioProps = {
   negocio: NegocioPublico
   servicios: ServicioPublico[]
   horariosNegocio: BusinessHours[]
+  disponible?: boolean
 }
 
 export const ReservarNegocio = ({
   negocio,
   servicios,
-  horariosNegocio
+  horariosNegocio,
+  disponible = true
 }: ReservarNegocioProps) => {
   const flujo = useFlujoReservar({
     negocioId: negocio.id,
     servicios,
     horariosNegocio
   })
+
+  if (!disponible) {
+    return (
+      <Box component='main' bgcolor='background.default' minHeight='100vh'>
+        <EncabezadoMarca />
+        <Container maxWidth='sm' sx={{ py: { xs: 8, sm: 12 } }}>
+          <Stack spacing={2} alignItems='center' textAlign='center'>
+            <Typography variant='h4' component='h1' color='primary'>
+              {negocio.nombre}
+            </Typography>
+            <Typography color='text.secondary'>
+              Este negocio no está disponible en este momento.
+            </Typography>
+          </Stack>
+        </Container>
+      </Box>
+    )
+  }
 
   return (
     <Box component='main' bgcolor='background.default' minHeight='100vh'>

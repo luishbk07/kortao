@@ -18,11 +18,12 @@ export const middleware = async (request: NextRequest) => {
   const { respuesta, usuario } = await actualizarSesion(request)
   const { pathname } = request.nextUrl
   const esRutaPanel = pathname.startsWith('/panel')
+  const esRutaAdmin = pathname.startsWith('/admin')
   const esLogin = pathname === '/login'
   const esRegistro = pathname === '/registro'
 
-  // Only /panel/* requires auth. '/' stays public for the landing page.
-  if (esRutaPanel && !usuario) {
+  // Only /panel/* and /admin/* require auth. '/' stays public for the landing page.
+  if ((esRutaPanel || esRutaAdmin) && !usuario) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/login'
     loginUrl.searchParams.set('next', pathname)
@@ -40,5 +41,5 @@ export const middleware = async (request: NextRequest) => {
 }
 
 export const config = {
-  matcher: ['/panel/:path*', '/login', '/registro']
+  matcher: ['/panel/:path*', '/admin/:path*', '/login', '/registro']
 }
