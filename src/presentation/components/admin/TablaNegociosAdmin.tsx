@@ -56,7 +56,7 @@ export const TablaNegociosAdmin = ({
   const filas = useMemo(() => {
     return [...negocios]
       .map((negocio) => {
-        const fechaInicio = new Date(`${negocio.fechaInicioSuscripcion}T00:00:00`)
+        const fechaInicio = new Date(negocio.fechaInicioSuscripcion)
         const proximaPago = calcularProximaFechaPago(fechaInicio)
         const dias = diasHastaFecha(proximaPago)
 

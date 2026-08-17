@@ -5,6 +5,13 @@ export const calcularProximaFechaPago = (
   hoy: Date = new Date()
 ): Date => {
   let proxima = dayjs(fechaInicioSuscripcion).startOf('day')
+
+  if (!proxima.isValid()) {
+    throw new Error(
+      `fecha_inicio_suscripcion inválida: ${String(fechaInicioSuscripcion)}`
+    )
+  }
+
   const referencia = dayjs(hoy).startOf('day')
 
   while (!proxima.isAfter(referencia)) {
