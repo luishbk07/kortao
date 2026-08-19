@@ -15,7 +15,8 @@ export const crearCrearReserva = (
   return async (
     input: CrearCitaInput,
     horariosNegocio: BusinessHours[],
-    negocioNombre: string
+    negocioNombre: string,
+    negocioDireccion: string | null = null
   ): Promise<Booking> => {
     const slotsOcupados = await bookingRepository.obtenerSlotsOcupados(
       input.negocioId,
@@ -44,7 +45,10 @@ export const crearCrearReserva = (
         clienteNombre: cita.clienteNombre,
         clienteCorreo: cita.clienteCorreo,
         negocioNombre,
-        fechaHora: cita.fechaHora
+        negocioDireccion,
+        servicioNombre: cita.servicioNombre,
+        fechaHora: cita.fechaHora,
+        duracionMinutos: cita.duracionMinutos
       })
     } catch (error) {
       // Booking already succeeded; notifications must not fail the reservation.

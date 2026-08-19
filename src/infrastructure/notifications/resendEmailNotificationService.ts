@@ -4,6 +4,8 @@ import type {
   EnviarConfirmacionInput,
   NotificationService
 } from '@/application/ports/notificationService.port'
+import { esCorreoGmail } from '@/shared/utils/correo'
+import { crearEnlaceGoogleCalendar } from '@/shared/utils/googleCalendar'
 
 const obtenerClienteResend = (): Resend => {
   const apiKey = process.env.RESEND_API_KEY?.trim()
@@ -48,6 +50,36 @@ const exigirCorreo = (correo: string | null): string => {
   return valor
 }
 
+const construirBloqueGoogleCalendar = (
+  input: EnviarConfirmacionInput,
+  correo: string
+): string => {
+  if (!esCorreoGmail(correo)) {
+    return ''
+  }
+
+  const enlace = crearEnlaceGoogleCalendar({
+    titulo: `${input.servicioNombre} — ${input.negocioNombre}`,
+    inicio: input.fechaHora,
+    duracionMinutos: input.duracionMinutos,
+    detalles: `Cita en ${input.negocioNombre}`,
+    ubicacion: input.negocioDireccion
+  })
+
+  return `
+    <p style="margin-top:24px;">
+      <a
+        href="${enlace}"
+        target="_blank"
+        rel="noopener noreferrer"
+        style="display:inline-block;padding:10px 16px;background:#1F4B3F;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;"
+      >
+        Añadir a Google Calendar
+      </a>
+    </p>
+  `
+}
+
 const enviarCorreo = async (params: {
   para: string
   asunto: string
@@ -81,6 +113,7 @@ export const resendEmailNotificationService: NotificationService = {
           a las <strong>${formatearHora(input.fechaHora)}</strong>.
         </p>
         <p>Te esperamos.</p>
+        ${construirBloqueGoogleCalendar(input, correo)}
         <p style="color:#6B6862;font-size:12px;">Kortao</p>
       `
     })
@@ -100,6 +133,7 @@ export const resendEmailNotificationService: NotificationService = {
           a las <strong>${formatearHora(input.fechaHora)}</strong>.
         </p>
         <p>Te esperamos.</p>
+        ${construirBloqueGoogleCalendar(input, correo)}
         <p style="color:#6B6862;font-size:12px;">Kortao</p>
       `
     })

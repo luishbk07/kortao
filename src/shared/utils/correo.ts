@@ -11,3 +11,11 @@ export const esCorreoValido = (correo: string): boolean => {
 export const normalizarCorreo = (correo: string): string => {
   return correo.trim().toLowerCase()
 }
+
+export const esCorreoGmail = (correo: string): boolean => {
+  const normalizado = normalizarCorreo(correo)
+  return (
+    normalizado.endsWith('@gmail.com') ||
+    normalizado.endsWith('@googlemail.com')
+  )
+}

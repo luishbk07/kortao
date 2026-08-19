@@ -2,6 +2,7 @@
 
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import DirectionsOutlinedIcon from '@mui/icons-material/DirectionsOutlined'
+import EventOutlinedIcon from '@mui/icons-material/EventOutlined'
 import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
@@ -33,6 +34,8 @@ export const ReservarNegocio = ({
 }: ReservarNegocioProps) => {
   const flujo = useFlujoReservar({
     negocioId: negocio.id,
+    negocioNombre: negocio.nombre,
+    negocioDireccion: negocio.direccion,
     servicios,
     horariosNegocio
   })
@@ -93,12 +96,34 @@ export const ReservarNegocio = ({
           </Stack>
 
           {flujo.mensajeExito ? (
-            <Alert
-              severity='success'
-              icon={<CheckCircleOutlineIcon fontSize='inherit' />}
-            >
-              {flujo.mensajeExito}
-            </Alert>
+            <Stack spacing={1.5}>
+              <Alert
+                severity='success'
+                icon={<CheckCircleOutlineIcon fontSize='inherit' />}
+              >
+                {flujo.mensajeExito}
+              </Alert>
+              {flujo.enlaceGoogleCalendar ? (
+                <Stack spacing={1}>
+                  <Typography color='text.secondary'>
+                    Te gustaría agregarla a Google Calendar?
+                  </Typography>
+                  <Button
+                    component='a'
+                    href={flujo.enlaceGoogleCalendar}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    variant='outlined'
+                    color='primary'
+                    size='small'
+                    startIcon={<EventOutlinedIcon />}
+                    sx={{ alignSelf: 'flex-start' }}
+                  >
+                    Añadir a Google Calendar
+                  </Button>
+                </Stack>
+              ) : null}
+            </Stack>
           ) : null}
 
           {flujo.mensajeError ? (

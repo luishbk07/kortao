@@ -7,9 +7,13 @@ import { HorarioNoDisponibleError } from '@/domain/booking/booking.errors'
 import type { BusinessHours, TimeSlot } from '@/domain/booking/booking.types'
 import { bookingRepositorySupabase } from '@/infrastructure/supabase/bookingRepository.supabase'
 import type { ServicioPublico } from '@/presentation/components/booking/tiposReservar'
+import { esCorreoGmail } from '@/shared/utils/correo'
+import { crearEnlaceGoogleCalendar } from '@/shared/utils/googleCalendar'
 
 type UseFlujoReservarParams = {
   negocioId: string
+  negocioNombre: string
+  negocioDireccion: string | null
   servicios: ServicioPublico[]
   horariosNegocio: BusinessHours[]
 }
@@ -43,6 +47,8 @@ const parsearFechaLocal = (fechaTexto: string): Date => {
 
 export const useFlujoReservar = ({
   negocioId,
+  negocioNombre,
+  negocioDireccion,
   servicios,
   horariosNegocio
 }: UseFlujoReservarParams) => {
@@ -59,6 +65,9 @@ export const useFlujoReservar = ({
   const [enviando, setEnviando] = useState(false)
   const [mensajeExito, setMensajeExito] = useState<string | null>(null)
   const [mensajeError, setMensajeError] = useState<string | null>(null)
+  const [enlaceGoogleCalendar, setEnlaceGoogleCalendar] = useState<
+    string | null
+  >(null)
 
   const servicioSeleccionado = servicios.find(
     (servicio) => servicio.id === servicioId
@@ -68,6 +77,7 @@ export const useFlujoReservar = ({
     setSlotSeleccionado(null)
     setMensajeError(null)
     setMensajeExito(null)
+    setEnlaceGoogleCalendar(null)
 
     if (!servicioSeleccionado || !fecha) {
       setSlots([])
@@ -116,6 +126,7 @@ export const useFlujoReservar = ({
     setSlotSeleccionado(null)
     setMensajeExito(null)
     setMensajeError(null)
+    setEnlaceGoogleCalendar(null)
   }
 
   const cambiarFecha = (nuevaFecha: string) => {
@@ -123,6 +134,7 @@ export const useFlujoReservar = ({
     setSlotSeleccionado(null)
     setMensajeExito(null)
     setMensajeError(null)
+    setEnlaceGoogleCalendar(null)
   }
 
   const seleccionarSlot = (slot: TimeSlot) => {
@@ -133,6 +145,7 @@ export const useFlujoReservar = ({
     setSlotSeleccionado(slot)
     setMensajeExito(null)
     setMensajeError(null)
+    setEnlaceGoogleCalendar(null)
   }
 
   const confirmarReserva = async () => {
@@ -143,21 +156,40 @@ export const useFlujoReservar = ({
     setEnviando(true)
     setMensajeError(null)
     setMensajeExito(null)
+    setEnlaceGoogleCalendar(null)
+
+    const correoUsado = clienteCorreo.trim()
+    const slotReservado = slotSeleccionado
+    const servicioReservado = servicioSeleccionado
 
     try {
       await confirmarReservaAction({
         negocioId,
-        servicioId: servicioSeleccionado.id,
+        servicioId: servicioReservado.id,
         clienteNombre: clienteNombre.trim(),
         clienteTelefono: clienteTelefono.trim(),
-        clienteCorreo: clienteCorreo.trim() ? clienteCorreo.trim() : null,
-        fechaHora: slotSeleccionado.inicio,
-        duracionMinutos: servicioSeleccionado.duracionMinutos
+        clienteCorreo: correoUsado ? correoUsado : null,
+        fechaHora: slotReservado.inicio,
+        duracionMinutos: servicioReservado.duracionMinutos
       })
 
       setMensajeExito(
         'Tu reserva está confirmada. Te esperamos en el horario elegido.'
       )
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+
+      if (esCorreoGmail(correoUsado)) {
+        setEnlaceGoogleCalendar(
+          crearEnlaceGoogleCalendar({
+            titulo: `${servicioReservado.nombre} — ${negocioNombre}`,
+            inicio: slotReservado.inicio,
+            duracionMinutos: servicioReservado.duracionMinutos,
+            detalles: `Cita en ${negocioNombre}`,
+            ubicacion: negocioDireccion
+          })
+        )
+      }
+
       setSlotSeleccionado(null)
       setClienteNombre('')
       setClienteTelefono('')
@@ -166,7 +198,7 @@ export const useFlujoReservar = ({
       const disponibles = await obtenerDisponibilidad(
         negocioId,
         parsearFechaLocal(fecha),
-        servicioSeleccionado.duracionMinutos,
+        servicioReservado.duracionMinutos,
         horariosNegocio
       )
       setSlots(disponibles)
@@ -180,7 +212,7 @@ export const useFlujoReservar = ({
         const disponibles = await obtenerDisponibilidad(
           negocioId,
           parsearFechaLocal(fecha),
-          servicioSeleccionado.duracionMinutos,
+          servicioReservado.duracionMinutos,
           horariosNegocio
         )
         setSlots(disponibles)
@@ -208,6 +240,7 @@ export const useFlujoReservar = ({
     enviando,
     mensajeExito,
     mensajeError,
+    enlaceGoogleCalendar,
     seleccionarServicio,
     cambiarFecha,
     seleccionarSlot,

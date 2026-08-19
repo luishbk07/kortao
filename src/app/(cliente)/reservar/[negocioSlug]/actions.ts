@@ -32,7 +32,11 @@ const normalizarInput = (input: CrearCitaInput): CrearCitaInput => ({
 
 const obtenerDatosNegocio = async (
   negocioId: string
-): Promise<{ horarios: BusinessHours[]; nombre: string }> => {
+): Promise<{
+  horarios: BusinessHours[]
+  nombre: string
+  direccion: string | null
+}> => {
   const supabase = crearClienteServidor()
 
   const [resultadoHorarios, resultadoNegocio] = await Promise.all([
@@ -43,7 +47,7 @@ const obtenerDatosNegocio = async (
       .order('dia_semana', { ascending: true }),
     supabase
       .from('negocios')
-      .select('nombre')
+      .select('nombre, direccion')
       .eq('id', negocioId)
       .maybeSingle()
   ])
@@ -60,7 +64,8 @@ const obtenerDatosNegocio = async (
     horarios: ((resultadoHorarios.data as HorarioFila[] | null) ?? []).map(
       mapearHorario
     ),
-    nombre: resultadoNegocio.data.nombre
+    nombre: resultadoNegocio.data.nombre,
+    direccion: resultadoNegocio.data.direccion ?? null
   }
 }
 
@@ -78,9 +83,9 @@ export const confirmarReserva = async (
     bookingRepository,
     notificationService
   )
-  const { horarios, nombre } = await obtenerDatosNegocio(
+  const { horarios, nombre, direccion } = await obtenerDatosNegocio(
     inputNormalizado.negocioId
   )
 
-  return crearReserva(inputNormalizado, horarios, nombre)
+  return crearReserva(inputNormalizado, horarios, nombre, direccion)
 }

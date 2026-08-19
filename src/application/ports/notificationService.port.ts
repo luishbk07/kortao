@@ -4,7 +4,10 @@ export type EnviarConfirmacionInput = {
   clienteNombre: string
   clienteCorreo: string | null
   negocioNombre: string
+  negocioDireccion: string | null
+  servicioNombre: string
   fechaHora: Date
+  duracionMinutos: number
 }
 
 export type EnviarCancelacionInput = {
