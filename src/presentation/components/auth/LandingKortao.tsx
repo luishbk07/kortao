@@ -27,7 +27,7 @@ export const LandingKortao = () => {
               Kortao
             </Typography>
             <Typography variant='h6' component='p' color='text.secondary'>
-              Reservas simples para barberías y salones.
+              Reservas simples para barberías, salones, entre otros.
             </Typography>
             <Typography color='text.secondary'>
               Crea tu cuenta, configura tus servicios y empieza a recibir citas
