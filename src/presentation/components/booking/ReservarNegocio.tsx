@@ -8,6 +8,7 @@ import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
+import Link from '@mui/material/Link'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import type { BusinessHours } from '@/domain/booking/booking.types'
@@ -26,6 +27,67 @@ type ReservarNegocioProps = {
   disponible?: boolean
 }
 
+const PieCreadoConKortao = () => {
+  return (
+    <Typography
+      variant='caption'
+      color='text.secondary'
+      textAlign='center'
+      sx={{ display: 'block', pt: 2 }}
+    >
+      Creado con{' '}
+      <Link
+        href='https://kortao.com'
+        target='_blank'
+        rel='noopener noreferrer'
+        color='inherit'
+        underline='hover'
+      >
+        Kortao
+      </Link>
+    </Typography>
+  )
+}
+
+const EncabezadoIdentidadNegocio = ({
+  negocio
+}: {
+  negocio: NegocioPublico
+}) => {
+  if (!negocio.logoUrl) {
+    return null
+  }
+
+  return (
+    <Box
+      sx={{
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+        bgcolor: 'background.paper',
+        py: { xs: 2.5, sm: 3 }
+      }}
+    >
+      <Container maxWidth='sm'>
+        <Stack spacing={1.5} alignItems='center' textAlign='center'>
+          <Box
+            component='img'
+            src={negocio.logoUrl}
+            alt={`Logo de ${negocio.nombre}`}
+            sx={{
+              maxHeight: { xs: 72, sm: 96 },
+              maxWidth: '100%',
+              objectFit: 'contain'
+            }}
+          />
+          <Typography variant='h4' component='h1' color='primary'>
+            {negocio.nombre}
+          </Typography>
+        </Stack>
+      </Container>
+    </Box>
+  )
+}
+
 export const ReservarNegocio = ({
   negocio,
   servicios,
@@ -40,35 +102,69 @@ export const ReservarNegocio = ({
     horariosNegocio
   })
 
+  const tieneLogo = Boolean(negocio.logoUrl)
+
   if (!disponible) {
     return (
-      <Box component='main' bgcolor='background.default' minHeight='100vh'>
-        <EncabezadoMarca />
-        <Container maxWidth='sm' sx={{ py: { xs: 8, sm: 12 } }}>
+      <Box
+        component='main'
+        bgcolor='background.default'
+        minHeight='100vh'
+        display='flex'
+        flexDirection='column'
+      >
+        {tieneLogo ? (
+          <EncabezadoIdentidadNegocio negocio={negocio} />
+        ) : (
+          <EncabezadoMarca />
+        )}
+        <Container maxWidth='sm' sx={{ py: { xs: 8, sm: 12 }, flex: 1 }}>
           <Stack spacing={2} alignItems='center' textAlign='center'>
-            <Typography variant='h4' component='h1' color='primary'>
-              {negocio.nombre}
-            </Typography>
+            {!tieneLogo ? (
+              <Typography variant='h4' component='h1' color='primary'>
+                {negocio.nombre}
+              </Typography>
+            ) : null}
             <Typography color='text.secondary'>
               Este negocio no está disponible en este momento.
             </Typography>
           </Stack>
+        </Container>
+        <Container maxWidth='sm' sx={{ pb: 3 }}>
+          <PieCreadoConKortao />
         </Container>
       </Box>
     )
   }
 
   return (
-    <Box component='main' bgcolor='background.default' minHeight='100vh'>
-      <EncabezadoMarca />
-      <Container maxWidth='sm' sx={{ py: { xs: 3, sm: 5 } }}>
+    <Box
+      component='main'
+      bgcolor='background.default'
+      minHeight='100vh'
+      display='flex'
+      flexDirection='column'
+    >
+      {tieneLogo ? (
+        <EncabezadoIdentidadNegocio negocio={negocio} />
+      ) : (
+        <EncabezadoMarca />
+      )}
+      <Container maxWidth='sm' sx={{ py: { xs: 3, sm: 5 }, flex: 1 }}>
         <Stack spacing={3}>
           <Stack spacing={1}>
-            <Typography variant='h4' component='h1' color='primary'>
-              {negocio.nombre}
-            </Typography>
+            {!tieneLogo ? (
+              <Typography variant='h4' component='h1' color='primary'>
+                {negocio.nombre}
+              </Typography>
+            ) : null}
             {negocio.direccion ? (
-              <Stack direction='row' spacing={0.75} alignItems='center'>
+              <Stack
+                direction='row'
+                spacing={0.75}
+                alignItems='center'
+                justifyContent={tieneLogo ? 'center' : 'flex-start'}
+              >
                 <PlaceOutlinedIcon fontSize='small' color='action' />
                 <Typography color='text.secondary'>
                   {negocio.direccion}
@@ -85,12 +181,17 @@ export const ReservarNegocio = ({
                 color='primary'
                 size='small'
                 startIcon={<DirectionsOutlinedIcon />}
-                sx={{ alignSelf: 'flex-start' }}
+                sx={{
+                  alignSelf: tieneLogo ? 'center' : 'flex-start'
+                }}
               >
                 Cómo llegar
               </Button>
             ) : null}
-            <Typography color='text.secondary'>
+            <Typography
+              color='text.secondary'
+              textAlign={tieneLogo ? 'center' : 'left'}
+            >
               Reserva tu cita en unos pasos.
             </Typography>
           </Stack>
@@ -178,6 +279,9 @@ export const ReservarNegocio = ({
             />
           ) : null}
         </Stack>
+      </Container>
+      <Container maxWidth='sm' sx={{ pb: 3 }}>
+        <PieCreadoConKortao />
       </Container>
     </Box>
   )

@@ -15,7 +15,13 @@ export const crearActualizarNegocio = (
       ...input,
       nombre: input.nombre.trim(),
       telefonoWhatsapp: input.telefonoWhatsapp.trim(),
-      direccion: input.direccion?.trim() ? input.direccion.trim() : null
+      direccion: input.direccion?.trim() ? input.direccion.trim() : null,
+      logoUrl:
+        input.logoUrl === undefined
+          ? undefined
+          : input.logoUrl?.trim()
+            ? input.logoUrl.trim()
+            : null
     })
   }
 }

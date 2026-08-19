@@ -7,6 +7,8 @@ import type {
 import { esCorreoGmail } from '@/shared/utils/correo'
 import { crearEnlaceGoogleCalendar } from '@/shared/utils/googleCalendar'
 
+const LOGO_KORTAO_EMAIL = 'https://kortao.com/brand/kortao-email-logo.png'
+
 const obtenerClienteResend = (): Resend => {
   const apiKey = process.env.RESEND_API_KEY?.trim()
 
@@ -48,6 +50,30 @@ const exigirCorreo = (correo: string | null): string => {
   }
 
   return valor
+}
+
+const construirEncabezadoLogo = (negocioLogoUrl: string | null): string => {
+  if (negocioLogoUrl?.trim()) {
+    return `
+      <p style="margin:0 0 16px;">
+        <img
+          src="${negocioLogoUrl.trim()}"
+          alt=""
+          style="max-height:60px;max-width:220px;object-fit:contain;"
+        />
+      </p>
+    `
+  }
+
+  return `
+    <p style="margin:0 0 16px;">
+      <img
+        src="${LOGO_KORTAO_EMAIL}"
+        alt="Kortao"
+        style="max-height:40px;max-width:180px;object-fit:contain;"
+      />
+    </p>
+  `
 }
 
 const construirBloqueGoogleCalendar = (
@@ -106,6 +132,7 @@ export const resendEmailNotificationService: NotificationService = {
       para: correo,
       asunto: `Cita confirmada en ${input.negocioNombre}`,
       html: `
+        ${construirEncabezadoLogo(input.negocioLogoUrl)}
         <p>Hola ${input.clienteNombre},</p>
         <p>
           Tu cita en <strong>${input.negocioNombre}</strong> está confirmada
@@ -126,6 +153,7 @@ export const resendEmailNotificationService: NotificationService = {
       para: correo,
       asunto: `Recordatorio de tu cita en ${input.negocioNombre}`,
       html: `
+        ${construirEncabezadoLogo(input.negocioLogoUrl)}
         <p>Hola ${input.clienteNombre},</p>
         <p>
           Te recordamos tu cita en <strong>${input.negocioNombre}</strong>
@@ -146,6 +174,7 @@ export const resendEmailNotificationService: NotificationService = {
       para: correo,
       asunto: `Cita cancelada en ${input.negocioNombre}`,
       html: `
+        ${construirEncabezadoLogo(input.negocioLogoUrl)}
         <p>Hola ${input.clienteNombre},</p>
         <p>
           Tu cita en <strong>${input.negocioNombre}</strong>

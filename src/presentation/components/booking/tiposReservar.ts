@@ -7,6 +7,7 @@ export type NegocioPublico = {
   colorAcento: string | null
   latitud: number | null
   longitud: number | null
+  logoUrl: string | null
 }
 
 export type ServicioPublico = {

@@ -36,6 +36,7 @@ const obtenerDatosNegocio = async (
   horarios: BusinessHours[]
   nombre: string
   direccion: string | null
+  logoUrl: string | null
 }> => {
   const supabase = crearClienteServidor()
 
@@ -47,7 +48,7 @@ const obtenerDatosNegocio = async (
       .order('dia_semana', { ascending: true }),
     supabase
       .from('negocios')
-      .select('nombre, direccion')
+      .select('nombre, direccion, logo_url')
       .eq('id', negocioId)
       .maybeSingle()
   ])
@@ -65,7 +66,8 @@ const obtenerDatosNegocio = async (
       mapearHorario
     ),
     nombre: resultadoNegocio.data.nombre,
-    direccion: resultadoNegocio.data.direccion ?? null
+    direccion: resultadoNegocio.data.direccion ?? null,
+    logoUrl: resultadoNegocio.data.logo_url ?? null
   }
 }
 
@@ -83,9 +85,15 @@ export const confirmarReserva = async (
     bookingRepository,
     notificationService
   )
-  const { horarios, nombre, direccion } = await obtenerDatosNegocio(
+  const { horarios, nombre, direccion, logoUrl } = await obtenerDatosNegocio(
     inputNormalizado.negocioId
   )
 
-  return crearReserva(inputNormalizado, horarios, nombre, direccion)
+  return crearReserva(
+    inputNormalizado,
+    horarios,
+    nombre,
+    direccion,
+    logoUrl
+  )
 }

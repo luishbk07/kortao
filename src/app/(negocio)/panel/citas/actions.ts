@@ -55,6 +55,7 @@ export const cancelarCitaAction = async (citaId: string): Promise<Booking> => {
       clienteCorreo: citaCancelada.clienteCorreo,
       negocioNombre: negocio.nombre,
       negocioSlug: negocio.slug,
+      negocioLogoUrl: negocio.logoUrl,
       fechaHora: citaCancelada.fechaHora
     })
   } catch (error) {

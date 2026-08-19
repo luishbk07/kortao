@@ -16,7 +16,8 @@ export const crearCrearReserva = (
     input: CrearCitaInput,
     horariosNegocio: BusinessHours[],
     negocioNombre: string,
-    negocioDireccion: string | null = null
+    negocioDireccion: string | null = null,
+    negocioLogoUrl: string | null = null
   ): Promise<Booking> => {
     const slotsOcupados = await bookingRepository.obtenerSlotsOcupados(
       input.negocioId,
@@ -46,6 +47,7 @@ export const crearCrearReserva = (
         clienteCorreo: cita.clienteCorreo,
         negocioNombre,
         negocioDireccion,
+        negocioLogoUrl,
         servicioNombre: cita.servicioNombre,
         fechaHora: cita.fechaHora,
         duracionMinutos: cita.duracionMinutos

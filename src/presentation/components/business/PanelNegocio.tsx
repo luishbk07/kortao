@@ -16,6 +16,7 @@ import {
   formatearTelefonoVisual,
   normalizarTelefonoValor
 } from '@/shared/utils/telefono'
+import { EditorLogoNegocio } from './EditorLogoNegocio'
 import {
   SelectorUbicacion,
   type CoordenadasUbicacion
@@ -44,6 +45,14 @@ export const PanelNegocio = ({ negocio }: PanelNegocioProps) => {
   const formularioValido =
     nombre.trim().length > 1 && esTelefonoCompleto(telefonoWhatsapp)
 
+  const obtenerDatosNegocio = () => ({
+    nombre,
+    telefonoWhatsapp,
+    direccion: direccion.trim() || null,
+    latitud: ubicacion?.latitud ?? null,
+    longitud: ubicacion?.longitud ?? null
+  })
+
   const handleGuardar = async (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault()
 
@@ -59,13 +68,7 @@ export const PanelNegocio = ({ negocio }: PanelNegocioProps) => {
     try {
       const { businessRepository } = crearDependenciasPanelNavegador()
       const actualizarNegocio = crearActualizarNegocio(businessRepository)
-      await actualizarNegocio(negocio.id, {
-        nombre,
-        telefonoWhatsapp,
-        direccion: direccion.trim() || null,
-        latitud: ubicacion?.latitud ?? null,
-        longitud: ubicacion?.longitud ?? null
-      })
+      await actualizarNegocio(negocio.id, obtenerDatosNegocio())
       setMensaje('Datos del negocio guardados.')
       router.refresh()
     } catch {
@@ -97,6 +100,14 @@ export const PanelNegocio = ({ negocio }: PanelNegocioProps) => {
           {error}
         </Alert>
       ) : null}
+
+      <EditorLogoNegocio
+        negocio={negocio}
+        obtenerDatosNegocio={obtenerDatosNegocio}
+        onLogoActualizado={() => {
+          router.refresh()
+        }}
+      />
 
       <Stack
         component='form'

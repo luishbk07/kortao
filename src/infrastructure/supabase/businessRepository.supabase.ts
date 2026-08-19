@@ -23,6 +23,7 @@ type NegocioFila = {
   direccion: string | null
   latitud: number | string | null
   longitud: number | string | null
+  logo_url: string | null
 }
 
 type ServicioFila = {
@@ -52,8 +53,12 @@ const mapearNegocioDetalle = (fila: NegocioFila): NegocioDetalle => ({
   telefonoWhatsapp: fila.telefono_whatsapp,
   direccion: fila.direccion,
   latitud: mapearNumeroOpcional(fila.latitud),
-  longitud: mapearNumeroOpcional(fila.longitud)
+  longitud: mapearNumeroOpcional(fila.longitud),
+  logoUrl: fila.logo_url ?? null
 })
+
+const columnasNegocioDetalle =
+  'id, nombre, slug, telefono_whatsapp, direccion, latitud, longitud, logo_url'
 
 type HorarioFila = {
   id: string
@@ -152,7 +157,7 @@ export const crearBusinessRepository = (
   obtenerNegocioPublicoPorId: async (negocioId) => {
     const { data, error } = await cliente
       .from('negocios')
-      .select('nombre, slug')
+      .select('nombre, slug, logo_url')
       .eq('id', negocioId)
       .maybeSingle()
 
@@ -166,14 +171,15 @@ export const crearBusinessRepository = (
 
     return {
       nombre: data.nombre,
-      slug: data.slug
+      slug: data.slug,
+      logoUrl: data.logo_url ?? null
     }
   },
 
   obtenerNegocioPorId: async (negocioId) => {
     const { data, error } = await cliente
       .from('negocios')
-      .select('id, nombre, slug, telefono_whatsapp, direccion, latitud, longitud')
+      .select(columnasNegocioDetalle)
       .eq('id', negocioId)
       .maybeSingle()
 
@@ -189,17 +195,23 @@ export const crearBusinessRepository = (
   },
 
   actualizarNegocio: async (negocioId, input: ActualizarNegocioInput) => {
+    const actualizacion: Record<string, unknown> = {
+      nombre: input.nombre,
+      telefono_whatsapp: input.telefonoWhatsapp,
+      direccion: input.direccion,
+      latitud: input.latitud,
+      longitud: input.longitud
+    }
+
+    if (input.logoUrl !== undefined) {
+      actualizacion.logo_url = input.logoUrl
+    }
+
     const { data, error } = await cliente
       .from('negocios')
-      .update({
-        nombre: input.nombre,
-        telefono_whatsapp: input.telefonoWhatsapp,
-        direccion: input.direccion,
-        latitud: input.latitud,
-        longitud: input.longitud
-      })
+      .update(actualizacion)
       .eq('id', negocioId)
-      .select('id, nombre, slug, telefono_whatsapp, direccion, latitud, longitud')
+      .select(columnasNegocioDetalle)
       .single()
 
     if (error) {

@@ -25,11 +25,13 @@ export type ActualizarNegocioInput = {
   direccion: string | null
   latitud: number | null
   longitud: number | null
+  logoUrl?: string | null
 }
 
 export type NegocioPublico = {
   nombre: string
   slug: string
+  logoUrl: string | null
 }
 
 export type NegocioDetalle = {
@@ -40,6 +42,7 @@ export type NegocioDetalle = {
   direccion: string | null
   latitud: number | null
   longitud: number | null
+  logoUrl: string | null
 }
 
 export type BusinessRepository = {
