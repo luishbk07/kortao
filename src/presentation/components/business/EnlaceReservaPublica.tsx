@@ -2,15 +2,20 @@
 
 import { useState } from 'react'
 import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined'
+import IosShareOutlinedIcon from '@mui/icons-material/IosShareOutlined'
 import Alert from '@mui/material/Alert'
-import Button from '@mui/material/Button'
+import IconButton from '@mui/material/IconButton'
+import Link from '@mui/material/Link'
 import Stack from '@mui/material/Stack'
-import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { construirUrlReserva } from '@/shared/utils/sitio'
 
 type EnlaceReservaPublicaProps = {
   negocioSlug: string
+}
+
+const construirMensajeCompartir = (url: string): string => {
+  return `Reserva una cita con nosotros en minutos: ${url}`
 }
 
 export const EnlaceReservaPublica = ({
@@ -32,6 +37,32 @@ export const EnlaceReservaPublica = ({
     }
   }
 
+  const compartirEnlace = async () => {
+    setError(null)
+    const texto = construirMensajeCompartir(urlPublica)
+
+    try {
+      if (navigator.share) {
+        // Only `text` — many apps (WhatsApp, etc.) drop the message when
+        // a separate `url` is also provided and share only the link.
+        await navigator.share({
+          text: texto
+        })
+        return
+      }
+
+      await navigator.clipboard.writeText(texto)
+      setMensaje('Texto de compartir copiado')
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        return
+      }
+
+      setMensaje(null)
+      setError('No se pudo compartir el enlace. Inténtalo de nuevo.')
+    }
+  }
+
   return (
     <Stack spacing={1.5}>
       <Stack spacing={0.5}>
@@ -43,29 +74,65 @@ export const EnlaceReservaPublica = ({
         </Typography>
       </Stack>
 
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        spacing={1}
-        alignItems={{ sm: 'stretch' }}
-      >
-        <TextField
-          size='small'
-          fullWidth
-          label='Enlace de reserva'
-          value={urlPublica}
-          InputProps={{ readOnly: true }}
-        />
-        <Button
-          variant='contained'
+      <Stack direction='row' spacing={0.5} alignItems='center'>
+        <Link
+          href={urlPublica}
+          target='_blank'
+          rel='noopener noreferrer'
+          color='primary'
+          underline='hover'
+          sx={{
+            flexGrow: 1,
+            minWidth: 0,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            fontSize: '0.875rem',
+            fontWeight: 500
+          }}
+        >
+          {urlPublica}
+        </Link>
+
+        <IconButton
           color='secondary'
-          startIcon={<ContentCopyOutlinedIcon />}
+          aria-label='Copiar enlace'
           onClick={() => {
             void copiarEnlace()
           }}
-          sx={{ flexShrink: 0 }}
+          sx={{
+            flexShrink: 0,
+            bgcolor: 'primary.main',
+            color: 'secondary.contrastText',
+            borderRadius: 2,
+            '&:hover': {
+              bgcolor: 'secondary.dark'
+            }
+          }}
         >
-          Copiar
-        </Button>
+          <ContentCopyOutlinedIcon />
+        </IconButton>
+
+        <IconButton
+          color='primary'
+          aria-label='Compartir enlace'
+          onClick={() => {
+            void compartirEnlace()
+          }}
+          sx={{
+            flexShrink: 0,
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: 2,
+            backgroundColor: 'primary.main',
+            color: 'secondary.contrastText',
+            '&:hover': {
+              backgroundColor: 'secondary.dark'
+            }
+          }}
+        >
+          <IosShareOutlinedIcon />
+        </IconButton>
       </Stack>
 
       {mensaje ? (
