@@ -3,9 +3,12 @@
 import type { CrearCitaInput } from '@/application/ports/bookingRepository.port'
 import { crearCrearReserva } from '@/application/useCases/booking/crearReserva'
 import type { Booking, BusinessHours } from '@/domain/booking/booking.types'
+import { crearNotificationServiceCompuesto } from '@/infrastructure/notifications/notificationService.compuesto'
+import { resendEmailNotificationService } from '@/infrastructure/notifications/resendEmailNotificationService'
 import { crearBookingRepository } from '@/infrastructure/supabase/bookingRepository.supabase'
 import { crearClienteServidor } from '@/infrastructure/supabase/clienteServidor'
 import { whatsappNotificationService } from '@/infrastructure/whatsapp/whatsappNotificationService'
+import { normalizarCorreo } from '@/shared/utils/correo'
 
 type HorarioFila = {
   dia_semana: number
@@ -21,7 +24,10 @@ const mapearHorario = (fila: HorarioFila): BusinessHours => ({
 
 const normalizarInput = (input: CrearCitaInput): CrearCitaInput => ({
   ...input,
-  fechaHora: new Date(input.fechaHora)
+  fechaHora: new Date(input.fechaHora),
+  clienteCorreo: input.clienteCorreo
+    ? normalizarCorreo(input.clienteCorreo)
+    : null
 })
 
 const obtenerDatosNegocio = async (
@@ -64,9 +70,13 @@ export const confirmarReserva = async (
   const inputNormalizado = normalizarInput(input)
   const supabase = crearClienteServidor()
   const bookingRepository = crearBookingRepository(supabase)
+  const notificationService = crearNotificationServiceCompuesto(
+    whatsappNotificationService,
+    resendEmailNotificationService
+  )
   const crearReserva = crearCrearReserva(
     bookingRepository,
-    whatsappNotificationService
+    notificationService
   )
   const { horarios, nombre } = await obtenerDatosNegocio(
     inputNormalizado.negocioId

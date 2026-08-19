@@ -142,9 +142,11 @@ export const ReservarNegocio = ({
             <FormularioCliente
               clienteNombre={flujo.clienteNombre}
               clienteTelefono={flujo.clienteTelefono}
+              clienteCorreo={flujo.clienteCorreo}
               enviando={flujo.enviando}
               onCambiarNombre={flujo.setClienteNombre}
               onCambiarTelefono={flujo.setClienteTelefono}
+              onCambiarCorreo={flujo.setClienteCorreo}
               onConfirmar={() => {
                 void flujo.confirmarReserva()
               }}

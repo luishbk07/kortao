@@ -55,6 +55,7 @@ export const useFlujoReservar = ({
   const [slotSeleccionado, setSlotSeleccionado] = useState<TimeSlot | null>(null)
   const [clienteNombre, setClienteNombre] = useState('')
   const [clienteTelefono, setClienteTelefono] = useState('')
+  const [clienteCorreo, setClienteCorreo] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [mensajeExito, setMensajeExito] = useState<string | null>(null)
   const [mensajeError, setMensajeError] = useState<string | null>(null)
@@ -149,6 +150,7 @@ export const useFlujoReservar = ({
         servicioId: servicioSeleccionado.id,
         clienteNombre: clienteNombre.trim(),
         clienteTelefono: clienteTelefono.trim(),
+        clienteCorreo: clienteCorreo.trim() ? clienteCorreo.trim() : null,
         fechaHora: slotSeleccionado.inicio,
         duracionMinutos: servicioSeleccionado.duracionMinutos
       })
@@ -159,6 +161,7 @@ export const useFlujoReservar = ({
       setSlotSeleccionado(null)
       setClienteNombre('')
       setClienteTelefono('')
+      setClienteCorreo('')
 
       const disponibles = await obtenerDisponibilidad(
         negocioId,
@@ -201,6 +204,7 @@ export const useFlujoReservar = ({
     slotSeleccionado,
     clienteNombre,
     clienteTelefono,
+    clienteCorreo,
     enviando,
     mensajeExito,
     mensajeError,
@@ -209,6 +213,7 @@ export const useFlujoReservar = ({
     seleccionarSlot,
     setClienteNombre,
     setClienteTelefono,
+    setClienteCorreo,
     setMensajeError,
     confirmarReserva
   }

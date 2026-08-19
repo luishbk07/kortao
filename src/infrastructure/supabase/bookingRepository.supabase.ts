@@ -16,6 +16,7 @@ type CitaFila = {
   servicio_id: string
   cliente_nombre: string
   cliente_telefono: string
+  cliente_correo: string | null
   fecha_hora: string
   duracion_minutos: number
   estado: EstadoCita
@@ -35,6 +36,7 @@ type CitaInsertFila = {
   servicio_id: string
   cliente_nombre: string
   cliente_telefono: string
+  cliente_correo: string | null
   fecha_hora: string
   duracion_minutos: number
   estado: EstadoCita
@@ -62,6 +64,7 @@ const mapearFilaACita = (fila: CitaFila): Booking => ({
   servicioNombre: obtenerNombreServicio(fila.servicios),
   clienteNombre: fila.cliente_nombre,
   clienteTelefono: fila.cliente_telefono,
+  clienteCorreo: fila.cliente_correo ?? null,
   fechaHora: new Date(fila.fecha_hora),
   duracionMinutos: fila.duracion_minutos,
   estado: fila.estado,
@@ -83,6 +86,7 @@ const mapearCitaAFila = (input: CrearCitaInput): CitaInsertFila => {
     servicio_id: input.servicioId,
     cliente_nombre: input.clienteNombre,
     cliente_telefono: input.clienteTelefono,
+    cliente_correo: input.clienteCorreo,
     fecha_hora: input.fechaHora.toISOString(),
     duracion_minutos: input.duracionMinutos,
     estado: 'pendiente',
@@ -106,6 +110,7 @@ export const crearBookingRepository = (
         servicio_id,
         cliente_nombre,
         cliente_telefono,
+        cliente_correo,
         fecha_hora,
         duracion_minutos,
         estado,
@@ -164,6 +169,7 @@ export const crearBookingRepository = (
         servicio_id,
         cliente_nombre,
         cliente_telefono,
+        cliente_correo,
         fecha_hora,
         duracion_minutos,
         estado,

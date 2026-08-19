@@ -7,6 +7,7 @@ export type Booking = {
   servicioNombre: string
   clienteNombre: string
   clienteTelefono: string
+  clienteCorreo: string | null
   fechaHora: Date
   duracionMinutos: number
   estado: EstadoCita

@@ -2,6 +2,8 @@
 
 import { crearCancelarReserva } from '@/application/useCases/booking/cancelarReserva'
 import type { Booking } from '@/domain/booking/booking.types'
+import { crearNotificationServiceCompuesto } from '@/infrastructure/notifications/notificationService.compuesto'
+import { resendEmailNotificationService } from '@/infrastructure/notifications/resendEmailNotificationService'
 import { crearAuthService } from '@/infrastructure/supabase/authService.supabase'
 import { crearBookingRepository } from '@/infrastructure/supabase/bookingRepository.supabase'
 import { crearBusinessRepository } from '@/infrastructure/supabase/businessRepository.supabase'
@@ -41,17 +43,23 @@ export const cancelarCitaAction = async (citaId: string): Promise<Booking> => {
     throw new Error('No se encontraron los datos del negocio')
   }
 
+  const notificationService = crearNotificationServiceCompuesto(
+    whatsappNotificationService,
+    resendEmailNotificationService
+  )
+
   try {
-    await whatsappNotificationService.enviarCancelacion({
+    await notificationService.enviarCancelacion({
       clienteTelefono: citaCancelada.clienteTelefono,
       clienteNombre: citaCancelada.clienteNombre,
+      clienteCorreo: citaCancelada.clienteCorreo,
       negocioNombre: negocio.nombre,
       negocioSlug: negocio.slug,
       fechaHora: citaCancelada.fechaHora
     })
   } catch (error) {
-    // Cancellation already succeeded; WhatsApp must not fail the action.
-    console.error('No se pudo enviar la cancelación por WhatsApp', error)
+    // Cancellation already succeeded; notifications must not fail the action.
+    console.error('No se pudo enviar la cancelación', error)
   }
 
   return citaCancelada

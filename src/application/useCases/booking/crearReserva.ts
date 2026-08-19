@@ -42,12 +42,13 @@ export const crearCrearReserva = (
         id: cita.id,
         clienteTelefono: cita.clienteTelefono,
         clienteNombre: cita.clienteNombre,
+        clienteCorreo: cita.clienteCorreo,
         negocioNombre,
         fechaHora: cita.fechaHora
       })
     } catch (error) {
-      // Booking already succeeded; WhatsApp must not fail the reservation.
-      console.error('No se pudo enviar la confirmación por WhatsApp', error)
+      // Booking already succeeded; notifications must not fail the reservation.
+      console.error('No se pudo enviar la confirmación', error)
     }
 
     return cita

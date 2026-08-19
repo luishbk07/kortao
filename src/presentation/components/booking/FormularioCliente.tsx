@@ -6,6 +6,7 @@ import Button from '@mui/material/Button'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import { esCorreoValido } from '@/shared/utils/correo'
 import {
   esTelefonoCompleto,
   formatearTelefonoVisual,
@@ -15,22 +16,31 @@ import {
 type FormularioClienteProps = {
   clienteNombre: string
   clienteTelefono: string
+  clienteCorreo: string
   enviando: boolean
   onCambiarNombre: (valor: string) => void
   onCambiarTelefono: (valor: string) => void
+  onCambiarCorreo: (valor: string) => void
   onConfirmar: () => void
 }
 
 export const FormularioCliente = ({
   clienteNombre,
   clienteTelefono,
+  clienteCorreo,
   enviando,
   onCambiarNombre,
   onCambiarTelefono,
+  onCambiarCorreo,
   onConfirmar
 }: FormularioClienteProps) => {
+  const correoTrim = clienteCorreo.trim()
+  const correoOk = correoTrim.length === 0 || esCorreoValido(correoTrim)
+
   const formularioValido =
-    clienteNombre.trim().length > 1 && esTelefonoCompleto(clienteTelefono)
+    clienteNombre.trim().length > 1 &&
+    esTelefonoCompleto(clienteTelefono) &&
+    correoOk
 
   const handleSubmit = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault()
@@ -69,6 +79,16 @@ export const FormularioCliente = ({
         }}
         fullWidth
         required
+      />
+      <TextField
+        label='Correo electrónico'
+        type='email'
+        value={clienteCorreo}
+        onChange={(evento) => onCambiarCorreo(evento.target.value)}
+        autoComplete='email'
+        helperText='Opcional. Te enviamos la confirmación por correo.'
+        error={correoTrim.length > 0 && !correoOk}
+        fullWidth
       />
       <Button
         type='submit'

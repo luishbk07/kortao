@@ -2,6 +2,7 @@ export type EnviarConfirmacionInput = {
   id: string
   clienteTelefono: string
   clienteNombre: string
+  clienteCorreo: string | null
   negocioNombre: string
   fechaHora: Date
 }
@@ -9,6 +10,7 @@ export type EnviarConfirmacionInput = {
 export type EnviarCancelacionInput = {
   clienteTelefono: string
   clienteNombre: string
+  clienteCorreo: string | null
   negocioNombre: string
   negocioSlug: string
   fechaHora: Date
