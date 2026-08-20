@@ -17,6 +17,7 @@ import {
   marcarAtendidaAction
 } from '@/app/(negocio)/panel/citas/actions'
 import type { Booking, EstadoCita } from '@/domain/booking/booking.types'
+import { esCitaYaOcurrida } from '@/domain/booking/cita.rules'
 
 type ListaCitasPanelProps = {
   citas: Booking[]
@@ -41,9 +42,9 @@ const etiquetasEstado: Record<EstadoCita, string> = {
 
 const colorEstado = (
   estado: EstadoCita
-): 'default' | 'success' | 'warning' | 'error' | 'info' | 'secondary' => {
+): 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info' | 'secondary' => {
   if (estado === 'completada') {
-    return 'secondary'
+    return 'primary'
   }
 
   if (estado === 'confirmada') {
@@ -142,7 +143,8 @@ export const ListaCitasPanel = ({
           cita.estado !== 'completada'
         const puedeMarcarAtendida =
           permitirMarcarAtendida &&
-          (cita.estado === 'pendiente' || cita.estado === 'confirmada')
+          (cita.estado === 'pendiente' || cita.estado === 'confirmada') &&
+          esCitaYaOcurrida(cita.fechaHora)
         const ocupada = accionEnCurso?.citaId === cita.id
         const marcandoAtendida =
           ocupada && accionEnCurso?.tipo === 'atendida'

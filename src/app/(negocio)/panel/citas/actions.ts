@@ -2,6 +2,7 @@
 
 import { crearCancelarReserva } from '@/application/useCases/booking/cancelarReserva'
 import { crearMarcarCitaAtendida } from '@/application/useCases/booking/marcarCitaAtendida'
+import { esCitaYaOcurrida } from '@/domain/booking/cita.rules'
 import type { Booking } from '@/domain/booking/booking.types'
 import { crearNotificationServiceCompuesto } from '@/infrastructure/notifications/notificationService.compuesto'
 import { resendEmailNotificationService } from '@/infrastructure/notifications/resendEmailNotificationService'
@@ -79,12 +80,22 @@ export const marcarAtendidaAction = async (
 ): Promise<Booking> => {
   const { bookingRepository, negocioId } = await obtenerContextoPanel()
 
-  const marcarCitaAtendida = crearMarcarCitaAtendida(bookingRepository)
-  const citaCompletada = await marcarCitaAtendida(citaId)
+  const cita = await bookingRepository.obtenerCitaPorId(citaId)
 
-  if (citaCompletada.negocioId !== negocioId) {
+  if (!cita) {
+    throw new Error('Cita no encontrada')
+  }
+
+  if (cita.negocioId !== negocioId) {
     throw new Error('No tienes permiso para actualizar esta cita')
   }
 
-  return citaCompletada
+  if (!esCitaYaOcurrida(cita.fechaHora)) {
+    throw new Error(
+      'No puedes marcar como atendida una cita que aún no ha ocurrido'
+    )
+  }
+
+  const marcarCitaAtendida = crearMarcarCitaAtendida(bookingRepository)
+  return marcarCitaAtendida(citaId)
 }

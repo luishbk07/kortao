@@ -176,6 +176,24 @@ export const crearBookingRepository = (
     return mapearFilaACita(fila)
   },
 
+  obtenerCitaPorId: async (citaId) => {
+    const { data, error } = await cliente
+      .from('citas')
+      .select(columnasCita)
+      .eq('id', citaId)
+      .maybeSingle()
+
+    if (error) {
+      lanzarErrorSupabase(error)
+    }
+
+    if (!data) {
+      return null
+    }
+
+    return mapearFilaACita(data as CitaFila)
+  },
+
   cancelarCita: async (citaId) => {
     const { data, error } = await cliente
       .from('citas')
@@ -231,6 +249,8 @@ export const bookingRepositorySupabase: BookingRepository = {
     ),
   crearCita: (input) =>
     crearBookingRepository(crearClienteNavegador()).crearCita(input),
+  obtenerCitaPorId: (citaId) =>
+    crearBookingRepository(crearClienteNavegador()).obtenerCitaPorId(citaId),
   cancelarCita: (citaId) =>
     crearBookingRepository(crearClienteNavegador()).cancelarCita(citaId),
   marcarCitaAtendida: (citaId) =>

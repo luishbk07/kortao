@@ -25,6 +25,7 @@ export type BookingRepository = {
     hasta: Date
   ) => Promise<Booking[]>
   crearCita: (input: CrearCitaInput) => Promise<Booking>
+  obtenerCitaPorId: (citaId: string) => Promise<Booking | null>
   cancelarCita: (citaId: string) => Promise<Booking>
   marcarCitaAtendida: (citaId: string) => Promise<Booking>
 }
