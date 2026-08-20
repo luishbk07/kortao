@@ -1,4 +1,9 @@
 import type { BusinessHours, OccupiedSlot, TimeSlot } from './booking.types'
+import {
+  combinarFechaYMinutosEnZona,
+  obtenerDiaSemanaEnZona,
+  obtenerMinutosDelDiaEnZona
+} from '@/shared/utils/fechas'
 
 const INTERVALO_SLOT_MINUTOS = 15
 
@@ -8,13 +13,6 @@ const parseHoraAMinutos = (hora: string): number => {
   const minutos = Number(minutosTexto)
 
   return horas * 60 + minutos
-}
-
-const combinarFechaYMinutos = (fecha: Date, minutosDelDia: number): Date => {
-  const resultado = new Date(fecha)
-  resultado.setHours(0, 0, 0, 0)
-  resultado.setMinutes(minutosDelDia)
-  return resultado
 }
 
 const obtenerFinCita = (cita: OccupiedSlot): Date => {
@@ -56,8 +54,8 @@ const cabeEnHorario = (
   fin: Date,
   horario: BusinessHours
 ): boolean => {
-  const inicioMinutos = inicio.getHours() * 60 + inicio.getMinutes()
-  const finMinutos = fin.getHours() * 60 + fin.getMinutes()
+  const inicioMinutos = obtenerMinutosDelDiaEnZona(inicio)
+  const finMinutos = obtenerMinutosDelDiaEnZona(fin)
   const horarioInicio = parseHoraAMinutos(horario.horaInicio)
   const horarioFin = parseHoraAMinutos(horario.horaFin)
 
@@ -69,7 +67,7 @@ const estaDentroDeHorarios = (
   fin: Date,
   horariosNegocio: BusinessHours[]
 ): boolean => {
-  const diaSemana = inicio.getDay()
+  const diaSemana = obtenerDiaSemanaEnZona(inicio)
 
   return horariosDelDia(horariosNegocio, diaSemana).some((horario) => {
     return cabeEnHorario(inicio, fin, horario)
@@ -121,7 +119,7 @@ const generarSlotsEnHorario = (
   )
 
   return candidatos.reduce<TimeSlot[]>((slots, minutosInicio) => {
-    const inicio = combinarFechaYMinutos(fecha, minutosInicio)
+    const inicio = combinarFechaYMinutosEnZona(fecha, minutosInicio)
     const fin = new Date(inicio.getTime() + duracionServicio * 60_000)
     const finMinutosSlot = minutosInicio + duracionServicio
 
@@ -157,7 +155,7 @@ export const generarSlotsDisponibles = (
     return []
   }
 
-  const diaSemana = fecha.getDay()
+  const diaSemana = obtenerDiaSemanaEnZona(fecha)
 
   return horariosDelDia(horariosNegocio, diaSemana).flatMap((horario) => {
     return generarSlotsEnHorario(

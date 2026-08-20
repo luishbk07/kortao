@@ -8,6 +8,10 @@ import type { BusinessHours, TimeSlot } from '@/domain/booking/booking.types'
 import { bookingRepositorySupabase } from '@/infrastructure/supabase/bookingRepository.supabase'
 import type { ServicioPublico } from '@/presentation/components/booking/tiposReservar'
 import { esCorreoGmail } from '@/shared/utils/correo'
+import {
+  formatearFechaCalendario,
+  parsearFechaCalendario
+} from '@/shared/utils/fechas'
 import { crearEnlaceGoogleCalendar } from '@/shared/utils/googleCalendar'
 
 type UseFlujoReservarParams = {
@@ -33,18 +37,6 @@ const esErrorHorarioNoDisponible = (error: unknown): boolean => {
   )
 }
 
-const formatearFechaLocal = (fecha: Date): string => {
-  const anio = fecha.getFullYear()
-  const mes = String(fecha.getMonth() + 1).padStart(2, '0')
-  const dia = String(fecha.getDate()).padStart(2, '0')
-  return `${anio}-${mes}-${dia}`
-}
-
-const parsearFechaLocal = (fechaTexto: string): Date => {
-  const [anio, mes, dia] = fechaTexto.split('-').map(Number)
-  return new Date(anio, mes - 1, dia)
-}
-
 export const useFlujoReservar = ({
   negocioId,
   negocioNombre,
@@ -52,7 +44,7 @@ export const useFlujoReservar = ({
   servicios,
   horariosNegocio
 }: UseFlujoReservarParams) => {
-  const fechaMinima = formatearFechaLocal(new Date())
+  const fechaMinima = formatearFechaCalendario(new Date())
 
   const [servicioId, setServicioId] = useState<string | null>(null)
   const [fecha, setFecha] = useState(fechaMinima)
@@ -92,7 +84,7 @@ export const useFlujoReservar = ({
       try {
         const disponibles = await obtenerDisponibilidad(
           negocioId,
-          parsearFechaLocal(fecha),
+          parsearFechaCalendario(fecha),
           servicioSeleccionado.duracionMinutos,
           horariosNegocio
         )
@@ -197,7 +189,7 @@ export const useFlujoReservar = ({
 
       const disponibles = await obtenerDisponibilidad(
         negocioId,
-        parsearFechaLocal(fecha),
+        parsearFechaCalendario(fecha),
         servicioReservado.duracionMinutos,
         horariosNegocio
       )
@@ -211,7 +203,7 @@ export const useFlujoReservar = ({
 
         const disponibles = await obtenerDisponibilidad(
           negocioId,
-          parsearFechaLocal(fecha),
+          parsearFechaCalendario(fecha),
           servicioReservado.duracionMinutos,
           horariosNegocio
         )

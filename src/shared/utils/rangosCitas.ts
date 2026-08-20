@@ -1,6 +1,8 @@
-import { finDelDia, inicioDelDia } from './fechas'
+import { crearFechaEnZona, finDelDia, inicioDelDia, obtenerPartesEnZona } from './fechas'
 
 export type TabCitas = 'hoy' | 'proximas' | 'pasadas'
+
+const MS_POR_DIA = 24 * 60 * 60 * 1000
 
 export const obtenerRangoTabCitas = (
   tab: TabCitas,
@@ -14,11 +16,9 @@ export const obtenerRangoTabCitas = (
   }
 
   if (tab === 'proximas') {
-    const manana = new Date(ahora)
-    manana.setDate(manana.getDate() + 1)
-
-    const limite = new Date(ahora)
-    limite.setFullYear(limite.getFullYear() + 2)
+    const manana = new Date(inicioDelDia(ahora).getTime() + MS_POR_DIA)
+    const partes = obtenerPartesEnZona(ahora)
+    const limite = crearFechaEnZona(partes.anio + 2, partes.mes, partes.dia)
 
     return {
       desde: inicioDelDia(manana),
@@ -26,11 +26,9 @@ export const obtenerRangoTabCitas = (
     }
   }
 
-  const ayer = new Date(ahora)
-  ayer.setDate(ayer.getDate() - 1)
-
-  const inicio = new Date(ahora)
-  inicio.setFullYear(inicio.getFullYear() - 2)
+  const ayer = new Date(inicioDelDia(ahora).getTime() - MS_POR_DIA)
+  const partes = obtenerPartesEnZona(ahora)
+  const inicio = crearFechaEnZona(partes.anio - 2, partes.mes, partes.dia)
 
   return {
     desde: inicioDelDia(inicio),

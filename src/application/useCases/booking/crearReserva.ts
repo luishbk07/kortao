@@ -28,12 +28,25 @@ export const crearCrearReserva = (
       finDelDia(input.fechaHora)
     )
 
+    const ahora = new Date()
+
+    // TEMP: diagnose HorarioNoDisponibleError on Vercel (UTC vs America/Santo_Domingo)
+    console.log('[crearReserva] re-check disponibilidad', {
+      fechaHoraPropuesta: input.fechaHora.toISOString(),
+      ahora: ahora.toISOString(),
+      slotsOcupados: slotsOcupados.map((slot) => ({
+        fechaHora: slot.fechaHora.toISOString(),
+        duracionMinutos: slot.duracionMinutos,
+        estado: slot.estado
+      }))
+    })
+
     const disponible = esHorarioDisponible(
       horariosNegocio,
       slotsOcupados,
       input.fechaHora,
       input.duracionMinutos,
-      new Date()
+      ahora
     )
 
     if (!disponible) {
