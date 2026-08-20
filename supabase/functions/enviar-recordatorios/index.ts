@@ -87,7 +87,7 @@ const enviarWhatsappConFallback = async (cita: CitaPendiente): Promise<void> => 
 
   const respuestaReal = await enviarPlantillaWhatsapp(
     telefono,
-    "recordatorio_cita",
+    "recordatorio_cita_v2",
     "es_DO",
     [cita.cliente_nombre, negocioNombre, fechaTexto, horaTexto],
   );

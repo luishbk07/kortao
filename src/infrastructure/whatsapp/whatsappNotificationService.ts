@@ -10,12 +10,6 @@ type PlantillaWhatsapp = {
   parametrosCuerpo: string[]
 }
 
-const PLANTILLA_MUESTRA: PlantillaWhatsapp = {
-  nombre: 'jaspers_market_order_confirmation_v1',
-  idioma: 'en_US',
-  parametrosCuerpo: []
-}
-
 const obtenerCredencialesWhatsapp = (): {
   accessToken: string
   phoneNumberId: string
@@ -64,34 +58,6 @@ const formatearHora = (fecha: Date): string => {
   })
 }
 
-const formatearFechaHora = (fecha: Date): string => {
-  return `${formatearFecha(fecha)}, ${formatearHora(fecha)}`
-}
-
-const extraerCodigoErrorMeta = (detalle: string): number | undefined => {
-  try {
-    const jsonTexto = detalle.replace(/^Error al enviar WhatsApp:\s*/, '')
-    const cuerpo = JSON.parse(jsonTexto) as {
-      error?: { code?: number }
-    }
-    return typeof cuerpo.error?.code === 'number'
-      ? cuerpo.error.code
-      : undefined
-  } catch {
-    return undefined
-  }
-}
-
-const esPlantillaInexistenteONoAprobada = (detalle: string): boolean => {
-  const codigo = extraerCodigoErrorMeta(detalle)
-  if (codigo === 132001) {
-    return true
-  }
-
-  const mensaje = detalle.toLowerCase()
-  return mensaje.includes('template') && mensaje.includes('does not exist')
-}
-
 const enviarMensajePlantilla = async (
   telefonoDestino: string,
   plantilla: PlantillaWhatsapp
@@ -131,46 +97,16 @@ const enviarMensajePlantilla = async (
 
   if (!respuesta.ok) {
     const detalle = await respuesta.text()
+    console.error(
+      `WhatsApp plantilla '${plantilla.nombre}' falló (${respuesta.status}):`,
+      detalle
+    )
     throw new Error(`Error al enviar WhatsApp: ${detalle}`)
   }
 }
 
-const enviarPlantillaConFallback = async (
-  telefonoDestino: string,
-  preferida: PlantillaWhatsapp,
-  fallback: PlantillaWhatsapp
-): Promise<void> => {
-  try {
-    await enviarMensajePlantilla(telefonoDestino, preferida)
-  } catch (error) {
-    const detalle = error instanceof Error ? error.message : String(error)
-
-    if (!esPlantillaInexistenteONoAprobada(detalle)) {
-      throw error
-    }
-
-    console.warn(
-      `Plantilla WhatsApp '${preferida.nombre}' no disponible o no aprobada; usando fallback '${fallback.nombre}'.`
-    )
-    await enviarMensajePlantilla(telefonoDestino, fallback)
-  }
-}
-
-const plantillaMuestraTresParametros = (
-  clienteNombre: string,
-  referencia: string,
-  fechaHora: Date
-): PlantillaWhatsapp => ({
-  ...PLANTILLA_MUESTRA,
-  parametrosCuerpo: [
-    clienteNombre,
-    referencia,
-    formatearFechaHora(fechaHora)
-  ]
-})
-
 export const whatsappNotificationService: NotificationService = {
-  // Preferred: reserva_de_cita (es_DO)
+  // Preferred: reserva_cita_v2 (es_DO)
   // "Hola {{1}}, tu cita en {{2}} está confirmada para el {{3}} a las {{4}}. ¡Te esperamos!"
   enviarConfirmacion: async (input: EnviarConfirmacionInput) => {
     const telefonoDestino = normalizarTelefono(input.clienteTelefono)
@@ -179,27 +115,18 @@ export const whatsappNotificationService: NotificationService = {
       throw new Error('El teléfono del cliente no es válido')
     }
 
-    await enviarPlantillaConFallback(
-      telefonoDestino,
-      {
-        nombre: 'reserva_de_cita',
-        idioma: 'es_DO',
-        parametrosCuerpo: [
-          input.clienteNombre,
-          input.negocioNombre,
-          formatearFecha(input.fechaHora),
-          formatearHora(input.fechaHora)
-        ]
-      },
-      plantillaMuestraTresParametros(
+    await enviarMensajePlantilla(telefonoDestino, {
+      nombre: 'reserva_cita_v2',
+      idioma: 'es_DO',
+      parametrosCuerpo: [
         input.clienteNombre,
-        input.id.slice(0, 6),
-        input.fechaHora
-      )
-    )
+        input.negocioNombre,
+        formatearFecha(input.fechaHora),
+        formatearHora(input.fechaHora)
+      ]
+    })
   },
 
-  // Preferred: recordatorio_cita (pending Meta approval) — expects fallback until approved.
   enviarRecordatorio: async (input: EnviarConfirmacionInput) => {
     const telefonoDestino = normalizarTelefono(input.clienteTelefono)
 
@@ -207,27 +134,19 @@ export const whatsappNotificationService: NotificationService = {
       throw new Error('El teléfono del cliente no es válido')
     }
 
-    await enviarPlantillaConFallback(
-      telefonoDestino,
-      {
-        nombre: 'recordatorio_cita',
-        idioma: 'es_DO',
-        parametrosCuerpo: [
-          input.clienteNombre,
-          input.negocioNombre,
-          formatearFecha(input.fechaHora),
-          formatearHora(input.fechaHora)
-        ]
-      },
-      plantillaMuestraTresParametros(
+    await enviarMensajePlantilla(telefonoDestino, {
+      nombre: 'recordatorio_cita_v2',
+      idioma: 'es_DO',
+      parametrosCuerpo: [
         input.clienteNombre,
-        input.id.slice(0, 6),
-        input.fechaHora
-      )
-    )
+        input.negocioNombre,
+        formatearFecha(input.fechaHora),
+        formatearHora(input.fechaHora)
+      ]
+    })
   },
 
-  // Preferred: cita_cancelada (es_DO) — body only, no button.
+  // Preferred: cita_cancelada_v2 (es_DO) — body only, no button.
   // Params: clienteNombre, negocioNombre, fecha sin año, hora.
   enviarCancelacion: async (input: EnviarCancelacionInput) => {
     const telefonoDestino = normalizarTelefono(input.clienteTelefono)
@@ -236,23 +155,15 @@ export const whatsappNotificationService: NotificationService = {
       throw new Error('El teléfono del cliente no es válido')
     }
 
-    await enviarPlantillaConFallback(
-      telefonoDestino,
-      {
-        nombre: 'cita_cancelada',
-        idioma: 'es_DO',
-        parametrosCuerpo: [
-          input.clienteNombre,
-          input.negocioNombre,
-          formatearFechaSinAnio(input.fechaHora),
-          formatearHora(input.fechaHora)
-        ]
-      },
-      plantillaMuestraTresParametros(
+    await enviarMensajePlantilla(telefonoDestino, {
+      nombre: 'cita_cancelada_v2',
+      idioma: 'es_DO',
+      parametrosCuerpo: [
         input.clienteNombre,
-        input.negocioSlug.slice(0, 6),
-        input.fechaHora
-      )
-    )
+        input.negocioNombre,
+        formatearFechaSinAnio(input.fechaHora),
+        formatearHora(input.fechaHora)
+      ]
+    })
   }
 }
