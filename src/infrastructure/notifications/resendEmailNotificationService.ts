@@ -1,3 +1,4 @@
+import { render } from '@react-email/render'
 import { Resend } from 'resend'
 import type {
   EnviarCancelacionInput,
@@ -6,8 +7,10 @@ import type {
 } from '@/application/ports/notificationService.port'
 import { esCorreoGmail } from '@/shared/utils/correo'
 import { crearEnlaceGoogleCalendar } from '@/shared/utils/googleCalendar'
-
-const LOGO_KORTAO_EMAIL = 'https://kortao.com/brand/kortao-email-logo.png'
+import { construirUrlReserva } from '@/shared/utils/sitio'
+import { CancelacionCitaEmail } from './emails/CancelacionCitaEmail'
+import { ConfirmacionCitaEmail } from './emails/ConfirmacionCitaEmail'
+import { RecordatorioCitaEmail } from './emails/RecordatorioCitaEmail'
 
 const obtenerClienteResend = (): Resend => {
   const apiKey = process.env.RESEND_API_KEY?.trim()
@@ -52,58 +55,21 @@ const exigirCorreo = (correo: string | null): string => {
   return valor
 }
 
-const construirEncabezadoLogo = (negocioLogoUrl: string | null): string => {
-  if (negocioLogoUrl?.trim()) {
-    return `
-      <p style="margin:0 0 16px;">
-        <img
-          src="${negocioLogoUrl.trim()}"
-          alt=""
-          style="max-height:60px;max-width:220px;object-fit:contain;"
-        />
-      </p>
-    `
-  }
-
-  return `
-    <p style="margin:0 0 16px;">
-      <img
-        src="${LOGO_KORTAO_EMAIL}"
-        alt="Kortao"
-        style="max-height:40px;max-width:180px;object-fit:contain;"
-      />
-    </p>
-  `
-}
-
-const construirBloqueGoogleCalendar = (
+const obtenerEnlaceGoogleCalendar = (
   input: EnviarConfirmacionInput,
   correo: string
-): string => {
+): string | null => {
   if (!esCorreoGmail(correo)) {
-    return ''
+    return null
   }
 
-  const enlace = crearEnlaceGoogleCalendar({
+  return crearEnlaceGoogleCalendar({
     titulo: `${input.servicioNombre} — ${input.negocioNombre}`,
     inicio: input.fechaHora,
     duracionMinutos: input.duracionMinutos,
     detalles: `Cita en ${input.negocioNombre}`,
     ubicacion: input.negocioDireccion
   })
-
-  return `
-    <p style="margin-top:24px;">
-      <a
-        href="${enlace}"
-        target="_blank"
-        rel="noopener noreferrer"
-        style="display:inline-block;padding:10px 16px;background:#1F4B3F;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;"
-      >
-        Añadir a Google Calendar
-      </a>
-    </p>
-  `
 }
 
 const enviarCorreo = async (params: {
@@ -127,64 +93,61 @@ const enviarCorreo = async (params: {
 export const resendEmailNotificationService: NotificationService = {
   enviarConfirmacion: async (input: EnviarConfirmacionInput) => {
     const correo = exigirCorreo(input.clienteCorreo)
+    const html = await render(
+      ConfirmacionCitaEmail({
+        clienteNombre: input.clienteNombre,
+        negocioNombre: input.negocioNombre,
+        negocioLogoUrl: input.negocioLogoUrl,
+        fechaFormateada: formatearFecha(input.fechaHora),
+        horaFormateada: formatearHora(input.fechaHora),
+        enlaceGoogleCalendar: obtenerEnlaceGoogleCalendar(input, correo)
+      })
+    )
 
     await enviarCorreo({
       para: correo,
       asunto: `Cita confirmada en ${input.negocioNombre}`,
-      html: `
-        ${construirEncabezadoLogo(input.negocioLogoUrl)}
-        <p>Hola ${input.clienteNombre},</p>
-        <p>
-          Tu cita en <strong>${input.negocioNombre}</strong> está confirmada
-          para el <strong>${formatearFecha(input.fechaHora)}</strong>
-          a las <strong>${formatearHora(input.fechaHora)}</strong>.
-        </p>
-        <p>Te esperamos.</p>
-        ${construirBloqueGoogleCalendar(input, correo)}
-        <p style="color:#6B6862;font-size:12px;">Kortao</p>
-      `
+      html
     })
   },
 
   enviarRecordatorio: async (input: EnviarConfirmacionInput) => {
     const correo = exigirCorreo(input.clienteCorreo)
+    const html = await render(
+      RecordatorioCitaEmail({
+        clienteNombre: input.clienteNombre,
+        negocioNombre: input.negocioNombre,
+        negocioLogoUrl: input.negocioLogoUrl,
+        fechaFormateada: formatearFecha(input.fechaHora),
+        horaFormateada: formatearHora(input.fechaHora),
+        enlaceGoogleCalendar: obtenerEnlaceGoogleCalendar(input, correo)
+      })
+    )
 
     await enviarCorreo({
       para: correo,
       asunto: `Recordatorio de tu cita en ${input.negocioNombre}`,
-      html: `
-        ${construirEncabezadoLogo(input.negocioLogoUrl)}
-        <p>Hola ${input.clienteNombre},</p>
-        <p>
-          Te recordamos tu cita en <strong>${input.negocioNombre}</strong>
-          el <strong>${formatearFecha(input.fechaHora)}</strong>
-          a las <strong>${formatearHora(input.fechaHora)}</strong>.
-        </p>
-        <p>Te esperamos.</p>
-        ${construirBloqueGoogleCalendar(input, correo)}
-        <p style="color:#6B6862;font-size:12px;">Kortao</p>
-      `
+      html
     })
   },
 
   enviarCancelacion: async (input: EnviarCancelacionInput) => {
     const correo = exigirCorreo(input.clienteCorreo)
+    const html = await render(
+      CancelacionCitaEmail({
+        clienteNombre: input.clienteNombre,
+        negocioNombre: input.negocioNombre,
+        negocioLogoUrl: input.negocioLogoUrl,
+        fechaFormateada: formatearFecha(input.fechaHora),
+        horaFormateada: formatearHora(input.fechaHora),
+        enlaceReservar: construirUrlReserva(input.negocioSlug)
+      })
+    )
 
     await enviarCorreo({
       para: correo,
       asunto: `Cita cancelada en ${input.negocioNombre}`,
-      html: `
-        ${construirEncabezadoLogo(input.negocioLogoUrl)}
-        <p>Hola ${input.clienteNombre},</p>
-        <p>
-          Tu cita en <strong>${input.negocioNombre}</strong>
-          del <strong>${formatearFecha(input.fechaHora)}</strong>
-          a las <strong>${formatearHora(input.fechaHora)}</strong>
-          fue cancelada.
-        </p>
-        <p>Si deseas, puedes volver a reservar cuando quieras.</p>
-        <p style="color:#6B6862;font-size:12px;">Kortao</p>
-      `
+      html
     })
   }
 }
