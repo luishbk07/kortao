@@ -1,19 +1,22 @@
+import type { BusinessRepository } from '@/application/ports/businessRepository.port'
 import type {
   BookingRepository,
-  CrearCitaInput
+  SolicitudCrearReserva
 } from '@/application/ports/bookingRepository.port'
 import type { NotificationService } from '@/application/ports/notificationService.port'
 import { HorarioNoDisponibleError } from '@/domain/booking/booking.errors'
 import { esHorarioDisponible } from '@/domain/booking/booking.rules'
 import type { Booking, BusinessHours } from '@/domain/booking/booking.types'
+import { calcularPrecioFinal } from '@/domain/business/servicio.rules'
 import { finDelDia, inicioDelDia } from '@/shared/utils/fechas'
 
 export const crearCrearReserva = (
   bookingRepository: BookingRepository,
-  notificationService: NotificationService
+  notificationService: NotificationService,
+  businessRepository: BusinessRepository
 ) => {
   return async (
-    input: CrearCitaInput,
+    input: SolicitudCrearReserva,
     horariosNegocio: BusinessHours[],
     negocioNombre: string,
     negocioDireccion: string | null = null,
@@ -37,7 +40,24 @@ export const crearCrearReserva = (
       throw new HorarioNoDisponibleError()
     }
 
-    const cita = await bookingRepository.crearCita(input)
+    const servicio = await businessRepository.obtenerServicioPorId(
+      input.servicioId
+    )
+
+    if (!servicio || servicio.negocioId !== input.negocioId) {
+      throw new Error('El servicio no está disponible')
+    }
+
+    const precio = calcularPrecioFinal(
+      servicio.precio,
+      servicio.descuentoTipo,
+      servicio.descuentoValor
+    )
+
+    const cita = await bookingRepository.crearCita({
+      ...input,
+      precio
+    })
 
     try {
       await notificationService.enviarConfirmacion({

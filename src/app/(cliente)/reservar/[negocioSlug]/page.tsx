@@ -42,6 +42,8 @@ type ServicioFila = {
   nombre: string
   duracion_minutos: number
   precio: number | string
+  descuento_tipo: 'monto' | 'porcentaje' | null
+  descuento_valor: number | string | null
 }
 
 type HorarioFila = {
@@ -62,12 +64,25 @@ const mapearNegocio = (fila: NegocioFila): NegocioPublico => ({
   logoUrl: fila.logo_url ?? null
 })
 
-const mapearServicio = (fila: ServicioFila): ServicioPublico => ({
-  id: fila.id,
-  nombre: fila.nombre,
-  duracionMinutos: fila.duracion_minutos,
-  precio: Number(fila.precio)
-})
+const mapearServicio = (fila: ServicioFila): ServicioPublico => {
+  const descuentoTipo =
+    fila.descuento_tipo === 'monto' || fila.descuento_tipo === 'porcentaje'
+      ? fila.descuento_tipo
+      : null
+  const descuentoValor =
+    fila.descuento_valor === null || fila.descuento_valor === undefined
+      ? null
+      : Number(fila.descuento_valor)
+
+  return {
+    id: fila.id,
+    nombre: fila.nombre,
+    duracionMinutos: fila.duracion_minutos,
+    precio: Number(fila.precio),
+    descuentoTipo,
+    descuentoValor: Number.isFinite(descuentoValor) ? descuentoValor : null
+  }
+}
 
 const mapearHorario = (fila: HorarioFila): BusinessHours => ({
   diaSemana: fila.dia_semana,
@@ -107,7 +122,7 @@ const ReservarPage = async ({ params }: ReservarPageProps) => {
   const [resultadoServicios, resultadoHorarios] = await Promise.all([
     supabase
       .from('servicios')
-      .select('id, nombre, duracion_minutos, precio')
+      .select('id, nombre, duracion_minutos, precio, descuento_tipo, descuento_valor')
       .eq('negocio_id', negocio.id)
       .eq('activo', true)
       .order('nombre', { ascending: true }),

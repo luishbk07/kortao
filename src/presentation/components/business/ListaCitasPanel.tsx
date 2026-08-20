@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import EventBusyOutlinedIcon from '@mui/icons-material/EventBusyOutlined'
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined'
 import Alert from '@mui/material/Alert'
@@ -11,28 +12,41 @@ import CardContent from '@mui/material/CardContent'
 import Chip from '@mui/material/Chip'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import { cancelarCitaAction } from '@/app/(negocio)/panel/citas/actions'
+import {
+  cancelarCitaAction,
+  marcarAtendidaAction
+} from '@/app/(negocio)/panel/citas/actions'
 import type { Booking, EstadoCita } from '@/domain/booking/booking.types'
 
 type ListaCitasPanelProps = {
   citas: Booking[]
   permitirCancelar: boolean
+  permitirMarcarAtendida: boolean
   mostrarFecha: boolean
   mensajeVacio: string
-  onCitaCancelada: () => void
+  onCitaActualizada: () => void
+}
+
+type AccionEnCurso = {
+  citaId: string
+  tipo: 'atendida' | 'cancelar'
 }
 
 const etiquetasEstado: Record<EstadoCita, string> = {
   pendiente: 'Pendiente',
   confirmada: 'Confirmada',
   cancelada: 'Cancelada',
-  completada: 'Completada'
+  completada: 'Atendida'
 }
 
 const colorEstado = (
   estado: EstadoCita
-): 'default' | 'success' | 'warning' | 'error' => {
-  if (estado === 'confirmada' || estado === 'completada') {
+): 'default' | 'success' | 'warning' | 'error' | 'info' | 'secondary' => {
+  if (estado === 'completada') {
+    return 'secondary'
+  }
+
+  if (estado === 'confirmada') {
     return 'success'
   }
 
@@ -59,27 +73,49 @@ const formatearFecha = (fecha: Date): string => {
   })
 }
 
+const formatearPrecio = (precio: number): string => {
+  return new Intl.NumberFormat('es-DO', {
+    style: 'currency',
+    currency: 'DOP'
+  }).format(precio)
+}
+
 export const ListaCitasPanel = ({
   citas,
   permitirCancelar,
+  permitirMarcarAtendida,
   mostrarFecha,
   mensajeVacio,
-  onCitaCancelada
+  onCitaActualizada
 }: ListaCitasPanelProps) => {
-  const [cancelandoId, setCancelandoId] = useState<string | null>(null)
+  const [accionEnCurso, setAccionEnCurso] = useState<AccionEnCurso | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const handleCancelar = async (citaId: string) => {
-    setCancelandoId(citaId)
+    setAccionEnCurso({ citaId, tipo: 'cancelar' })
     setError(null)
 
     try {
       await cancelarCitaAction(citaId)
-      onCitaCancelada()
+      onCitaActualizada()
     } catch {
       setError('No se pudo cancelar la cita. Inténtalo de nuevo.')
     } finally {
-      setCancelandoId(null)
+      setAccionEnCurso(null)
+    }
+  }
+
+  const handleMarcarAtendida = async (citaId: string) => {
+    setAccionEnCurso({ citaId, tipo: 'atendida' })
+    setError(null)
+
+    try {
+      await marcarAtendidaAction(citaId)
+      onCitaActualizada()
+    } catch {
+      setError('No se pudo marcar la cita como atendida. Inténtalo de nuevo.')
+    } finally {
+      setAccionEnCurso(null)
     }
   }
 
@@ -101,7 +137,16 @@ export const ListaCitasPanel = ({
 
       {citas.map((cita) => {
         const puedeCancelar =
-          permitirCancelar && cita.estado !== 'cancelada'
+          permitirCancelar &&
+          cita.estado !== 'cancelada' &&
+          cita.estado !== 'completada'
+        const puedeMarcarAtendida =
+          permitirMarcarAtendida &&
+          (cita.estado === 'pendiente' || cita.estado === 'confirmada')
+        const ocupada = accionEnCurso?.citaId === cita.id
+        const marcandoAtendida =
+          ocupada && accionEnCurso?.tipo === 'atendida'
+        const cancelando = ocupada && accionEnCurso?.tipo === 'cancelar'
 
         return (
           <Card key={cita.id} variant='outlined'>
@@ -121,6 +166,9 @@ export const ListaCitasPanel = ({
                     </Typography>
                     <Typography color='text.secondary'>
                       {cita.servicioNombre} · {cita.duracionMinutos} min
+                      {cita.precio !== null
+                        ? ` · ${formatearPrecio(cita.precio)}`
+                        : ''}
                     </Typography>
                   </Stack>
                   <Chip
@@ -137,18 +185,34 @@ export const ListaCitasPanel = ({
                 </Stack>
               </Stack>
             </CardContent>
-            {puedeCancelar ? (
-              <CardActions sx={{ px: 2, pb: 2 }}>
-                <Button
-                  color='error'
-                  startIcon={<EventBusyOutlinedIcon />}
-                  disabled={cancelandoId === cita.id}
-                  onClick={() => {
-                    void handleCancelar(cita.id)
-                  }}
-                >
-                  {cancelandoId === cita.id ? 'Cancelando...' : 'Cancelar cita'}
-                </Button>
+            {puedeCancelar || puedeMarcarAtendida ? (
+              <CardActions sx={{ px: 2, pb: 2, flexWrap: 'wrap', gap: 1 }}>
+                {puedeMarcarAtendida ? (
+                  <Button
+                    color='secondary'
+                    startIcon={<CheckCircleOutlineIcon />}
+                    disabled={ocupada}
+                    onClick={() => {
+                      void handleMarcarAtendida(cita.id)
+                    }}
+                  >
+                    {marcandoAtendida
+                      ? 'Marcando...'
+                      : 'Marcar como atendida'}
+                  </Button>
+                ) : null}
+                {puedeCancelar ? (
+                  <Button
+                    color='error'
+                    startIcon={<EventBusyOutlinedIcon />}
+                    disabled={ocupada}
+                    onClick={() => {
+                      void handleCancelar(cita.id)
+                    }}
+                  >
+                    {cancelando ? 'Cancelando...' : 'Cancelar cita'}
+                  </Button>
+                ) : null}
               </CardActions>
             ) : null}
           </Card>

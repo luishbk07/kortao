@@ -1,9 +1,13 @@
+import type { DescuentoTipo } from '@/domain/business/servicio.rules'
+
 export type Servicio = {
   id: string
   negocioId: string
   nombre: string
   duracionMinutos: number
   precio: number
+  descuentoTipo: DescuentoTipo | null
+  descuentoValor: number | null
   activo: boolean
 }
 
@@ -23,6 +27,7 @@ export type CitaPanel = {
   estado: 'pendiente' | 'confirmada' | 'cancelada' | 'completada'
   servicioNombre: string
   duracionMinutos: number
+  precio: number | null
 }
 
 export type BloqueHorario = {

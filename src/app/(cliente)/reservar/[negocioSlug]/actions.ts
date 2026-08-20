@@ -1,11 +1,12 @@
 'use server'
 
-import type { CrearCitaInput } from '@/application/ports/bookingRepository.port'
+import type { SolicitudCrearReserva } from '@/application/ports/bookingRepository.port'
 import { crearCrearReserva } from '@/application/useCases/booking/crearReserva'
 import type { Booking, BusinessHours } from '@/domain/booking/booking.types'
 import { crearNotificationServiceCompuesto } from '@/infrastructure/notifications/notificationService.compuesto'
 import { resendEmailNotificationService } from '@/infrastructure/notifications/resendEmailNotificationService'
 import { crearBookingRepository } from '@/infrastructure/supabase/bookingRepository.supabase'
+import { crearBusinessRepository } from '@/infrastructure/supabase/businessRepository.supabase'
 import { crearClienteServidor } from '@/infrastructure/supabase/clienteServidor'
 import { whatsappNotificationService } from '@/infrastructure/whatsapp/whatsappNotificationService'
 import { normalizarCorreo } from '@/shared/utils/correo'
@@ -22,7 +23,9 @@ const mapearHorario = (fila: HorarioFila): BusinessHours => ({
   horaFin: fila.hora_fin.slice(0, 5)
 })
 
-const normalizarInput = (input: CrearCitaInput): CrearCitaInput => ({
+const normalizarInput = (
+  input: SolicitudCrearReserva
+): SolicitudCrearReserva => ({
   ...input,
   fechaHora: new Date(input.fechaHora),
   clienteCorreo: input.clienteCorreo
@@ -72,18 +75,20 @@ const obtenerDatosNegocio = async (
 }
 
 export const confirmarReserva = async (
-  input: CrearCitaInput
+  input: SolicitudCrearReserva
 ): Promise<Booking> => {
   const inputNormalizado = normalizarInput(input)
   const supabase = crearClienteServidor()
   const bookingRepository = crearBookingRepository(supabase)
+  const businessRepository = crearBusinessRepository(supabase)
   const notificationService = crearNotificationServiceCompuesto(
     whatsappNotificationService,
     resendEmailNotificationService
   )
   const crearReserva = crearCrearReserva(
     bookingRepository,
-    notificationService
+    notificationService,
+    businessRepository
   )
   const { horarios, nombre, direccion, logoUrl } = await obtenerDatosNegocio(
     inputNormalizado.negocioId

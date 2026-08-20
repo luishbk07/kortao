@@ -6,6 +6,10 @@ import CardActionArea from '@mui/material/CardActionArea'
 import CardContent from '@mui/material/CardContent'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+import {
+  calcularPrecioFinal,
+  tieneDescuentoActivo
+} from '@/domain/business/servicio.rules'
 import type { ServicioPublico } from './tiposReservar'
 
 type ListaServiciosProps = {
@@ -38,6 +42,15 @@ export const ListaServicios = ({
     <Stack spacing={1.5}>
       {servicios.map((servicio) => {
         const seleccionado = servicio.id === servicioSeleccionadoId
+        const conDescuento = tieneDescuentoActivo(
+          servicio.descuentoTipo,
+          servicio.descuentoValor
+        )
+        const precioFinal = calcularPrecioFinal(
+          servicio.precio,
+          servicio.descuentoTipo,
+          servicio.descuentoValor
+        )
 
         return (
           <Card
@@ -71,9 +84,28 @@ export const ListaServicios = ({
                       </Typography>
                     </Stack>
                   </Stack>
-                  <Typography variant='subtitle1' fontWeight={600}>
-                    {formatearPrecio(servicio.precio)}
-                  </Typography>
+                  {conDescuento ? (
+                    <Stack alignItems='flex-end' spacing={0.25}>
+                      <Typography
+                        variant='body2'
+                        color='text.secondary'
+                        sx={{ textDecoration: 'line-through' }}
+                      >
+                        {formatearPrecio(servicio.precio)}
+                      </Typography>
+                      <Typography
+                        variant='subtitle1'
+                        fontWeight={600}
+                        color='secondary.main'
+                      >
+                        {formatearPrecio(precioFinal)}
+                      </Typography>
+                    </Stack>
+                  ) : (
+                    <Typography variant='subtitle1' fontWeight={600}>
+                      {formatearPrecio(servicio.precio)}
+                    </Typography>
+                  )}
                 </Stack>
               </CardContent>
             </CardActionArea>

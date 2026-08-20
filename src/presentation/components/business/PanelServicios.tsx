@@ -12,15 +12,24 @@ import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
+import FormControl from '@mui/material/FormControl'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import InputLabel from '@mui/material/InputLabel'
+import MenuItem from '@mui/material/MenuItem'
+import Select from '@mui/material/Select'
 import Stack from '@mui/material/Stack'
 import Switch from '@mui/material/Switch'
 import TextField from '@mui/material/TextField'
-import FormControlLabel from '@mui/material/FormControlLabel'
 import Typography from '@mui/material/Typography'
 import { crearActualizarServicio } from '@/application/useCases/business/actualizarServicio'
 import { crearAlternarServicioActivo } from '@/application/useCases/business/alternarServicioActivo'
 import { crearCrearServicio } from '@/application/useCases/business/crearServicio'
 import type { Servicio } from '@/domain/business/business.types'
+import type { DescuentoTipo } from '@/domain/business/servicio.rules'
+import {
+  calcularPrecioFinal,
+  tieneDescuentoActivo
+} from '@/domain/business/servicio.rules'
 import { crearDependenciasPanelNavegador } from '@/presentation/lib/crearDependenciasPanelNavegador'
 
 type PanelServiciosProps = {
@@ -32,12 +41,18 @@ type FormularioServicioEstado = {
   nombre: string
   duracionMinutos: string
   precio: string
+  agregarPromocion: boolean
+  descuentoTipo: DescuentoTipo
+  descuentoValor: string
 }
 
 const formularioVacio: FormularioServicioEstado = {
   nombre: '',
   duracionMinutos: '30',
-  precio: '0'
+  precio: '0',
+  agregarPromocion: false,
+  descuentoTipo: 'monto',
+  descuentoValor: ''
 }
 
 const formatearPrecio = (precio: number): string => {
@@ -45,6 +60,28 @@ const formatearPrecio = (precio: number): string => {
     style: 'currency',
     currency: 'DOP'
   }).format(precio)
+}
+
+const obtenerDescuentoGuardado = (
+  formulario: FormularioServicioEstado
+): {
+  descuentoTipo: DescuentoTipo | null
+  descuentoValor: number | null
+} => {
+  if (!formulario.agregarPromocion) {
+    return { descuentoTipo: null, descuentoValor: null }
+  }
+
+  const descuentoValor = Number(formulario.descuentoValor)
+
+  if (!Number.isFinite(descuentoValor) || descuentoValor <= 0) {
+    return { descuentoTipo: null, descuentoValor: null }
+  }
+
+  return {
+    descuentoTipo: formulario.descuentoTipo,
+    descuentoValor
+  }
 }
 
 export const PanelServicios = ({
@@ -67,11 +104,20 @@ export const PanelServicios = ({
   }
 
   const abrirEditar = (servicio: Servicio) => {
+    const conPromocion = tieneDescuentoActivo(
+      servicio.descuentoTipo,
+      servicio.descuentoValor
+    )
+
     setEditando(servicio)
     setFormulario({
       nombre: servicio.nombre,
       duracionMinutos: String(servicio.duracionMinutos),
-      precio: String(servicio.precio)
+      precio: String(servicio.precio),
+      agregarPromocion: conPromocion,
+      descuentoTipo: servicio.descuentoTipo ?? 'monto',
+      descuentoValor:
+        servicio.descuentoValor !== null ? String(servicio.descuentoValor) : ''
     })
     setAbierto(true)
     setError(null)
@@ -80,9 +126,27 @@ export const PanelServicios = ({
   const handleGuardar = async () => {
     const duracionMinutos = Number(formulario.duracionMinutos)
     const precio = Number(formulario.precio)
+    const descuento = obtenerDescuentoGuardado(formulario)
 
     if (!formulario.nombre.trim() || duracionMinutos <= 0 || precio < 0) {
       setError('Revisa el nombre, la duración y el precio.')
+      return
+    }
+
+    if (
+      formulario.agregarPromocion &&
+      (descuento.descuentoValor === null || descuento.descuentoValor <= 0)
+    ) {
+      setError('Indica un valor de promoción válido.')
+      return
+    }
+
+    if (
+      formulario.agregarPromocion &&
+      formulario.descuentoTipo === 'porcentaje' &&
+      (descuento.descuentoValor ?? 0) > 100
+    ) {
+      setError('El porcentaje de descuento no puede superar 100.')
       return
     }
 
@@ -98,6 +162,8 @@ export const PanelServicios = ({
           nombre: formulario.nombre,
           duracionMinutos,
           precio,
+          descuentoTipo: descuento.descuentoTipo,
+          descuentoValor: descuento.descuentoValor,
           activo: editando.activo
         })
         setServicios((actuales) =>
@@ -111,7 +177,9 @@ export const PanelServicios = ({
           negocioId,
           nombre: formulario.nombre,
           duracionMinutos,
-          precio
+          precio,
+          descuentoTipo: descuento.descuentoTipo,
+          descuentoValor: descuento.descuentoValor
         })
         setServicios((actuales) => [...actuales, creado])
       }
@@ -176,47 +244,66 @@ export const PanelServicios = ({
         </Typography>
       ) : (
         <Stack spacing={1.5}>
-          {servicios.map((servicio) => (
-            <Card key={servicio.id} variant='outlined'>
-              <CardContent>
-                <Stack
-                  direction={{ xs: 'column', sm: 'row' }}
-                  justifyContent='space-between'
-                  spacing={1.5}
-                >
-                  <Stack spacing={0.5}>
-                    <Typography variant='h6' component='h2'>
-                      {servicio.nombre}
-                    </Typography>
-                    <Typography color='text.secondary'>
-                      {servicio.duracionMinutos} min ·{' '}
-                      {formatearPrecio(servicio.precio)}
-                    </Typography>
+          {servicios.map((servicio) => {
+            const conDescuento = tieneDescuentoActivo(
+              servicio.descuentoTipo,
+              servicio.descuentoValor
+            )
+            const precioFinal = calcularPrecioFinal(
+              servicio.precio,
+              servicio.descuentoTipo,
+              servicio.descuentoValor
+            )
+
+            return (
+              <Card key={servicio.id} variant='outlined'>
+                <CardContent>
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    justifyContent='space-between'
+                    spacing={1.5}
+                  >
+                    <Stack spacing={0.5}>
+                      <Typography variant='h6' component='h2'>
+                        {servicio.nombre}
+                      </Typography>
+                      <Typography color='text.secondary'>
+                        {servicio.duracionMinutos} min ·{' '}
+                        {conDescuento
+                          ? `${formatearPrecio(servicio.precio)} → ${formatearPrecio(precioFinal)}`
+                          : formatearPrecio(servicio.precio)}
+                      </Typography>
+                      {conDescuento ? (
+                        <Typography variant='body2' color='secondary.main'>
+                          Promoción activa
+                        </Typography>
+                      ) : null}
+                    </Stack>
+                    <Stack direction='row' spacing={1} alignItems='center'>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={servicio.activo}
+                            onChange={() => {
+                              void handleAlternarActivo(servicio)
+                            }}
+                            color='secondary'
+                          />
+                        }
+                        label={servicio.activo ? 'Activo' : 'Inactivo'}
+                      />
+                      <Button
+                        startIcon={<EditOutlinedIcon />}
+                        onClick={() => abrirEditar(servicio)}
+                      >
+                        Editar
+                      </Button>
+                    </Stack>
                   </Stack>
-                  <Stack direction='row' spacing={1} alignItems='center'>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={servicio.activo}
-                          onChange={() => {
-                            void handleAlternarActivo(servicio)
-                          }}
-                          color='secondary'
-                        />
-                      }
-                      label={servicio.activo ? 'Activo' : 'Inactivo'}
-                    />
-                    <Button
-                      startIcon={<EditOutlinedIcon />}
-                      onClick={() => abrirEditar(servicio)}
-                    >
-                      Editar
-                    </Button>
-                  </Stack>
-                </Stack>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            )
+          })}
         </Stack>
       )}
 
@@ -271,6 +358,69 @@ export const PanelServicios = ({
               fullWidth
               required
             />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={formulario.agregarPromocion}
+                  onChange={(evento) =>
+                    setFormulario((actual) => ({
+                      ...actual,
+                      agregarPromocion: evento.target.checked
+                    }))
+                  }
+                  color='secondary'
+                />
+              }
+              label='Agregar promoción'
+            />
+            {formulario.agregarPromocion ? (
+              <Stack spacing={2}>
+                <FormControl fullWidth>
+                  <InputLabel id='descuento-tipo-label'>
+                    Tipo de descuento
+                  </InputLabel>
+                  <Select
+                    labelId='descuento-tipo-label'
+                    label='Tipo de descuento'
+                    value={formulario.descuentoTipo}
+                    onChange={(evento) =>
+                      setFormulario((actual) => ({
+                        ...actual,
+                        descuentoTipo: evento.target.value as DescuentoTipo
+                      }))
+                    }
+                  >
+                    <MenuItem value='monto'>Monto fijo</MenuItem>
+                    <MenuItem value='porcentaje'>Porcentaje</MenuItem>
+                  </Select>
+                </FormControl>
+                <TextField
+                  label={
+                    formulario.descuentoTipo === 'porcentaje'
+                      ? 'Descuento (%)'
+                      : 'Descuento (RD$)'
+                  }
+                  type='number'
+                  value={formulario.descuentoValor}
+                  onChange={(evento) =>
+                    setFormulario((actual) => ({
+                      ...actual,
+                      descuentoValor: evento.target.value
+                    }))
+                  }
+                  inputProps={{
+                    min: 0,
+                    step: formulario.descuentoTipo === 'porcentaje' ? 1 : 50,
+                    max:
+                      formulario.descuentoTipo === 'porcentaje'
+                        ? 100
+                        : undefined
+                  }}
+                  fullWidth
+                  required
+                />
+              </Stack>
+            ) : null}
           </Stack>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>

@@ -15,4 +15,6 @@ export type ServicioPublico = {
   nombre: string
   duracionMinutos: number
   precio: number
+  descuentoTipo: 'monto' | 'porcentaje' | null
+  descuentoValor: number | null
 }

@@ -4,18 +4,23 @@ import type {
   HorarioNegocio,
   Servicio
 } from '@/domain/business/business.types'
+import type { DescuentoTipo } from '@/domain/business/servicio.rules'
 
 export type CrearServicioInput = {
   negocioId: string
   nombre: string
   duracionMinutos: number
   precio: number
+  descuentoTipo: DescuentoTipo | null
+  descuentoValor: number | null
 }
 
 export type ActualizarServicioInput = {
   nombre: string
   duracionMinutos: number
   precio: number
+  descuentoTipo: DescuentoTipo | null
+  descuentoValor: number | null
   activo: boolean
 }
 
@@ -57,6 +62,7 @@ export type BusinessRepository = {
     input: ActualizarNegocioInput
   ) => Promise<NegocioDetalle>
   listarServicios: (negocioId: string) => Promise<Servicio[]>
+  obtenerServicioPorId: (servicioId: string) => Promise<Servicio | null>
   crearServicio: (input: CrearServicioInput) => Promise<Servicio>
   actualizarServicio: (
     servicioId: string,

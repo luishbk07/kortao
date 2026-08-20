@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type SyntheticEvent } from 'react'
 import Alert from '@mui/material/Alert'
+import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
@@ -39,6 +40,37 @@ const ordenarCitas = (citas: Booking[], tab: TabCitas): Booking[] => {
 
   return [...citas].sort(
     (a, b) => b.fechaHora.getTime() - a.fechaHora.getTime()
+  )
+}
+
+const formatearPrecio = (precio: number): string => {
+  return new Intl.NumberFormat('es-DO', {
+    style: 'currency',
+    currency: 'DOP'
+  }).format(precio)
+}
+
+const ResumenPasadas = ({ citas }: { citas: Booking[] }) => {
+  const completadas = citas.filter((cita) => cita.estado === 'completada')
+  const totalIngresos = completadas.reduce(
+    (acumulado, cita) => acumulado + (cita.precio ?? 0),
+    0
+  )
+
+  return (
+    <Paper variant='outlined' sx={{ p: 2 }}>
+      <Stack spacing={0.5}>
+        <Typography variant='subtitle2' color='primary'>
+          Resumen del período
+        </Typography>
+        <Typography color='text.secondary'>
+          Citas atendidas: {completadas.length}
+        </Typography>
+        <Typography color='text.secondary'>
+          Total: {formatearPrecio(totalIngresos)}
+        </Typography>
+      </Stack>
+    </Paper>
   )
 }
 
@@ -117,15 +149,19 @@ export const PanelCitas = ({ negocioId, negocioSlug }: PanelCitasProps) => {
       {cargando ? (
         <EsqueletoListaCitas />
       ) : (
-        <ListaCitasPanel
-          citas={citas}
-          permitirCancelar={tab !== 'pasadas'}
-          mostrarFecha={tab !== 'hoy'}
-          mensajeVacio={mensajesVacios[tab]}
-          onCitaCancelada={() => {
-            void cargarCitas(tab)
-          }}
-        />
+        <Stack spacing={2}>
+          {tab === 'pasadas' ? <ResumenPasadas citas={citas} /> : null}
+          <ListaCitasPanel
+            citas={citas}
+            permitirCancelar={tab !== 'pasadas'}
+            permitirMarcarAtendida
+            mostrarFecha={tab !== 'hoy'}
+            mensajeVacio={mensajesVacios[tab]}
+            onCitaActualizada={() => {
+              void cargarCitas(tab)
+            }}
+          />
+        </Stack>
       )}
     </Stack>
   )

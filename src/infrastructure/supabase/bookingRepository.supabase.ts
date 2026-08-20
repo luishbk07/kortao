@@ -19,6 +19,7 @@ type CitaFila = {
   cliente_correo: string | null
   fecha_hora: string
   duracion_minutos: number
+  precio: number | string | null
   estado: EstadoCita
   creado_en: string
   servicios?: { nombre: string } | { nombre: string }[] | null
@@ -39,8 +40,35 @@ type CitaInsertFila = {
   cliente_correo: string | null
   fecha_hora: string
   duracion_minutos: number
+  precio: number
   estado: EstadoCita
   creado_en: string
+}
+
+const columnasCita = `
+  id,
+  negocio_id,
+  servicio_id,
+  cliente_nombre,
+  cliente_telefono,
+  cliente_correo,
+  fecha_hora,
+  duracion_minutos,
+  precio,
+  estado,
+  creado_en,
+  servicios ( nombre )
+`
+
+const mapearNumeroOpcional = (
+  valor: number | string | null | undefined
+): number | null => {
+  if (valor === null || valor === undefined || valor === '') {
+    return null
+  }
+
+  const numero = Number(valor)
+  return Number.isFinite(numero) ? numero : null
 }
 
 const obtenerNombreServicio = (
@@ -67,6 +95,7 @@ const mapearFilaACita = (fila: CitaFila): Booking => ({
   clienteCorreo: fila.cliente_correo ?? null,
   fechaHora: new Date(fila.fecha_hora),
   duracionMinutos: fila.duracion_minutos,
+  precio: mapearNumeroOpcional(fila.precio),
   estado: fila.estado,
   creadoEn: new Date(fila.creado_en)
 })
@@ -89,6 +118,7 @@ const mapearCitaAFila = (input: CrearCitaInput): CitaInsertFila => {
     cliente_correo: input.clienteCorreo,
     fecha_hora: input.fechaHora.toISOString(),
     duracion_minutos: input.duracionMinutos,
+    precio: input.precio,
     estado: 'pendiente',
     creado_en: ahora.toISOString()
   }
@@ -104,19 +134,7 @@ export const crearBookingRepository = (
   obtenerCitasPorRango: async (negocioId, desde, hasta) => {
     const { data, error } = await cliente
       .from('citas')
-      .select(`
-        id,
-        negocio_id,
-        servicio_id,
-        cliente_nombre,
-        cliente_telefono,
-        cliente_correo,
-        fecha_hora,
-        duracion_minutos,
-        estado,
-        creado_en,
-        servicios ( nombre )
-      `)
+      .select(columnasCita)
       .eq('negocio_id', negocioId)
       .gte('fecha_hora', desde.toISOString())
       .lte('fecha_hora', hasta.toISOString())
@@ -163,19 +181,27 @@ export const crearBookingRepository = (
       .from('citas')
       .update({ estado: 'cancelada' })
       .eq('id', citaId)
-      .select(`
-        id,
-        negocio_id,
-        servicio_id,
-        cliente_nombre,
-        cliente_telefono,
-        cliente_correo,
-        fecha_hora,
-        duracion_minutos,
-        estado,
-        creado_en,
-        servicios ( nombre )
-      `)
+      .select(columnasCita)
+      .single()
+
+    if (error) {
+      lanzarErrorSupabase(error)
+    }
+
+    if (!data) {
+      throw new Error('Cita no encontrada')
+    }
+
+    return mapearFilaACita(data as CitaFila)
+  },
+
+  marcarCitaAtendida: async (citaId) => {
+    const { data, error } = await cliente
+      .from('citas')
+      .update({ estado: 'completada' })
+      .eq('id', citaId)
+      .in('estado', ['pendiente', 'confirmada'])
+      .select(columnasCita)
       .single()
 
     if (error) {
@@ -206,5 +232,7 @@ export const bookingRepositorySupabase: BookingRepository = {
   crearCita: (input) =>
     crearBookingRepository(crearClienteNavegador()).crearCita(input),
   cancelarCita: (citaId) =>
-    crearBookingRepository(crearClienteNavegador()).cancelarCita(citaId)
+    crearBookingRepository(crearClienteNavegador()).cancelarCita(citaId),
+  marcarCitaAtendida: (citaId) =>
+    crearBookingRepository(crearClienteNavegador()).marcarCitaAtendida(citaId)
 }

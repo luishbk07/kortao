@@ -9,6 +9,8 @@ export const crearAlternarServicioActivo = (
       nombre: servicio.nombre,
       duracionMinutos: servicio.duracionMinutos,
       precio: servicio.precio,
+      descuentoTipo: servicio.descuentoTipo,
+      descuentoValor: servicio.descuentoValor,
       activo: !servicio.activo
     })
   }

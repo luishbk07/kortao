@@ -12,6 +12,7 @@ import type {
   HorarioNegocio,
   Servicio
 } from '@/domain/business/business.types'
+import type { DescuentoTipo } from '@/domain/business/servicio.rules'
 import type { EstadoCita } from '@/domain/booking/booking.types'
 import { finDelDia, inicioDelDia } from '@/shared/utils/fechas'
 
@@ -32,6 +33,8 @@ type ServicioFila = {
   nombre: string
   duracion_minutos: number
   precio: number | string
+  descuento_tipo: DescuentoTipo | null
+  descuento_valor: number | string | null
   activo: boolean
 }
 
@@ -60,6 +63,9 @@ const mapearNegocioDetalle = (fila: NegocioFila): NegocioDetalle => ({
 const columnasNegocioDetalle =
   'id, nombre, slug, telefono_whatsapp, direccion, latitud, longitud, logo_url'
 
+const columnasServicio =
+  'id, negocio_id, nombre, duracion_minutos, precio, descuento_tipo, descuento_valor, activo'
+
 type HorarioFila = {
   id: string
   negocio_id: string
@@ -75,11 +81,22 @@ type CitaPanelFila = {
   fecha_hora: string
   estado: EstadoCita
   duracion_minutos: number
+  precio: number | string | null
   servicios: { nombre: string } | { nombre: string }[] | null
 }
 
 const lanzarErrorSupabase = (error: { message: string }): never => {
   throw new Error(error.message)
+}
+
+const mapearDescuentoTipo = (
+  valor: string | null | undefined
+): DescuentoTipo | null => {
+  if (valor === 'monto' || valor === 'porcentaje') {
+    return valor
+  }
+
+  return null
 }
 
 const mapearServicio = (fila: ServicioFila): Servicio => ({
@@ -88,6 +105,8 @@ const mapearServicio = (fila: ServicioFila): Servicio => ({
   nombre: fila.nombre,
   duracionMinutos: fila.duracion_minutos,
   precio: Number(fila.precio),
+  descuentoTipo: mapearDescuentoTipo(fila.descuento_tipo),
+  descuentoValor: mapearNumeroOpcional(fila.descuento_valor),
   activo: fila.activo
 })
 
@@ -120,7 +139,8 @@ const mapearCitaPanel = (fila: CitaPanelFila): CitaPanel => ({
   fechaHora: new Date(fila.fecha_hora),
   estado: fila.estado,
   servicioNombre: obtenerNombreServicio(fila.servicios),
-  duracionMinutos: fila.duracion_minutos
+  duracionMinutos: fila.duracion_minutos,
+  precio: mapearNumeroOpcional(fila.precio)
 })
 
 export const crearBusinessRepository = (
@@ -228,7 +248,7 @@ export const crearBusinessRepository = (
   listarServicios: async (negocioId) => {
     const { data, error } = await cliente
       .from('servicios')
-      .select('id, negocio_id, nombre, duracion_minutos, precio, activo')
+      .select(columnasServicio)
       .eq('negocio_id', negocioId)
       .order('nombre', { ascending: true })
 
@@ -239,6 +259,24 @@ export const crearBusinessRepository = (
     return ((data as ServicioFila[] | null) ?? []).map(mapearServicio)
   },
 
+  obtenerServicioPorId: async (servicioId) => {
+    const { data, error } = await cliente
+      .from('servicios')
+      .select(columnasServicio)
+      .eq('id', servicioId)
+      .maybeSingle()
+
+    if (error) {
+      lanzarErrorSupabase(error)
+    }
+
+    if (!data) {
+      return null
+    }
+
+    return mapearServicio(data as ServicioFila)
+  },
+
   crearServicio: async (input: CrearServicioInput) => {
     const { data, error } = await cliente
       .from('servicios')
@@ -247,9 +285,11 @@ export const crearBusinessRepository = (
         nombre: input.nombre,
         duracion_minutos: input.duracionMinutos,
         precio: input.precio,
+        descuento_tipo: input.descuentoTipo,
+        descuento_valor: input.descuentoValor,
         activo: true
       })
-      .select('id, negocio_id, nombre, duracion_minutos, precio, activo')
+      .select(columnasServicio)
       .single()
 
     if (error) {
@@ -266,10 +306,12 @@ export const crearBusinessRepository = (
         nombre: input.nombre,
         duracion_minutos: input.duracionMinutos,
         precio: input.precio,
+        descuento_tipo: input.descuentoTipo,
+        descuento_valor: input.descuentoValor,
         activo: input.activo
       })
       .eq('id', servicioId)
-      .select('id, negocio_id, nombre, duracion_minutos, precio, activo')
+      .select(columnasServicio)
       .single()
 
     if (error) {
@@ -340,6 +382,7 @@ export const crearBusinessRepository = (
         fecha_hora,
         estado,
         duracion_minutos,
+        precio,
         servicios ( nombre )
       `)
       .eq('negocio_id', negocioId)
