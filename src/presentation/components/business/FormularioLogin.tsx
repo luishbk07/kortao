@@ -35,7 +35,6 @@ export const FormularioLogin = () => {
       router.refresh()
     } catch {
       setError('Correo o contraseña incorrectos. Inténtalo de nuevo.')
-    } finally {
       setEnviando(false)
     }
   }
