@@ -24,6 +24,7 @@ export type BookingRepository = {
     desde: Date,
     hasta: Date
   ) => Promise<Booking[]>
+  contarCitasFuturasActivas: (negocioId: string) => Promise<number>
   crearCita: (input: CrearCitaInput) => Promise<Booking>
   obtenerCitaPorId: (citaId: string) => Promise<Booking | null>
   cancelarCita: (citaId: string) => Promise<Booking>

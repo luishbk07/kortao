@@ -163,6 +163,21 @@ export const crearBookingRepository = (
     return ((data as SlotOcupadoFila[] | null) ?? []).map(mapearFilaASlotOcupado)
   },
 
+  contarCitasFuturasActivas: async (negocioId) => {
+    const { count, error } = await cliente
+      .from('disponibilidad_citas')
+      .select('*', { count: 'exact', head: true })
+      .eq('negocio_id', negocioId)
+      .in('estado', ['pendiente', 'confirmada'])
+      .gt('fecha_hora', new Date().toISOString())
+
+    if (error) {
+      lanzarErrorSupabase(error)
+    }
+
+    return count ?? 0
+  },
+
   crearCita: async (input) => {
     const fila = mapearCitaAFila(input)
 
@@ -246,6 +261,10 @@ export const bookingRepositorySupabase: BookingRepository = {
       negocioId,
       desde,
       hasta
+    ),
+  contarCitasFuturasActivas: (negocioId) =>
+    crearBookingRepository(crearClienteNavegador()).contarCitasFuturasActivas(
+      negocioId
     ),
   crearCita: (input) =>
     crearBookingRepository(crearClienteNavegador()).crearCita(input),

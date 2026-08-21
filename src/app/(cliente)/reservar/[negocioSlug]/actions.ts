@@ -40,6 +40,7 @@ const obtenerDatosNegocio = async (
   nombre: string
   direccion: string | null
   logoUrl: string | null
+  plan: string
 }> => {
   const supabase = crearClienteServidor()
 
@@ -51,7 +52,7 @@ const obtenerDatosNegocio = async (
       .order('dia_semana', { ascending: true }),
     supabase
       .from('negocios')
-      .select('nombre, direccion, logo_url')
+      .select('nombre, direccion, logo_url, plan')
       .eq('id', negocioId)
       .maybeSingle()
   ])
@@ -70,7 +71,8 @@ const obtenerDatosNegocio = async (
     ),
     nombre: resultadoNegocio.data.nombre,
     direccion: resultadoNegocio.data.direccion ?? null,
-    logoUrl: resultadoNegocio.data.logo_url ?? null
+    logoUrl: resultadoNegocio.data.logo_url ?? null,
+    plan: resultadoNegocio.data.plan ?? 'estandar'
   }
 }
 
@@ -90,15 +92,15 @@ export const confirmarReserva = async (
     notificationService,
     businessRepository
   )
-  const { horarios, nombre, direccion, logoUrl } = await obtenerDatosNegocio(
-    inputNormalizado.negocioId
-  )
+  const { horarios, nombre, direccion, logoUrl, plan } =
+    await obtenerDatosNegocio(inputNormalizado.negocioId)
 
   return crearReserva(
     inputNormalizado,
     horarios,
     nombre,
     direccion,
-    logoUrl
+    logoUrl,
+    plan
   )
 }

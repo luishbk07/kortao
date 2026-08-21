@@ -7,23 +7,28 @@ type PanelLayoutProps = {
   children: ReactNode
 }
 
-type MembresiaFila = {
-  negocio_id: string
-  negocios: { suscripcion_activa: boolean } | { suscripcion_activa: boolean }[] | null
+type NegocioMembresia = {
+  suscripcion_activa: boolean
+  plan: string | null
 }
 
-const obtenerSuscripcionActiva = (
+type MembresiaFila = {
+  negocio_id: string
+  negocios: NegocioMembresia | NegocioMembresia[] | null
+}
+
+const obtenerNegocioMembresia = (
   negocios: MembresiaFila['negocios']
-): boolean | null => {
+): NegocioMembresia | null => {
   if (!negocios) {
     return null
   }
 
   if (Array.isArray(negocios)) {
-    return negocios[0]?.suscripcion_activa ?? null
+    return negocios[0] ?? null
   }
 
-  return negocios.suscripcion_activa
+  return negocios
 }
 
 const PanelLayout = async ({ children }: PanelLayoutProps) => {
@@ -32,23 +37,27 @@ const PanelLayout = async ({ children }: PanelLayoutProps) => {
     data: { user }
   } = await supabase.auth.getUser()
 
+  let plan = 'estandar'
+
   if (user) {
     const { data: membresia } = await supabase
       .from('usuarios_negocio')
-      .select('negocio_id, negocios(suscripcion_activa)')
+      .select('negocio_id, negocios(suscripcion_activa, plan)')
       .eq('auth_user_id', user.id)
       .maybeSingle()
 
-    const suscripcionActiva = obtenerSuscripcionActiva(
+    const negocio = obtenerNegocioMembresia(
       (membresia as MembresiaFila | null)?.negocios ?? null
     )
 
-    if (suscripcionActiva === false) {
+    if (negocio?.suscripcion_activa === false) {
       return <CuentaPausada />
     }
+
+    plan = negocio?.plan ?? 'estandar'
   }
 
-  return <PanelShell>{children}</PanelShell>
+  return <PanelShell plan={plan}>{children}</PanelShell>
 }
 
 export default PanelLayout

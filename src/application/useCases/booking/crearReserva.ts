@@ -4,11 +4,18 @@ import type {
   SolicitudCrearReserva
 } from '@/application/ports/bookingRepository.port'
 import type { NotificationService } from '@/application/ports/notificationService.port'
-import { HorarioNoDisponibleError } from '@/domain/booking/booking.errors'
+import {
+  HorarioNoDisponibleError,
+  LimiteDePlanError
+} from '@/domain/booking/booking.errors'
 import { esHorarioDisponible } from '@/domain/booking/booking.rules'
 import type { Booking, BusinessHours } from '@/domain/booking/booking.types'
 import { calcularPrecioFinal } from '@/domain/business/servicio.rules'
 import { finDelDia, inicioDelDia } from '@/shared/utils/fechas'
+import {
+  esPlanPremium,
+  LIMITE_CITAS_FUTURAS_PLAN_GRATIS
+} from '@/shared/utils/planes'
 
 export const crearCrearReserva = (
   bookingRepository: BookingRepository,
@@ -20,8 +27,18 @@ export const crearCrearReserva = (
     horariosNegocio: BusinessHours[],
     negocioNombre: string,
     negocioDireccion: string | null = null,
-    negocioLogoUrl: string | null = null
+    negocioLogoUrl: string | null = null,
+    negocioPlan = 'estandar'
   ): Promise<Booking> => {
+    if (!esPlanPremium(negocioPlan)) {
+      const citasFuturasActivas =
+        await bookingRepository.contarCitasFuturasActivas(input.negocioId)
+
+      if (citasFuturasActivas >= LIMITE_CITAS_FUTURAS_PLAN_GRATIS) {
+        throw new LimiteDePlanError()
+      }
+    }
+
     const slotsOcupados = await bookingRepository.obtenerSlotsOcupados(
       input.negocioId,
       inicioDelDia(input.fechaHora),

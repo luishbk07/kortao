@@ -3,7 +3,10 @@
 import { useEffect, useState } from 'react'
 import { confirmarReserva as confirmarReservaAction } from '@/app/(cliente)/reservar/[negocioSlug]/actions'
 import { crearObtenerDisponibilidad } from '@/application/useCases/booking/obtenerDisponibilidad'
-import { HorarioNoDisponibleError } from '@/domain/booking/booking.errors'
+import {
+  HorarioNoDisponibleError,
+  LimiteDePlanError
+} from '@/domain/booking/booking.errors'
 import type { BusinessHours, TimeSlot } from '@/domain/booking/booking.types'
 import { bookingRepositorySupabase } from '@/infrastructure/supabase/bookingRepository.supabase'
 import type { ServicioPublico } from '@/presentation/components/booking/tiposReservar'
@@ -34,6 +37,18 @@ const esErrorHorarioNoDisponible = (error: unknown): boolean => {
   return (
     error instanceof Error &&
     error.message === 'El horario ya no está disponible'
+  )
+}
+
+const esErrorLimiteDePlan = (error: unknown): boolean => {
+  if (error instanceof LimiteDePlanError) {
+    return true
+  }
+
+  return (
+    error instanceof Error &&
+    error.message ===
+      'Este negocio alcanzó su límite de citas activas por el momento'
   )
 }
 
@@ -208,6 +223,10 @@ export const useFlujoReservar = ({
           horariosNegocio
         )
         setSlots(disponibles)
+      } else if (esErrorLimiteDePlan(error)) {
+        setMensajeError(
+          'Este negocio no tiene cupo disponible por ahora, contáctalo directamente para coordinar tu cita.'
+        )
       } else {
         setMensajeError(
           'No se pudo completar la reserva. Inténtalo de nuevo.'
