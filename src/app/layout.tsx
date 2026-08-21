@@ -54,7 +54,7 @@ const RootLayout = ({ children }: RootLayoutProps) => {
         </ThemeRegistry>
         <Script
           src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7362041124232949'
-          strategy='afterInteractive'
+          strategy='beforeInteractive'
           crossOrigin='anonymous'
         />
       </body>
