@@ -123,3 +123,26 @@ export const parsearFechaCalendario = (fechaIso: string): Date => {
   const [anio, mes, dia] = fechaIso.split('-').map(Number)
   return crearFechaEnZona(anio, mes, dia, 0, 0, 0, 0)
 }
+
+/** Human-readable date in America/Santo_Domingo (e.g. for WhatsApp/email). */
+export const formatearFechaLegible = (
+  fecha: Date,
+  conAnio: boolean
+): string => {
+  return fecha.toLocaleDateString('es-DO', {
+    day: 'numeric',
+    month: 'long',
+    ...(conAnio ? { year: 'numeric' as const } : {}),
+    timeZone: ZONA_HORARIA_NEGOCIO
+  })
+}
+
+/** Human-readable time in America/Santo_Domingo (e.g. "10:30 a. m."). */
+export const formatearHoraLegible = (fecha: Date): string => {
+  return fecha.toLocaleTimeString('es-DO', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: ZONA_HORARIA_NEGOCIO
+  })
+}

@@ -6,6 +6,10 @@ import type {
   NotificationService
 } from '@/application/ports/notificationService.port'
 import { esCorreoGmail } from '@/shared/utils/correo'
+import {
+  formatearFechaLegible,
+  formatearHoraLegible
+} from '@/shared/utils/fechas'
 import { crearEnlaceGoogleCalendar } from '@/shared/utils/googleCalendar'
 import { construirUrlReserva } from '@/shared/utils/sitio'
 import { CancelacionCitaEmail } from './emails/CancelacionCitaEmail'
@@ -27,22 +31,6 @@ const obtenerRemitente = (): string => {
     process.env.RESEND_FROM_EMAIL?.trim() ||
     'Kortao <onboarding@resend.dev>'
   )
-}
-
-const formatearFecha = (fecha: Date): string => {
-  return fecha.toLocaleDateString('es-DO', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  })
-}
-
-const formatearHora = (fecha: Date): string => {
-  return fecha.toLocaleTimeString('es-DO', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  })
 }
 
 const exigirCorreo = (correo: string | null): string => {
@@ -98,8 +86,8 @@ export const resendEmailNotificationService: NotificationService = {
         clienteNombre: input.clienteNombre,
         negocioNombre: input.negocioNombre,
         negocioLogoUrl: input.negocioLogoUrl,
-        fechaFormateada: formatearFecha(input.fechaHora),
-        horaFormateada: formatearHora(input.fechaHora),
+        fechaFormateada: formatearFechaLegible(input.fechaHora, true),
+        horaFormateada: formatearHoraLegible(input.fechaHora),
         enlaceGoogleCalendar: obtenerEnlaceGoogleCalendar(input, correo)
       })
     )
@@ -118,8 +106,8 @@ export const resendEmailNotificationService: NotificationService = {
         clienteNombre: input.clienteNombre,
         negocioNombre: input.negocioNombre,
         negocioLogoUrl: input.negocioLogoUrl,
-        fechaFormateada: formatearFecha(input.fechaHora),
-        horaFormateada: formatearHora(input.fechaHora),
+        fechaFormateada: formatearFechaLegible(input.fechaHora, true),
+        horaFormateada: formatearHoraLegible(input.fechaHora),
         enlaceGoogleCalendar: obtenerEnlaceGoogleCalendar(input, correo)
       })
     )
@@ -138,8 +126,8 @@ export const resendEmailNotificationService: NotificationService = {
         clienteNombre: input.clienteNombre,
         negocioNombre: input.negocioNombre,
         negocioLogoUrl: input.negocioLogoUrl,
-        fechaFormateada: formatearFecha(input.fechaHora),
-        horaFormateada: formatearHora(input.fechaHora),
+        fechaFormateada: formatearFechaLegible(input.fechaHora, true),
+        horaFormateada: formatearHoraLegible(input.fechaHora),
         enlaceReservar: construirUrlReserva(input.negocioSlug)
       })
     )

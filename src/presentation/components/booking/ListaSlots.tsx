@@ -6,20 +6,13 @@ import Skeleton from '@mui/material/Skeleton'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import type { TimeSlot } from '@/domain/booking/booking.types'
+import { formatearHoraLegible } from '@/shared/utils/fechas'
 
 type ListaSlotsProps = {
   slots: TimeSlot[]
   slotSeleccionado: TimeSlot | null
   cargando: boolean
   onSeleccionar: (slot: TimeSlot) => void
-}
-
-const formatearHora = (fecha: Date): string => {
-  return fecha.toLocaleTimeString('es-DO', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  })
 }
 
 const esMismoSlot = (a: TimeSlot, b: TimeSlot): boolean => {
@@ -79,7 +72,7 @@ export const ListaSlots = ({
                   }
                 }}
               >
-                {formatearHora(slot.inicio)}
+                {formatearHoraLegible(slot.inicio)}
               </Button>
             )
           })}

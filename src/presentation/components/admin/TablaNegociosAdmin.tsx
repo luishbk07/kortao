@@ -17,6 +17,7 @@ import {
   calcularProximaFechaPago,
   diasHastaFecha
 } from '@/shared/utils/suscripcion'
+import { formatearFechaLegible } from '@/shared/utils/fechas'
 
 export type NegocioAdminFila = {
   id: string
@@ -28,14 +29,6 @@ export type NegocioAdminFila = {
 
 type TablaNegociosAdminProps = {
   negociosIniciales: NegocioAdminFila[]
-}
-
-const formatearFecha = (fecha: Date): string => {
-  return fecha.toLocaleDateString('es-DO', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric'
-  })
 }
 
 const etiquetaPlan = (plan: string): string => {
@@ -127,11 +120,11 @@ export const TablaNegociosAdmin = ({
                 <TableRow key={fila.id} hover>
                   <TableCell>{fila.nombre}</TableCell>
                   <TableCell>{etiquetaPlan(fila.plan)}</TableCell>
-                  <TableCell>{formatearFecha(fila.fechaInicio)}</TableCell>
+                  <TableCell>{formatearFechaLegible(fila.fechaInicio, true)}</TableCell>
                   <TableCell>
                     <Stack direction='row' spacing={1} alignItems='center'>
                       <Typography variant='body2'>
-                        {formatearFecha(fila.proximaPago)}
+                        {formatearFechaLegible(fila.proximaPago, true)}
                       </Typography>
                       {fila.dias < 0 ? (
                         <Chip size='small' color='error' label='Vencido' />

@@ -3,6 +3,10 @@ import type {
   EnviarConfirmacionInput,
   NotificationService
 } from '@/application/ports/notificationService.port'
+import {
+  formatearFechaLegible,
+  formatearHoraLegible
+} from '@/shared/utils/fechas'
 
 type PlantillaWhatsapp = {
   nombre: string
@@ -33,29 +37,6 @@ const normalizarTelefono = (telefono: string): string => {
     .replace(/-/g, '')
     .replace(/[()]/g, '')
     .replace(/\D/g, '')
-}
-
-const formatearFecha = (fecha: Date): string => {
-  return fecha.toLocaleDateString('es-DO', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric'
-  })
-}
-
-const formatearFechaSinAnio = (fecha: Date): string => {
-  return fecha.toLocaleDateString('es-DO', {
-    day: 'numeric',
-    month: 'long'
-  })
-}
-
-const formatearHora = (fecha: Date): string => {
-  return fecha.toLocaleTimeString('es-DO', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  })
 }
 
 const enviarMensajePlantilla = async (
@@ -121,8 +102,8 @@ export const whatsappNotificationService: NotificationService = {
       parametrosCuerpo: [
         input.clienteNombre,
         input.negocioNombre,
-        formatearFecha(input.fechaHora),
-        formatearHora(input.fechaHora)
+        formatearFechaLegible(input.fechaHora, true),
+        formatearHoraLegible(input.fechaHora)
       ]
     })
   },
@@ -140,8 +121,8 @@ export const whatsappNotificationService: NotificationService = {
       parametrosCuerpo: [
         input.clienteNombre,
         input.negocioNombre,
-        formatearFecha(input.fechaHora),
-        formatearHora(input.fechaHora)
+        formatearFechaLegible(input.fechaHora, true),
+        formatearHoraLegible(input.fechaHora)
       ]
     })
   },
@@ -161,8 +142,8 @@ export const whatsappNotificationService: NotificationService = {
       parametrosCuerpo: [
         input.clienteNombre,
         input.negocioNombre,
-        formatearFechaSinAnio(input.fechaHora),
-        formatearHora(input.fechaHora)
+        formatearFechaLegible(input.fechaHora, false),
+        formatearHoraLegible(input.fechaHora)
       ]
     })
   }

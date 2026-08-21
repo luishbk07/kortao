@@ -14,6 +14,7 @@ import {
   obtenerRangoTabCitas,
   type TabCitas
 } from '@/shared/utils/rangosCitas'
+import { formatearFechaLegible } from '@/shared/utils/fechas'
 import { EnlaceReservaPublica } from './EnlaceReservaPublica'
 import { EsqueletoListaCitas } from './EsqueletoListaCitas'
 import { ListaCitasPanel } from './ListaCitasPanel'
@@ -80,11 +81,7 @@ export const PanelCitas = ({ negocioId, negocioSlug }: PanelCitasProps) => {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fechaHoy = new Date().toLocaleDateString('es-DO', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long'
-  })
+  const fechaHoy = formatearFechaLegible(new Date(), false)
 
   const cargarCitas = useCallback(async (tabActiva: TabCitas) => {
     setCargando(true)

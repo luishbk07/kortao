@@ -18,6 +18,10 @@ import {
 } from '@/app/(negocio)/panel/citas/actions'
 import type { Booking, EstadoCita } from '@/domain/booking/booking.types'
 import { esCitaYaOcurrida } from '@/domain/booking/cita.rules'
+import {
+  formatearFechaLegible,
+  formatearHoraLegible
+} from '@/shared/utils/fechas'
 
 type ListaCitasPanelProps = {
   citas: Booking[]
@@ -56,22 +60,6 @@ const colorEstado = (
   }
 
   return 'warning'
-}
-
-const formatearHora = (fecha: Date): string => {
-  return fecha.toLocaleTimeString('es-DO', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  })
-}
-
-const formatearFecha = (fecha: Date): string => {
-  return fecha.toLocaleDateString('es-DO', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short'
-  })
 }
 
 const formatearPrecio = (precio: number): string => {
@@ -163,8 +151,8 @@ export const ListaCitasPanel = ({
                   <Stack spacing={0.5}>
                     <Typography variant='h6' component='h3'>
                       {mostrarFecha
-                        ? `${formatearFecha(cita.fechaHora)} · ${formatearHora(cita.fechaHora)}`
-                        : formatearHora(cita.fechaHora)}
+                        ? `${formatearFechaLegible(cita.fechaHora, false)} · ${formatearHoraLegible(cita.fechaHora)}`
+                        : formatearHoraLegible(cita.fechaHora)}
                     </Typography>
                     <Typography color='text.secondary'>
                       {cita.servicioNombre} · {cita.duracionMinutos} min
