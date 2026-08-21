@@ -1,4 +1,8 @@
 import type { Booking, OccupiedSlot } from '@/domain/booking/booking.types'
+import type {
+  CitaParaClientes,
+  CitaParaReportes
+} from '@/domain/business/reportes.types'
 
 export type CrearCitaInput = {
   negocioId: string
@@ -25,6 +29,12 @@ export type BookingRepository = {
     hasta: Date
   ) => Promise<Booking[]>
   contarCitasFuturasActivas: (negocioId: string) => Promise<number>
+  listarCitasParaClientesRecurrentes: (
+    negocioId: string
+  ) => Promise<CitaParaClientes[]>
+  listarCitasCompletadasParaReportes: (
+    negocioId: string
+  ) => Promise<CitaParaReportes[]>
   crearCita: (input: CrearCitaInput) => Promise<Booking>
   obtenerCitaPorId: (citaId: string) => Promise<Booking | null>
   cancelarCita: (citaId: string) => Promise<Booking>

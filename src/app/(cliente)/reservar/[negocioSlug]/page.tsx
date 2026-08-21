@@ -20,6 +20,7 @@ type NegocioFila = {
   telefono_whatsapp: string
   direccion: string | null
   color_acento: string | null
+  plan: string | null
   latitud: number | string | null
   longitud: number | string | null
   logo_url: string | null
@@ -59,6 +60,7 @@ const mapearNegocio = (fila: NegocioFila): NegocioPublico => ({
   telefonoWhatsapp: fila.telefono_whatsapp,
   direccion: fila.direccion,
   colorAcento: fila.color_acento,
+  plan: fila.plan ?? 'estandar',
   latitud: mapearNumeroOpcional(fila.latitud),
   longitud: mapearNumeroOpcional(fila.longitud),
   logoUrl: fila.logo_url ?? null
@@ -96,7 +98,7 @@ const ReservarPage = async ({ params }: ReservarPageProps) => {
   const { data: negocioFila, error: errorNegocio } = await supabase
     .from('negocios')
     .select(
-      'id, nombre, slug, telefono_whatsapp, direccion, color_acento, latitud, longitud, logo_url, suscripcion_activa'
+      'id, nombre, slug, telefono_whatsapp, direccion, color_acento, plan, latitud, longitud, logo_url, suscripcion_activa'
     )
     .eq('slug', params.negocioSlug)
     .maybeSingle()

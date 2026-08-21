@@ -8,6 +8,10 @@ import type {
   EstadoCita,
   OccupiedSlot
 } from '@/domain/booking/booking.types'
+import type {
+  CitaParaClientes,
+  CitaParaReportes
+} from '@/domain/business/reportes.types'
 import { crearClienteNavegador } from './clienteNavegador'
 
 type CitaFila = {
@@ -178,6 +182,52 @@ export const crearBookingRepository = (
     return count ?? 0
   },
 
+  listarCitasParaClientesRecurrentes: async (negocioId) => {
+    const { data, error } = await cliente
+      .from('citas')
+      .select('cliente_telefono, cliente_nombre, fecha_hora')
+      .eq('negocio_id', negocioId)
+      .neq('estado', 'cancelada')
+      .order('fecha_hora', { ascending: false })
+
+    if (error) {
+      lanzarErrorSupabase(error)
+    }
+
+    return ((data as {
+      cliente_telefono: string
+      cliente_nombre: string
+      fecha_hora: string
+    }[] | null) ?? []).map((fila): CitaParaClientes => ({
+      clienteTelefono: fila.cliente_telefono,
+      clienteNombre: fila.cliente_nombre,
+      fechaHora: new Date(fila.fecha_hora)
+    }))
+  },
+
+  listarCitasCompletadasParaReportes: async (negocioId) => {
+    const { data, error } = await cliente
+      .from('citas')
+      .select('precio, fecha_hora, servicios ( nombre )')
+      .eq('negocio_id', negocioId)
+      .eq('estado', 'completada')
+      .order('fecha_hora', { ascending: false })
+
+    if (error) {
+      lanzarErrorSupabase(error)
+    }
+
+    return ((data as {
+      precio: number | string | null
+      fecha_hora: string
+      servicios?: { nombre: string } | { nombre: string }[] | null
+    }[] | null) ?? []).map((fila): CitaParaReportes => ({
+      precio: mapearNumeroOpcional(fila.precio),
+      fechaHora: new Date(fila.fecha_hora),
+      servicioNombre: obtenerNombreServicio(fila.servicios)
+    }))
+  },
+
   crearCita: async (input) => {
     const fila = mapearCitaAFila(input)
 
@@ -266,6 +316,14 @@ export const bookingRepositorySupabase: BookingRepository = {
     crearBookingRepository(crearClienteNavegador()).contarCitasFuturasActivas(
       negocioId
     ),
+  listarCitasParaClientesRecurrentes: (negocioId) =>
+    crearBookingRepository(
+      crearClienteNavegador()
+    ).listarCitasParaClientesRecurrentes(negocioId),
+  listarCitasCompletadasParaReportes: (negocioId) =>
+    crearBookingRepository(
+      crearClienteNavegador()
+    ).listarCitasCompletadasParaReportes(negocioId),
   crearCita: (input) =>
     crearBookingRepository(crearClienteNavegador()).crearCita(input),
   obtenerCitaPorId: (citaId) =>

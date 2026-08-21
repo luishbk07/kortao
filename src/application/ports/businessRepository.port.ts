@@ -31,6 +31,7 @@ export type ActualizarNegocioInput = {
   latitud: number | null
   longitud: number | null
   logoUrl?: string | null
+  colorAcento?: string | null
 }
 
 export type NegocioPublico = {
@@ -48,6 +49,8 @@ export type NegocioDetalle = {
   latitud: number | null
   longitud: number | null
   logoUrl: string | null
+  colorAcento: string | null
+  plan: string
 }
 
 export type BusinessRepository = {

@@ -25,6 +25,8 @@ type NegocioFila = {
   latitud: number | string | null
   longitud: number | string | null
   logo_url: string | null
+  color_acento: string | null
+  plan: string | null
 }
 
 type ServicioFila = {
@@ -57,11 +59,13 @@ const mapearNegocioDetalle = (fila: NegocioFila): NegocioDetalle => ({
   direccion: fila.direccion,
   latitud: mapearNumeroOpcional(fila.latitud),
   longitud: mapearNumeroOpcional(fila.longitud),
-  logoUrl: fila.logo_url ?? null
+  logoUrl: fila.logo_url ?? null,
+  colorAcento: fila.color_acento ?? null,
+  plan: fila.plan ?? 'estandar'
 })
 
 const columnasNegocioDetalle =
-  'id, nombre, slug, telefono_whatsapp, direccion, latitud, longitud, logo_url'
+  'id, nombre, slug, telefono_whatsapp, direccion, latitud, longitud, logo_url, color_acento, plan'
 
 const columnasServicio =
   'id, negocio_id, nombre, duracion_minutos, precio, descuento_tipo, descuento_valor, activo'
@@ -225,6 +229,10 @@ export const crearBusinessRepository = (
 
     if (input.logoUrl !== undefined) {
       actualizacion.logo_url = input.logoUrl
+    }
+
+    if (input.colorAcento !== undefined) {
+      actualizacion.color_acento = input.colorAcento
     }
 
     const { data, error } = await cliente

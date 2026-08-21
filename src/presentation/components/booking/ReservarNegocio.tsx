@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import DirectionsOutlinedIcon from '@mui/icons-material/DirectionsOutlined'
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined'
@@ -10,10 +11,13 @@ import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
 import Link from '@mui/material/Link'
 import Stack from '@mui/material/Stack'
+import { ThemeProvider, createTheme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 import type { BusinessHours } from '@/domain/booking/booking.types'
 import { EncabezadoMarca } from '@/presentation/components/ui/EncabezadoMarca'
 import { useFlujoReservar } from '@/presentation/hooks/useFlujoReservar'
+import { theme as temaBase } from '@/presentation/theme/theme'
+import { esPlanPremium } from '@/shared/utils/planes'
 import { FormularioCliente } from './FormularioCliente'
 import { ListaServicios } from './ListaServicios'
 import { ListaSlots } from './ListaSlots'
@@ -25,6 +29,23 @@ type ReservarNegocioProps = {
   servicios: ServicioPublico[]
   horariosNegocio: BusinessHours[]
   disponible?: boolean
+}
+
+const crearTemaReservar = (
+  plan: string,
+  colorAcento: string | null
+) => {
+  if (!esPlanPremium(plan) || !colorAcento?.trim()) {
+    return temaBase
+  }
+
+  return createTheme(temaBase, {
+    palette: {
+      secondary: {
+        main: colorAcento.trim()
+      }
+    }
+  })
 }
 
 const PieCreadoConKortao = () => {
@@ -94,6 +115,11 @@ export const ReservarNegocio = ({
   horariosNegocio,
   disponible = true
 }: ReservarNegocioProps) => {
+  const temaReservar = useMemo(
+    () => crearTemaReservar(negocio.plan, negocio.colorAcento),
+    [negocio.plan, negocio.colorAcento]
+  )
+
   const flujo = useFlujoReservar({
     negocioId: negocio.id,
     negocioNombre: negocio.nombre,
@@ -104,40 +130,36 @@ export const ReservarNegocio = ({
 
   const tieneLogo = Boolean(negocio.logoUrl)
 
-  if (!disponible) {
-    return (
-      <Box
-        component='main'
-        bgcolor='background.default'
-        minHeight='100vh'
-        display='flex'
-        flexDirection='column'
-      >
-        {tieneLogo ? (
-          <EncabezadoIdentidadNegocio negocio={negocio} />
-        ) : (
-          <EncabezadoMarca />
-        )}
-        <Container maxWidth='sm' sx={{ py: { xs: 8, sm: 12 }, flex: 1 }}>
-          <Stack spacing={2} alignItems='center' textAlign='center'>
-            {!tieneLogo ? (
-              <Typography variant='h4' component='h1' color='primary'>
-                {negocio.nombre}
-              </Typography>
-            ) : null}
-            <Typography color='text.secondary'>
-              Este negocio no está disponible en este momento.
+  const contenido = !disponible ? (
+    <Box
+      component='main'
+      bgcolor='background.default'
+      minHeight='100vh'
+      display='flex'
+      flexDirection='column'
+    >
+      {tieneLogo ? (
+        <EncabezadoIdentidadNegocio negocio={negocio} />
+      ) : (
+        <EncabezadoMarca />
+      )}
+      <Container maxWidth='sm' sx={{ py: { xs: 8, sm: 12 }, flex: 1 }}>
+        <Stack spacing={2} alignItems='center' textAlign='center'>
+          {!tieneLogo ? (
+            <Typography variant='h4' component='h1' color='primary'>
+              {negocio.nombre}
             </Typography>
-          </Stack>
-        </Container>
-        <Container maxWidth='sm' sx={{ pb: 3 }}>
-          <PieCreadoConKortao />
-        </Container>
-      </Box>
-    )
-  }
-
-  return (
+          ) : null}
+          <Typography color='text.secondary'>
+            Este negocio no está disponible en este momento.
+          </Typography>
+        </Stack>
+      </Container>
+      <Container maxWidth='sm' sx={{ pb: 3 }}>
+        <PieCreadoConKortao />
+      </Container>
+    </Box>
+  ) : (
     <Box
       component='main'
       bgcolor='background.default'
@@ -285,4 +307,6 @@ export const ReservarNegocio = ({
       </Container>
     </Box>
   )
+
+  return <ThemeProvider theme={temaReservar}>{contenido}</ThemeProvider>
 }

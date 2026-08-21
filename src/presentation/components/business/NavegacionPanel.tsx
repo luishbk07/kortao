@@ -8,6 +8,8 @@ import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined'
 import ContentCutOutlinedIcon from '@mui/icons-material/ContentCutOutlined'
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined'
 import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined'
+import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined'
+import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined'
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined'
 import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined'
 import AppBar from '@mui/material/AppBar'
@@ -32,6 +34,16 @@ const enlaces = [
     href: '/panel/citas',
     etiqueta: 'Citas',
     icono: CalendarMonthOutlinedIcon
+  },
+  {
+    href: '/panel/clientes',
+    etiqueta: 'Clientes',
+    icono: PeopleOutlinedIcon
+  },
+  {
+    href: '/panel/reportes',
+    etiqueta: 'Reportes',
+    icono: AssessmentOutlinedIcon
   },
   {
     href: '/panel/servicios',
