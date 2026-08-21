@@ -12,6 +12,18 @@ type NegocioAdminDb = {
   plan: string
   fecha_inicio_suscripcion: string
   suscripcion_activa: boolean
+  precio_mensual: number | string | null
+}
+
+const mapearPrecioMensual = (
+  valor: number | string | null
+): number | null => {
+  if (valor === null || valor === '') {
+    return null
+  }
+
+  const numero = Number(valor)
+  return Number.isFinite(numero) ? numero : null
 }
 
 const AdminPage = async () => {
@@ -19,7 +31,7 @@ const AdminPage = async () => {
   const { data, error } = await supabase
     .from('negocios')
     .select(
-      'id, nombre, plan, fecha_inicio_suscripcion, suscripcion_activa'
+      'id, nombre, plan, fecha_inicio_suscripcion, suscripcion_activa, precio_mensual'
     )
 
   if (error) {
@@ -33,7 +45,8 @@ const AdminPage = async () => {
     nombre: fila.nombre,
     plan: fila.plan,
     fechaInicioSuscripcion: fila.fecha_inicio_suscripcion,
-    suscripcionActiva: fila.suscripcion_activa
+    suscripcionActiva: fila.suscripcion_activa,
+    precioMensual: mapearPrecioMensual(fila.precio_mensual)
   }))
 
   return (

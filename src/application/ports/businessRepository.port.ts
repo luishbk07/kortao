@@ -51,6 +51,7 @@ export type NegocioDetalle = {
   logoUrl: string | null
   colorAcento: string | null
   plan: string
+  precioMensual: number | null
 }
 
 export type BusinessRepository = {

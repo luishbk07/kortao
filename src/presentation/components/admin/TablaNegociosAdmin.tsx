@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import Alert from '@mui/material/Alert'
 import Chip from '@mui/material/Chip'
+import IconButton from '@mui/material/IconButton'
 import Stack from '@mui/material/Stack'
 import Switch from '@mui/material/Switch'
 import Table from '@mui/material/Table'
@@ -11,13 +12,18 @@ import TableCell from '@mui/material/TableCell'
 import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
+import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import { actualizarSuscripcionActivaAction } from '@/app/admin/actions'
+import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined'
+import {
+  actualizarPrecioMensualAction,
+  actualizarSuscripcionActivaAction
+} from '@/app/admin/actions'
+import { formatearFechaLegible } from '@/shared/utils/fechas'
 import {
   calcularProximaFechaPago,
   diasHastaFecha
 } from '@/shared/utils/suscripcion'
-import { formatearFechaLegible } from '@/shared/utils/fechas'
 
 export type NegocioAdminFila = {
   id: string
@@ -25,6 +31,7 @@ export type NegocioAdminFila = {
   plan: string
   fechaInicioSuscripcion: string
   suscripcionActiva: boolean
+  precioMensual: number | null
 }
 
 type TablaNegociosAdminProps = {
@@ -36,13 +43,40 @@ const etiquetaPlan = (plan: string): string => {
     return 'Básico'
   }
 
+  if (plan === 'estandar') {
+    return 'Estándar'
+  }
+
   return plan
+}
+
+const parsearPrecioMensual = (valor: string): number | null => {
+  const texto = valor.trim()
+  if (!texto) {
+    return null
+  }
+
+  const numero = Number(texto)
+  if (!Number.isFinite(numero) || numero < 0) {
+    throw new Error('Precio inválido')
+  }
+
+  return numero
 }
 
 export const TablaNegociosAdmin = ({
   negociosIniciales
 }: TablaNegociosAdminProps) => {
   const [negocios, setNegocios] = useState(negociosIniciales)
+  const [preciosBorrador, setPreciosBorrador] = useState<Record<string, string>>(
+    () =>
+      Object.fromEntries(
+        negociosIniciales.map((negocio) => [
+          negocio.id,
+          negocio.precioMensual === null ? '' : String(negocio.precioMensual)
+        ])
+      )
+  )
   const [error, setError] = useState<string | null>(null)
   const [actualizandoId, setActualizandoId] = useState<string | null>(null)
 
@@ -91,6 +125,64 @@ export const TablaNegociosAdmin = ({
     }
   }
 
+  const handleGuardarPrecio = async (negocioId: string) => {
+    setError(null)
+
+    const negocioActual = negocios.find((negocio) => negocio.id === negocioId)
+    const valorAnterior = negocioActual?.precioMensual ?? null
+    const borrador = preciosBorrador[negocioId] ?? ''
+
+    let precioNuevo: number | null
+
+    try {
+      precioNuevo = parsearPrecioMensual(borrador)
+    } catch {
+      setError('El precio mensual no es válido.')
+      setPreciosBorrador((actuales) => ({
+        ...actuales,
+        [negocioId]: valorAnterior === null ? '' : String(valorAnterior)
+      }))
+      return
+    }
+
+    if (precioNuevo === valorAnterior) {
+      return
+    }
+
+    setActualizandoId(negocioId)
+
+    try {
+      setNegocios((actuales) =>
+        actuales.map((negocio) =>
+          negocio.id === negocioId
+            ? { ...negocio, precioMensual: precioNuevo }
+            : negocio
+        )
+      )
+
+      await actualizarPrecioMensualAction(negocioId, precioNuevo)
+      setPreciosBorrador((actuales) => ({
+        ...actuales,
+        [negocioId]: precioNuevo === null ? '' : String(precioNuevo)
+      }))
+    } catch {
+      setNegocios((actuales) =>
+        actuales.map((negocio) =>
+          negocio.id === negocioId
+            ? { ...negocio, precioMensual: valorAnterior }
+            : negocio
+        )
+      )
+      setPreciosBorrador((actuales) => ({
+        ...actuales,
+        [negocioId]: valorAnterior === null ? '' : String(valorAnterior)
+      }))
+      setError('No se pudo guardar el precio mensual. Inténtalo de nuevo.')
+    } finally {
+      setActualizandoId(null)
+    }
+  }
+
   return (
     <Stack spacing={2}>
       {error ? (
@@ -110,6 +202,7 @@ export const TablaNegociosAdmin = ({
               <TableRow>
                 <TableCell>Negocio</TableCell>
                 <TableCell>Plan</TableCell>
+                <TableCell>Precio mensual</TableCell>
                 <TableCell>Inicio de suscripción</TableCell>
                 <TableCell>Próximo pago</TableCell>
                 <TableCell align='center'>Activa</TableCell>
@@ -120,7 +213,47 @@ export const TablaNegociosAdmin = ({
                 <TableRow key={fila.id} hover>
                   <TableCell>{fila.nombre}</TableCell>
                   <TableCell>{etiquetaPlan(fila.plan)}</TableCell>
-                  <TableCell>{formatearFechaLegible(fila.fechaInicio, true)}</TableCell>
+                  <TableCell>
+                    <Stack direction='row' spacing={0.5} alignItems='center'>
+                      <TextField
+                        size='small'
+                        type='number'
+                        placeholder='1000'
+                        value={preciosBorrador[fila.id] ?? ''}
+                        disabled={actualizandoId === fila.id}
+                        onChange={(evento) => {
+                          const valor = evento.target.value
+                          setPreciosBorrador((actuales) => ({
+                            ...actuales,
+                            [fila.id]: valor
+                          }))
+                        }}
+                        onBlur={() => {
+                          void handleGuardarPrecio(fila.id)
+                        }}
+                        inputProps={{
+                          min: 0,
+                          step: 1,
+                          'aria-label': `Precio mensual de ${fila.nombre}`
+                        }}
+                        sx={{ width: 110 }}
+                      />
+                      <IconButton
+                        size='small'
+                        color='primary'
+                        aria-label={`Guardar precio de ${fila.nombre}`}
+                        disabled={actualizandoId === fila.id}
+                        onClick={() => {
+                          void handleGuardarPrecio(fila.id)
+                        }}
+                      >
+                        <SaveOutlinedIcon fontSize='small' />
+                      </IconButton>
+                    </Stack>
+                  </TableCell>
+                  <TableCell>
+                    {formatearFechaLegible(fila.fechaInicio, true)}
+                  </TableCell>
                   <TableCell>
                     <Stack direction='row' spacing={1} alignItems='center'>
                       <Typography variant='body2'>

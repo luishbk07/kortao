@@ -27,6 +27,7 @@ type NegocioFila = {
   logo_url: string | null
   color_acento: string | null
   plan: string | null
+  precio_mensual: number | string | null
 }
 
 type ServicioFila = {
@@ -61,11 +62,12 @@ const mapearNegocioDetalle = (fila: NegocioFila): NegocioDetalle => ({
   longitud: mapearNumeroOpcional(fila.longitud),
   logoUrl: fila.logo_url ?? null,
   colorAcento: fila.color_acento ?? null,
-  plan: fila.plan ?? 'estandar'
+  plan: fila.plan ?? 'estandar',
+  precioMensual: mapearNumeroOpcional(fila.precio_mensual)
 })
 
 const columnasNegocioDetalle =
-  'id, nombre, slug, telefono_whatsapp, direccion, latitud, longitud, logo_url, color_acento, plan'
+  'id, nombre, slug, telefono_whatsapp, direccion, latitud, longitud, logo_url, color_acento, plan, precio_mensual'
 
 const columnasServicio =
   'id, negocio_id, nombre, duracion_minutos, precio, descuento_tipo, descuento_valor, activo'

@@ -28,8 +28,8 @@ export const MensajePlanPremiumBloqueado = ({
       >
         <Stack spacing={2} maxWidth={480}>
           <Typography color='text.secondary'>
-            Pronto podrás actualizar tu plan desde aquí para quitar anuncios y
-            desbloquear herramientas avanzadas. El pago aún no está disponible.
+            Esta función forma parte del Plan Premium. Revisa los beneficios y
+            solicita la activación desde la página de plan.
           </Typography>
           <Typography variant='body2' color='text.secondary'>
             Mientras tanto, sigue gestionando tus citas con el plan estándar.
