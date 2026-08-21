@@ -3,13 +3,13 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined'
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined'
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined'
 import ContentCutOutlinedIcon from '@mui/icons-material/ContentCutOutlined'
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined'
 import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined'
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined'
-import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined'
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined'
 import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined'
 import AppBar from '@mui/material/AppBar'
@@ -26,8 +26,8 @@ import ListItemText from '@mui/material/ListItemText'
 import Stack from '@mui/material/Stack'
 import Toolbar from '@mui/material/Toolbar'
 import { crearCerrarSesion } from '@/application/useCases/auth/cerrarSesion'
-import { crearDependenciasPanelNavegador } from '@/presentation/lib/crearDependenciasPanelNavegador'
 import { LogoKortao } from '@/presentation/components/ui/LogoKortao'
+import { crearDependenciasPanelNavegador } from '@/presentation/lib/crearDependenciasPanelNavegador'
 
 const enlaces = [
   {
@@ -91,25 +91,36 @@ export const NavegacionPanel = () => {
           bgcolor: 'background.paper'
         }}
       >
-        <Container maxWidth='md'>
-          <Toolbar disableGutters sx={{ py: 1, gap: 1 }}>
+        <Container maxWidth='lg'>
+          <Toolbar
+            disableGutters
+            sx={{
+              minHeight: { xs: 56, md: 64 },
+              gap: { xs: 1, md: 2 },
+              flexWrap: 'nowrap'
+            }}
+          >
             <Box
               sx={{
-                flexGrow: { xs: 1, sm: 0 },
-                mr: { sm: 2 },
+                flexShrink: 0,
                 display: 'inline-flex',
                 alignItems: 'center'
               }}
             >
-              <LogoKortao variant='horizontal' size={36} />
+              <LogoKortao variant='horizontal' size={32} />
             </Box>
 
             <Stack
               direction='row'
-              spacing={0.5}
-              flexWrap='wrap'
-              useFlexGap
-              sx={{ display: { xs: 'none', sm: 'flex' } }}
+              alignItems='center'
+              justifyContent='center'
+              spacing={0.25}
+              sx={{
+                display: { xs: 'none', md: 'flex' },
+                flex: 1,
+                minWidth: 0,
+                flexWrap: 'nowrap'
+              }}
             >
               {enlaces.map((enlace) => {
                 const Icono = enlace.icono
@@ -120,9 +131,19 @@ export const NavegacionPanel = () => {
                     key={enlace.href}
                     component={Link}
                     href={enlace.href}
-                    startIcon={<Icono />}
+                    size='small'
+                    startIcon={<Icono fontSize='small' />}
                     color={activo ? 'secondary' : 'primary'}
                     variant={activo ? 'contained' : 'text'}
+                    sx={{
+                      flexShrink: 0,
+                      px: 1.25,
+                      minWidth: 0,
+                      whiteSpace: 'nowrap',
+                      '& .MuiButton-startIcon': {
+                        mr: 0.5
+                      }
+                    }}
                   >
                     {enlace.etiqueta}
                   </Button>
@@ -130,12 +151,16 @@ export const NavegacionPanel = () => {
               })}
             </Stack>
 
-            <Box sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }} />
-
             <Button
-              startIcon={<LogoutOutlinedIcon />}
+              size='small'
+              startIcon={<LogoutOutlinedIcon fontSize='small' />}
               color='primary'
-              sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
+              sx={{
+                display: { xs: 'none', md: 'inline-flex' },
+                flexShrink: 0,
+                px: 1.25,
+                whiteSpace: 'nowrap'
+              }}
               onClick={() => {
                 void handleCerrarSesion()
               }}
@@ -143,12 +168,14 @@ export const NavegacionPanel = () => {
               Salir
             </Button>
 
+            <Box sx={{ flexGrow: 1, display: { xs: 'block', md: 'none' } }} />
+
             <IconButton
               color='primary'
               edge='end'
               aria-label='Abrir menú'
               onClick={() => setMenuAbierto(true)}
-              sx={{ display: { xs: 'inline-flex', sm: 'none' } }}
+              sx={{ display: { xs: 'inline-flex', md: 'none' } }}
             >
               <MenuOutlinedIcon />
             </IconButton>
