@@ -12,8 +12,14 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Kortao',
-  description: 'Reservas para barberías y salones',
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://kortao.com'
+  ),
+  title: {
+    default: 'Kortao',
+    template: '%s | Kortao'
+  },
+  description: 'Reservas simples para barberías, salones, entre otros.',
   applicationName: 'Kortao',
   appleWebApp: {
     capable: true,
@@ -24,12 +30,16 @@ export const metadata: Metadata = {
     telephone: false
   },
   icons: {
+    // Google requires a square favicon that is a multiple of 48px.
     icon: [
-      { url: '/favicon.ico', sizes: '32x32' },
+      { url: '/icons/icon-48.png', sizes: '48x48', type: 'image/png' },
+      { url: '/icons/icon-96.png', sizes: '96x96', type: 'image/png' },
       { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' }
+      { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+      { url: '/favicon.ico', sizes: '32x32' }
     ],
-    apple: '/icons/icon-192.png'
+    apple: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
+    shortcut: '/icons/icon-48.png'
   },
   other: {
     'google-adsense-account': 'ca-pub-7362041124232949'
