@@ -78,40 +78,23 @@ const enviarPlantillaWhatsapp = async (
   );
 };
 
-const enviarWhatsappConFallback = async (cita: CitaPendiente): Promise<void> => {
+const enviarRecordatorioWhatsapp = async (cita: CitaPendiente): Promise<void> => {
   const telefono = normalizarTelefono(cita.cliente_telefono);
   const fecha = new Date(cita.fecha_hora);
   const negocioNombre = cita.negocios?.nombre ?? "tu negocio";
   const fechaTexto = formatearFecha(fecha);
   const horaTexto = formatearHora(fecha);
 
-  const respuestaReal = await enviarPlantillaWhatsapp(
+  const respuesta = await enviarPlantillaWhatsapp(
     telefono,
     "recordatorio_cita_v2",
     "es_DO",
     [cita.cliente_nombre, negocioNombre, fechaTexto, horaTexto],
   );
 
-  if (respuestaReal.ok) {
-    return;
-  }
-
-  const detalleError = await respuestaReal.text();
-  console.warn(
-    `[recordatorio] plantilla real falló para cita ${cita.id}, usando fallback:`,
-    detalleError,
-  );
-
-  const respuestaFallback = await enviarPlantillaWhatsapp(
-    telefono,
-    "jaspers_market_order_confirmation_v1",
-    "en_US",
-    [cita.cliente_nombre, cita.id.slice(0, 6), `${fechaTexto}, ${horaTexto}`],
-  );
-
-  if (!respuestaFallback.ok) {
-    const detalleFallback = await respuestaFallback.text();
-    throw new Error(`WhatsApp falló (real y fallback): ${detalleFallback}`);
+  if (!respuesta.ok) {
+    const detalleError = await respuesta.text();
+    throw new Error(`WhatsApp falló: ${detalleError}`);
   }
 };
 
@@ -201,7 +184,7 @@ Deno.serve(async () => {
     let errorTexto: string | undefined;
 
     try {
-      await enviarWhatsappConFallback(cita);
+      await enviarRecordatorioWhatsapp(cita);
       whatsappOk = true;
     } catch (err) {
       errorTexto = err instanceof Error ? err.message : String(err);

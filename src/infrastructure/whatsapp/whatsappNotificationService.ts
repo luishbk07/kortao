@@ -8,10 +8,23 @@ import {
   formatearHoraLegible
 } from '@/shared/utils/fechas'
 
+type ComponentePlantillaWhatsapp =
+  | {
+      type: 'body'
+      parameters: Array<{ type: 'text', text: string }>
+    }
+  | {
+      type: 'button'
+      sub_type: 'url'
+      index: string
+      parameters: Array<{ type: 'text', text: string }>
+    }
+
 type PlantillaWhatsapp = {
   nombre: string
   idioma: string
   parametrosCuerpo: string[]
+  parametroBotonUrl?: string
 }
 
 const obtenerCredencialesWhatsapp = (): {
@@ -39,6 +52,31 @@ const normalizarTelefono = (telefono: string): string => {
     .replace(/\D/g, '')
 }
 
+const construirComponentesPlantilla = (
+  plantilla: PlantillaWhatsapp
+): ComponentePlantillaWhatsapp[] => {
+  const componentes: ComponentePlantillaWhatsapp[] = [
+    {
+      type: 'body',
+      parameters: plantilla.parametrosCuerpo.map((texto) => ({
+        type: 'text',
+        text: texto
+      }))
+    }
+  ]
+
+  if (plantilla.parametroBotonUrl) {
+    componentes.push({
+      type: 'button',
+      sub_type: 'url',
+      index: '0',
+      parameters: [{ type: 'text', text: plantilla.parametroBotonUrl }]
+    })
+  }
+
+  return componentes
+}
+
 const enviarMensajePlantilla = async (
   telefonoDestino: string,
   plantilla: PlantillaWhatsapp
@@ -62,15 +100,7 @@ const enviarMensajePlantilla = async (
           language: {
             code: plantilla.idioma
           },
-          components: [
-            {
-              type: 'body',
-              parameters: plantilla.parametrosCuerpo.map((texto) => ({
-                type: 'text',
-                text: texto
-              }))
-            }
-          ]
+          components: construirComponentesPlantilla(plantilla)
         }
       })
     }
@@ -127,8 +157,8 @@ export const whatsappNotificationService: NotificationService = {
     })
   },
 
-  // Preferred: cita_cancelada_v2 (es_DO) — body only, no button.
-  // Params: clienteNombre, negocioNombre, fecha sin año, hora.
+  // Preferred: cita_cancelada_v2 (es_DO) — body + dynamic URL button ({{1}} = negocioSlug).
+  // Body params: clienteNombre, negocioNombre, fecha sin año, hora.
   enviarCancelacion: async (input: EnviarCancelacionInput) => {
     const telefonoDestino = normalizarTelefono(input.clienteTelefono)
 
@@ -144,7 +174,8 @@ export const whatsappNotificationService: NotificationService = {
         input.negocioNombre,
         formatearFechaLegible(input.fechaHora, false),
         formatearHoraLegible(input.fechaHora)
-      ]
+      ],
+      parametroBotonUrl: input.negocioSlug
     })
   }
 }
