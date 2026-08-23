@@ -63,3 +63,25 @@ export const actualizarPrecioMensualAction = async (
     throw new Error(error.message)
   }
 }
+
+const PLANES_PERMITIDOS = ['estandar', 'premium'] as const
+
+export const actualizarPlanAction = async (
+  negocioId: string,
+  plan: string
+): Promise<void> => {
+  const supabase = await exigirAdminAutenticado()
+
+  if (!PLANES_PERMITIDOS.includes(plan as (typeof PLANES_PERMITIDOS)[number])) {
+    throw new Error('El plan no es válido')
+  }
+
+  const { error } = await supabase
+    .from('negocios')
+    .update({ plan })
+    .eq('id', negocioId)
+
+  if (error) {
+    throw new Error(error.message)
+  }
+}

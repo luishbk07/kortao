@@ -1,9 +1,13 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined'
 import Alert from '@mui/material/Alert'
 import Chip from '@mui/material/Chip'
+import FormControl from '@mui/material/FormControl'
 import IconButton from '@mui/material/IconButton'
+import MenuItem from '@mui/material/MenuItem'
+import Select from '@mui/material/Select'
 import Stack from '@mui/material/Stack'
 import Switch from '@mui/material/Switch'
 import Table from '@mui/material/Table'
@@ -14,8 +18,8 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined'
 import {
+  actualizarPlanAction,
   actualizarPrecioMensualAction,
   actualizarSuscripcionActivaAction
 } from '@/app/admin/actions'
@@ -38,16 +42,17 @@ type TablaNegociosAdminProps = {
   negociosIniciales: NegocioAdminFila[]
 }
 
-const etiquetaPlan = (plan: string): string => {
-  if (plan === 'basico') {
-    return 'Básico'
-  }
+const OPCIONES_PLAN = [
+  { valor: 'estandar', etiqueta: 'Estándar' },
+  { valor: 'premium', etiqueta: 'Premium' }
+] as const
 
+const normalizarPlanSelect = (plan: string): string => {
   if (plan === 'estandar') {
-    return 'Estándar'
+    return 'estandar'
   }
 
-  return plan
+  return 'premium'
 }
 
 const parsearPrecioMensual = (valor: string): number | null => {
@@ -120,6 +125,39 @@ export const TablaNegociosAdmin = ({
     } catch {
       setNegocios(anteriores)
       setError('No se pudo actualizar la suscripción. Inténtalo de nuevo.')
+    } finally {
+      setActualizandoId(null)
+    }
+  }
+
+  const handleCambiarPlan = async (negocioId: string, plan: string) => {
+    setError(null)
+
+    const negocioActual = negocios.find((negocio) => negocio.id === negocioId)
+    const planAnterior = negocioActual?.plan ?? 'estandar'
+
+    if (normalizarPlanSelect(planAnterior) === plan) {
+      return
+    }
+
+    setActualizandoId(negocioId)
+    setNegocios((actuales) =>
+      actuales.map((negocio) =>
+        negocio.id === negocioId ? { ...negocio, plan } : negocio
+      )
+    )
+
+    try {
+      await actualizarPlanAction(negocioId, plan)
+    } catch {
+      setNegocios((actuales) =>
+        actuales.map((negocio) =>
+          negocio.id === negocioId
+            ? { ...negocio, plan: planAnterior }
+            : negocio
+        )
+      )
+      setError('No se pudo actualizar el plan. Inténtalo de nuevo.')
     } finally {
       setActualizandoId(null)
     }
@@ -212,7 +250,26 @@ export const TablaNegociosAdmin = ({
               {filas.map((fila) => (
                 <TableRow key={fila.id} hover>
                   <TableCell>{fila.nombre}</TableCell>
-                  <TableCell>{etiquetaPlan(fila.plan)}</TableCell>
+                  <TableCell>
+                    <FormControl size='small' sx={{ minWidth: 120 }}>
+                      <Select
+                        value={normalizarPlanSelect(fila.plan)}
+                        disabled={actualizandoId === fila.id}
+                        onChange={(evento) => {
+                          void handleCambiarPlan(fila.id, evento.target.value)
+                        }}
+                        inputProps={{
+                          'aria-label': `Plan de ${fila.nombre}`
+                        }}
+                      >
+                        {OPCIONES_PLAN.map((opcion) => (
+                          <MenuItem key={opcion.valor} value={opcion.valor}>
+                            {opcion.etiqueta}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </TableCell>
                   <TableCell>
                     <Stack direction='row' spacing={0.5} alignItems='center'>
                       <TextField
