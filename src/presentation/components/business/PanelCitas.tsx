@@ -17,11 +17,13 @@ import {
 import { formatearFechaLegible } from '@/shared/utils/fechas'
 import { EnlaceReservaPublica } from './EnlaceReservaPublica'
 import { EsqueletoListaCitas } from './EsqueletoListaCitas'
+import { IndicadorUsoPlanGratis } from './IndicadorUsoPlanGratis'
 import { ListaCitasPanel } from './ListaCitasPanel'
 
 type PanelCitasProps = {
   negocioId: string
   negocioSlug: string
+  citasFuturasActivas: number | null
 }
 
 const obtenerCitasPorRango = crearObtenerCitasPorRango(
@@ -75,13 +77,34 @@ const ResumenPasadas = ({ citas }: { citas: Booking[] }) => {
   )
 }
 
-export const PanelCitas = ({ negocioId, negocioSlug }: PanelCitasProps) => {
+export const PanelCitas = ({
+  negocioId,
+  negocioSlug,
+  citasFuturasActivas
+}: PanelCitasProps) => {
   const [tab, setTab] = useState<TabCitas>('hoy')
   const [citas, setCitas] = useState<Booking[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [conteoCitasActivas, setConteoCitasActivas] = useState(
+    citasFuturasActivas
+  )
 
   const fechaHoy = formatearFechaLegible(new Date(), false)
+
+  const refrescarConteoPlanGratis = useCallback(async () => {
+    if (citasFuturasActivas === null) {
+      return
+    }
+
+    try {
+      const conteo =
+        await bookingRepositorySupabase.contarCitasFuturasActivas(negocioId)
+      setConteoCitasActivas(conteo)
+    } catch {
+      // Keep the last known count if refresh fails.
+    }
+  }, [citasFuturasActivas, negocioId])
 
   const cargarCitas = useCallback(async (tabActiva: TabCitas) => {
     setCargando(true)
@@ -103,6 +126,10 @@ export const PanelCitas = ({ negocioId, negocioSlug }: PanelCitasProps) => {
     void cargarCitas(tab)
   }, [tab, cargarCitas])
 
+  useEffect(() => {
+    setConteoCitasActivas(citasFuturasActivas)
+  }, [citasFuturasActivas])
+
   const handleCambiarTab = (
     _evento: SyntheticEvent,
     nuevoValor: TabCitas
@@ -112,13 +139,22 @@ export const PanelCitas = ({ negocioId, negocioSlug }: PanelCitasProps) => {
 
   return (
     <Stack spacing={3}>
-      <Stack spacing={0.5}>
-        <Typography variant='h5' component='h1' color='primary'>
-          Citas
-        </Typography>
-        <Typography color='text.secondary' sx={{ textTransform: 'capitalize' }}>
-          {fechaHoy}
-        </Typography>
+      <Stack spacing={1}>
+        <Stack spacing={0.5}>
+          <Typography variant='h5' component='h1' color='primary'>
+            Citas
+          </Typography>
+          <Typography
+            color='text.secondary'
+            sx={{ textTransform: 'capitalize' }}
+          >
+            {fechaHoy}
+          </Typography>
+        </Stack>
+
+        {conteoCitasActivas !== null ? (
+          <IndicadorUsoPlanGratis citasActivas={conteoCitasActivas} />
+        ) : null}
       </Stack>
 
       {negocioSlug ? (
@@ -156,6 +192,7 @@ export const PanelCitas = ({ negocioId, negocioSlug }: PanelCitasProps) => {
             mensajeVacio={mensajesVacios[tab]}
             onCitaActualizada={() => {
               void cargarCitas(tab)
+              void refrescarConteoPlanGratis()
             }}
           />
         </Stack>
