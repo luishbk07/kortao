@@ -3,6 +3,12 @@ import { headers } from 'next/headers'
 import { PanelShell } from '@/presentation/components/business/PanelShell'
 import { CuentaPausada } from '@/presentation/components/business/CuentaPausada'
 import { crearClienteServidor } from '@/infrastructure/supabase/clienteServidor'
+import { formatearFechaCalendario, parsearFechaCalendario } from '@/shared/utils/fechas'
+import { PRECIO_LISTA_PLAN_PREMIUM } from '@/shared/utils/planes'
+import {
+  calcularProximaFechaPago,
+  debeMostrarAvisoPagoSuscripcion
+} from '@/shared/utils/suscripcion'
 
 type PanelLayoutProps = {
   children: ReactNode
@@ -11,6 +17,8 @@ type PanelLayoutProps = {
 type NegocioMembresia = {
   suscripcion_activa: boolean
   plan: string | null
+  precio_mensual: number | string | null
+  fecha_inicio_suscripcion: string | null
 }
 
 type MembresiaFila = {
@@ -32,6 +40,21 @@ const obtenerNegocioMembresia = (
   return negocios
 }
 
+const mapearPrecioMensual = (valor: number | string | null): number => {
+  if (typeof valor === 'number' && Number.isFinite(valor)) {
+    return valor
+  }
+
+  if (typeof valor === 'string' && valor.trim().length > 0) {
+    const numero = Number(valor)
+    if (Number.isFinite(numero)) {
+      return numero
+    }
+  }
+
+  return PRECIO_LISTA_PLAN_PREMIUM
+}
+
 const PanelLayout = async ({ children }: PanelLayoutProps) => {
   const pathname = headers().get('x-pathname') ?? ''
 
@@ -45,11 +68,17 @@ const PanelLayout = async ({ children }: PanelLayoutProps) => {
   } = await supabase.auth.getUser()
 
   let plan = 'estandar'
+  let recordatorioPago: {
+    precioMensual: number
+    fechaProximoPago: string
+  } | null = null
 
   if (user) {
     const { data: membresia } = await supabase
       .from('usuarios_negocio')
-      .select('negocio_id, negocios(suscripcion_activa, plan)')
+      .select(
+        'negocio_id, negocios(suscripcion_activa, plan, precio_mensual, fecha_inicio_suscripcion)'
+      )
       .eq('auth_user_id', user.id)
       .maybeSingle()
 
@@ -62,9 +91,36 @@ const PanelLayout = async ({ children }: PanelLayoutProps) => {
     }
 
     plan = negocio?.plan ?? 'estandar'
+
+    const fechaInicio =
+      negocio?.fecha_inicio_suscripcion != null
+        ? parsearFechaCalendario(
+            negocio.fecha_inicio_suscripcion.slice(0, 10)
+          )
+        : null
+
+    if (
+      negocio &&
+      debeMostrarAvisoPagoSuscripcion(
+        plan,
+        negocio.suscripcion_activa,
+        fechaInicio
+      ) &&
+      fechaInicio
+    ) {
+      const proxima = calcularProximaFechaPago(fechaInicio)
+      recordatorioPago = {
+        precioMensual: mapearPrecioMensual(negocio.precio_mensual),
+        fechaProximoPago: formatearFechaCalendario(proxima)
+      }
+    }
   }
 
-  return <PanelShell plan={plan}>{children}</PanelShell>
+  return (
+    <PanelShell plan={plan} recordatorioPago={recordatorioPago}>
+      {children}
+    </PanelShell>
+  )
 }
 
 export default PanelLayout
