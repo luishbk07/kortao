@@ -2,10 +2,19 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { obtenerCredencialesSupabase } from './obtenerCredenciales'
 
-export const actualizarSesion = async (request: NextRequest) => {
-  let respuesta = NextResponse.next({
-    request
+const crearRespuestaConPathname = (request: NextRequest): NextResponse => {
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-pathname', request.nextUrl.pathname)
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders
+    }
   })
+}
+
+export const actualizarSesion = async (request: NextRequest) => {
+  let respuesta = crearRespuestaConPathname(request)
 
   const { url, anonKey } = obtenerCredencialesSupabase()
 
@@ -17,9 +26,7 @@ export const actualizarSesion = async (request: NextRequest) => {
           request.cookies.set(name, value)
         })
 
-        respuesta = NextResponse.next({
-          request
-        })
+        respuesta = crearRespuestaConPathname(request)
 
         cookiesToSet.forEach(({ name, value, options }) => {
           respuesta.cookies.set(name, value, options)

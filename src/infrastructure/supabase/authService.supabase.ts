@@ -3,6 +3,7 @@ import type {
   AuthService,
   UsuarioAutenticado
 } from '@/application/ports/authService.port'
+import { obtenerOrigenSitio } from '@/shared/utils/sitio'
 
 const lanzarErrorSupabase = (error: { message: string }): never => {
   throw new Error(error.message)
@@ -77,5 +78,23 @@ export const crearAuthService = (cliente: SupabaseClient): AuthService => ({
     }
 
     return mapearUsuario(user)
+  },
+
+  solicitarRestablecimientoContrasena: async (email) => {
+    const { error } = await cliente.auth.resetPasswordForEmail(email, {
+      redirectTo: `${obtenerOrigenSitio()}/panel/restablecer-contrasena`
+    })
+
+    if (error) {
+      lanzarErrorSupabase(error)
+    }
+  },
+
+  actualizarContrasena: async (password) => {
+    const { error } = await cliente.auth.updateUser({ password })
+
+    if (error) {
+      lanzarErrorSupabase(error)
+    }
   }
 })

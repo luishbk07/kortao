@@ -6,6 +6,7 @@ import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
+import Divider from '@mui/material/Divider'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
@@ -20,6 +21,7 @@ import {
   normalizarTelefonoValor
 } from '@/shared/utils/telefono'
 import { EditorLogoNegocio } from './EditorLogoNegocio'
+import { FormularioCambiarContrasena } from './FormularioCambiarContrasena'
 import {
   SelectorUbicacion,
   type CoordenadasUbicacion
@@ -259,6 +261,10 @@ export const PanelNegocio = ({ negocio }: PanelNegocioProps) => {
           {guardando ? 'Guardando...' : 'Guardar cambios'}
         </Button>
       </Stack>
+
+      <Divider />
+
+      <FormularioCambiarContrasena />
     </Stack>
   )
 }

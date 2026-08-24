@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { headers } from 'next/headers'
 import { PanelShell } from '@/presentation/components/business/PanelShell'
 import { CuentaPausada } from '@/presentation/components/business/CuentaPausada'
 import { crearClienteServidor } from '@/infrastructure/supabase/clienteServidor'
@@ -32,6 +33,12 @@ const obtenerNegocioMembresia = (
 }
 
 const PanelLayout = async ({ children }: PanelLayoutProps) => {
+  const pathname = headers().get('x-pathname') ?? ''
+
+  if (pathname === '/panel/restablecer-contrasena') {
+    return children
+  }
+
   const supabase = crearClienteServidor()
   const {
     data: { user }

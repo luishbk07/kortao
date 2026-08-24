@@ -15,4 +15,6 @@ export type AuthService = {
   ) => Promise<UsuarioAutenticado>
   cerrarSesion: () => Promise<void>
   obtenerUsuarioActual: () => Promise<UsuarioAutenticado | null>
+  solicitarRestablecimientoContrasena: (email: string) => Promise<void>
+  actualizarContrasena: (password: string) => Promise<void>
 }

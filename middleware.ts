@@ -21,6 +21,12 @@ export const middleware = async (request: NextRequest) => {
   const esRutaAdmin = pathname.startsWith('/admin')
   const esLogin = pathname === '/login'
   const esRegistro = pathname === '/registro'
+  const esRestablecerContrasena = pathname === '/panel/restablecer-contrasena'
+
+  // Recovery link may land before cookies exist; page establishes the session client-side.
+  if (esRestablecerContrasena) {
+    return respuesta
+  }
 
   // Only /panel/* and /admin/* require auth. '/' stays public for the landing page.
   if ((esRutaPanel || esRutaAdmin) && !usuario) {
