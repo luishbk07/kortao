@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined'
 import Alert from '@mui/material/Alert'
 import Chip from '@mui/material/Chip'
@@ -72,6 +73,7 @@ const parsearPrecioMensual = (valor: string): number | null => {
 export const TablaNegociosAdmin = ({
   negociosIniciales
 }: TablaNegociosAdminProps) => {
+  const router = useRouter()
   const [negocios, setNegocios] = useState(negociosIniciales)
   const [preciosBorrador, setPreciosBorrador] = useState<Record<string, string>>(
     () =>
@@ -248,9 +250,20 @@ export const TablaNegociosAdmin = ({
             </TableHead>
             <TableBody>
               {filas.map((fila) => (
-                <TableRow key={fila.id} hover>
+                <TableRow
+                  key={fila.id}
+                  hover
+                  onClick={() => {
+                    router.push(`/admin/negocios/${fila.id}`)
+                  }}
+                  sx={{ cursor: 'pointer' }}
+                >
                   <TableCell>{fila.nombre}</TableCell>
-                  <TableCell>
+                  <TableCell
+                    onClick={(evento) => {
+                      evento.stopPropagation()
+                    }}
+                  >
                     <FormControl size='small' sx={{ minWidth: 120 }}>
                       <Select
                         value={normalizarPlanSelect(fila.plan)}
@@ -270,7 +283,11 @@ export const TablaNegociosAdmin = ({
                       </Select>
                     </FormControl>
                   </TableCell>
-                  <TableCell>
+                  <TableCell
+                    onClick={(evento) => {
+                      evento.stopPropagation()
+                    }}
+                  >
                     <Stack direction='row' spacing={0.5} alignItems='center'>
                       <TextField
                         size='small'
@@ -323,7 +340,12 @@ export const TablaNegociosAdmin = ({
                       ) : null}
                     </Stack>
                   </TableCell>
-                  <TableCell align='center'>
+                  <TableCell
+                    align='center'
+                    onClick={(evento) => {
+                      evento.stopPropagation()
+                    }}
+                  >
                     <Switch
                       checked={fila.suscripcionActiva}
                       color='secondary'
