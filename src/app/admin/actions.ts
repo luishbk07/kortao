@@ -68,7 +68,8 @@ const PLANES_PERMITIDOS = ['estandar', 'premium'] as const
 
 export const actualizarPlanAction = async (
   negocioId: string,
-  plan: string
+  plan: string,
+  planAnterior: string
 ): Promise<void> => {
   const supabase = await exigirAdminAutenticado()
 
@@ -76,9 +77,18 @@ export const actualizarPlanAction = async (
     throw new Error('El plan no es válido')
   }
 
+  const actualizacion: {
+    plan: string
+    fecha_inicio_suscripcion?: string
+  } = { plan }
+
+  if (planAnterior === 'estandar' && plan === 'premium') {
+    actualizacion.fecha_inicio_suscripcion = new Date().toISOString()
+  }
+
   const { error } = await supabase
     .from('negocios')
-    .update({ plan })
+    .update(actualizacion)
     .eq('id', negocioId)
 
   if (error) {

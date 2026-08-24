@@ -137,25 +137,46 @@ export const TablaNegociosAdmin = ({
 
     const negocioActual = negocios.find((negocio) => negocio.id === negocioId)
     const planAnterior = negocioActual?.plan ?? 'estandar'
+    const planAnteriorNormalizado = normalizarPlanSelect(planAnterior)
 
-    if (normalizarPlanSelect(planAnterior) === plan) {
+    if (planAnteriorNormalizado === plan) {
       return
     }
+
+    const iniciaFacturacionPremium =
+      planAnteriorNormalizado === 'estandar' && plan === 'premium'
+    const fechaInicioSuscripcion = iniciaFacturacionPremium
+      ? new Date().toISOString()
+      : negocioActual?.fechaInicioSuscripcion
 
     setActualizandoId(negocioId)
     setNegocios((actuales) =>
       actuales.map((negocio) =>
-        negocio.id === negocioId ? { ...negocio, plan } : negocio
+        negocio.id === negocioId
+          ? {
+              ...negocio,
+              plan,
+              ...(fechaInicioSuscripcion
+                ? { fechaInicioSuscripcion }
+                : {})
+            }
+          : negocio
       )
     )
 
     try {
-      await actualizarPlanAction(negocioId, plan)
+      await actualizarPlanAction(negocioId, plan, planAnteriorNormalizado)
     } catch {
       setNegocios((actuales) =>
         actuales.map((negocio) =>
           negocio.id === negocioId
-            ? { ...negocio, plan: planAnterior }
+            ? {
+                ...negocio,
+                plan: planAnterior,
+                fechaInicioSuscripcion:
+                  negocioActual?.fechaInicioSuscripcion ??
+                  negocio.fechaInicioSuscripcion
+              }
             : negocio
         )
       )
