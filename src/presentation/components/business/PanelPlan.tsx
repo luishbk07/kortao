@@ -1,7 +1,9 @@
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined'
 import WhatsAppIcon from '@mui/icons-material/WhatsApp'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
+import Chip from '@mui/material/Chip'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemIcon from '@mui/material/ListItemIcon'
@@ -9,10 +11,10 @@ import ListItemText from '@mui/material/ListItemText'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import {
-  BENEFICIOS_PLAN_PREMIUM,
   construirEnlaceWhatsappSoporte,
   esPlanPremium,
   formatearPrecioMensual,
+  LIMITE_CITAS_FUTURAS_PLAN_GRATIS,
   PRECIO_LISTA_PLAN_PREMIUM,
   TELEFONO_SOPORTE_KORTAO
 } from '@/shared/utils/planes'
@@ -24,18 +26,118 @@ type PanelPlanProps = {
   telefonoSoporte?: string | null
 }
 
-const ListaBeneficios = () => {
+type FilaComparacion = {
+  etiqueta: string
+  disponible: boolean
+  destacado?: boolean
+}
+
+const FILAS_ESTANDAR: FilaComparacion[] = [
+  { etiqueta: 'Confirmación por WhatsApp y email', disponible: true },
+  {
+    etiqueta: `Hasta ${LIMITE_CITAS_FUTURAS_PLAN_GRATIS} citas activas`,
+    disponible: true
+  },
+  { etiqueta: 'Anuncios en el panel', disponible: true },
+  { etiqueta: 'Clientes recurrentes', disponible: false },
+  { etiqueta: 'Reportes extendidos', disponible: false },
+  { etiqueta: 'Personalización de color', disponible: false }
+]
+
+const FILAS_PREMIUM: FilaComparacion[] = [
+  { etiqueta: 'Confirmación por WhatsApp y email', disponible: true },
+  {
+    etiqueta: 'Citas activas: ilimitadas',
+    disponible: true,
+    destacado: true
+  },
+  { etiqueta: 'Sin anuncios en el panel', disponible: true },
+  { etiqueta: 'Clientes recurrentes', disponible: true },
+  { etiqueta: 'Reportes extendidos', disponible: true },
+  { etiqueta: 'Personalización de color', disponible: true }
+]
+
+const ListaComparacion = ({ filas }: { filas: FilaComparacion[] }) => {
   return (
     <List dense disablePadding>
-      {BENEFICIOS_PLAN_PREMIUM.map((beneficio) => (
-        <ListItem key={beneficio} disableGutters sx={{ py: 0.5 }}>
-          <ListItemIcon sx={{ minWidth: 36, color: 'primary.main' }}>
-            <CheckCircleOutlineIcon fontSize='small' />
+      {filas.map((fila) => (
+        <ListItem key={fila.etiqueta} disableGutters sx={{ py: 0.5 }}>
+          <ListItemIcon
+            sx={{
+              minWidth: 36,
+              color: fila.disponible ? 'success.main' : 'text.disabled'
+            }}
+          >
+            {fila.disponible ? (
+              <CheckCircleOutlineIcon fontSize='small' />
+            ) : (
+              <CloseOutlinedIcon fontSize='small' />
+            )}
           </ListItemIcon>
-          <ListItemText primary={beneficio} />
+          <ListItemText
+            primary={fila.etiqueta}
+            primaryTypographyProps={{
+              color: fila.disponible ? 'text.primary' : 'text.disabled',
+              fontWeight: fila.destacado ? 700 : 400
+            }}
+          />
         </ListItem>
       ))}
     </List>
+  )
+}
+
+const TarjetaPlan = ({
+  titulo,
+  precio,
+  filas,
+  destacado,
+  chipActual
+}: {
+  titulo: string
+  precio: string
+  filas: FilaComparacion[]
+  destacado?: boolean
+  chipActual?: boolean
+}) => {
+  return (
+    <Box
+      sx={{
+        flex: '1 1 260px',
+        minWidth: 0,
+        border: '1px solid',
+        borderColor: destacado ? 'primary.main' : 'divider',
+        borderRadius: 3,
+        bgcolor: 'background.paper',
+        px: { xs: 2.5, sm: 3 },
+        py: { xs: 2.5, sm: 3 },
+        boxShadow: destacado ? '0 0 0 1px rgba(31, 75, 63, 0.12)' : 'none'
+      }}
+    >
+      <Stack spacing={2}>
+        <Stack
+          direction='row'
+          alignItems='center'
+          justifyContent='space-between'
+          spacing={1}
+        >
+          <Typography variant='h6' component='h2' fontWeight={700}>
+            {titulo}
+          </Typography>
+          {chipActual ? (
+            <Chip size='small' color='primary' label='Actual' />
+          ) : null}
+        </Stack>
+        <Typography
+          variant={destacado ? 'h5' : 'subtitle1'}
+          color={destacado ? 'primary' : 'text.secondary'}
+          fontWeight={700}
+        >
+          {precio}
+        </Typography>
+        <ListaComparacion filas={filas} />
+      </Stack>
+    </Box>
   )
 }
 
@@ -46,9 +148,10 @@ export const PanelPlan = ({
   telefonoSoporte
 }: PanelPlanProps) => {
   const esPremium = esPlanPremium(plan)
-  const precioMostrado = esPremium
-    ? formatearPrecioMensual(precioMensual ?? PRECIO_LISTA_PLAN_PREMIUM)
-    : formatearPrecioMensual(PRECIO_LISTA_PLAN_PREMIUM)
+  const precioLista = formatearPrecioMensual(PRECIO_LISTA_PLAN_PREMIUM)
+  const precioPremiumActual = formatearPrecioMensual(
+    precioMensual ?? PRECIO_LISTA_PLAN_PREMIUM
+  )
 
   const enlaceWhatsapp = construirEnlaceWhatsappSoporte(
     telefonoSoporte?.trim() || TELEFONO_SOPORTE_KORTAO,
@@ -64,81 +167,94 @@ export const PanelPlan = ({
         <Typography color='text.secondary'>
           {esPremium
             ? 'Tu negocio ya tiene acceso a las herramientas Premium.'
-            : 'Actualiza a Premium para crecer sin límites del plan gratuito.'}
+            : 'Compara los planes y elige el que mejor se adapte a tu negocio.'}
         </Typography>
       </Stack>
 
-      <Box
-        sx={{
-          border: '1px solid',
-          borderColor: 'divider',
-          borderRadius: 3,
-          bgcolor: 'background.paper',
-          px: { xs: 3, sm: 4 },
-          py: { xs: 3, sm: 4 }
-        }}
+      {esPremium ? (
+        <Box
+          sx={{
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: 3,
+            bgcolor: 'background.paper',
+            px: { xs: 3, sm: 4 },
+            py: { xs: 2.5, sm: 3 }
+          }}
+        >
+          <Stack spacing={0.5}>
+            <Typography variant='h6' component='h2' fontWeight={700}>
+              Tu plan actual: Premium
+            </Typography>
+            <Typography color='text.secondary'>
+              {precioPremiumActual}
+            </Typography>
+          </Stack>
+        </Box>
+      ) : null}
+
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        spacing={2}
+        alignItems='stretch'
       >
-        <Stack spacing={2.5} maxWidth={520}>
-          {esPremium ? (
-            <>
-              <Stack spacing={0.5}>
-                <Typography variant='h6' component='h2' fontWeight={700}>
-                  Tu plan actual: Premium
-                </Typography>
-                <Typography color='text.secondary'>{precioMostrado}</Typography>
-              </Stack>
-              <Typography variant='subtitle2' fontWeight={600}>
-                Incluye
+        <TarjetaPlan
+          titulo='Estándar'
+          precio='Gratis'
+          filas={FILAS_ESTANDAR}
+          chipActual={!esPremium}
+        />
+        <TarjetaPlan
+          titulo='Premium'
+          precio={esPremium ? precioPremiumActual : precioLista}
+          filas={FILAS_PREMIUM}
+          destacado
+          chipActual={esPremium}
+        />
+      </Stack>
+
+      {!esPremium ? (
+        <Box
+          sx={{
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: 3,
+            bgcolor: 'background.paper',
+            px: { xs: 3, sm: 4 },
+            py: { xs: 3, sm: 4 }
+          }}
+        >
+          <Stack spacing={2} maxWidth={520}>
+            <Box
+              sx={{
+                borderRadius: 2,
+                bgcolor: 'primary.dark',
+                color: 'common.white',
+                px: 2,
+                py: 1.5
+              }}
+            >
+              <Typography variant='body2'>
+                Los primeros 10 negocios en actualizar pagan solo RD$500/mes de
+                por vida
               </Typography>
-              <ListaBeneficios />
-            </>
-          ) : (
-            <>
-              <Stack spacing={0.5}>
-                <Typography variant='h6' component='h2' fontWeight={700}>
-                  Plan Premium
-                </Typography>
-                <Typography variant='h5' color='primary' fontWeight={700}>
-                  {precioMostrado}
-                </Typography>
-              </Stack>
+            </Box>
 
-              <Typography variant='subtitle2' fontWeight={600}>
-                Beneficios
-              </Typography>
-              <ListaBeneficios />
-
-              <Box
-                sx={{
-                  borderRadius: 2,
-                  bgcolor: 'primary.dark',
-                  color: 'common.white',
-                  px: 2,
-                  py: 1.5
-                }}
-              >
-                <Typography variant='body2'>
-                  Los primeros 10 negocios en actualizar pagan solo RD$500/mes
-                  de por vida
-                </Typography>
-              </Box>
-
-              <Button
-                component='a'
-                href={enlaceWhatsapp}
-                target='_blank'
-                rel='noopener noreferrer'
-                variant='contained'
-                color='secondary'
-                startIcon={<WhatsAppIcon />}
-                sx={{ alignSelf: 'flex-start' }}
-              >
-                Solicitar activación
-              </Button>
-            </>
-          )}
-        </Stack>
-      </Box>
+            <Button
+              component='a'
+              href={enlaceWhatsapp}
+              target='_blank'
+              rel='noopener noreferrer'
+              variant='contained'
+              color='secondary'
+              startIcon={<WhatsAppIcon />}
+              sx={{ alignSelf: 'flex-start' }}
+            >
+              Solicitar activación
+            </Button>
+          </Stack>
+        </Box>
+      ) : null}
     </Stack>
   )
 }
