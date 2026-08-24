@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, type ReactNode } from 'react'
 import ArrowBackOutlinedIcon from '@mui/icons-material/ArrowBackOutlined'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -12,18 +13,26 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
-import type { DetalleNegocioAdmin } from '@/domain/admin/admin.types'
+import type {
+  DetalleNegocioAdmin,
+  PagoNegocioAdmin
+} from '@/domain/admin/admin.types'
 import type { EstadoCita } from '@/domain/booking/booking.types'
+import { HistorialPagosAdmin } from '@/presentation/components/admin/HistorialPagosAdmin'
 import {
   formatearFechaLegible,
   formatearHoraLegible
 } from '@/shared/utils/fechas'
-import { formatearPrecioMensual } from '@/shared/utils/planes'
-import { calcularProximaFechaPago } from '@/shared/utils/suscripcion'
+import { esPlanPremium, formatearPrecioMensual } from '@/shared/utils/planes'
+import {
+  calcularProximaFechaPago,
+  cicloActualEstaAlDia
+} from '@/shared/utils/suscripcion'
 import Link from 'next/link'
 
 type DetalleNegocioAdminVistaProps = {
   detalle: DetalleNegocioAdmin
+  historialPagos: PagoNegocioAdmin[]
 }
 
 const etiquetaPlan = (plan: string): string => {
@@ -82,10 +91,12 @@ const formatearMonto = (monto: number): string => {
 
 const TarjetaDato = ({
   etiqueta,
-  valor
+  valor,
+  complemento
 }: {
   etiqueta: string
   valor: string
+  complemento?: ReactNode
 }) => {
   return (
     <Box
@@ -104,15 +115,28 @@ const TarjetaDato = ({
         {etiqueta}
       </Typography>
       <Typography fontWeight={600}>{valor}</Typography>
+      {complemento ? (
+        <Box sx={{ mt: 1 }}>{complemento}</Box>
+      ) : null}
     </Box>
   )
 }
 
 export const DetalleNegocioAdminVista = ({
-  detalle
+  detalle,
+  historialPagos
 }: DetalleNegocioAdminVistaProps) => {
   const { negocio, metricas, citasRecientes } = detalle
+  const [pagos, setPagos] = useState(historialPagos)
   const proximaPago = calcularProximaFechaPago(negocio.fechaInicioSuscripcion)
+  const estadoCiclo = cicloActualEstaAlDia(
+    negocio.fechaInicioSuscripcion,
+    pagos[0]?.fechaPago ?? null
+  )
+  const puedeRegistrarPago =
+    esPlanPremium(negocio.plan) &&
+    negocio.suscripcionActiva &&
+    negocio.precioMensual !== null
 
   return (
     <Stack spacing={3}>
@@ -162,6 +186,15 @@ export const DetalleNegocioAdminVista = ({
           <TarjetaDato
             etiqueta='Próximo pago'
             valor={formatearFechaLegible(proximaPago, true)}
+            complemento={
+              estadoCiclo === null ? null : (
+                <Chip
+                  size='small'
+                  label={estadoCiclo ? 'Al día' : 'Pago pendiente'}
+                  color={estadoCiclo ? 'success' : 'warning'}
+                />
+              )
+            }
           />
           <TarjetaDato
             etiqueta='Suscripción'
@@ -201,6 +234,16 @@ export const DetalleNegocioAdminVista = ({
           />
         </Stack>
       </Stack>
+
+      {puedeRegistrarPago || pagos.length > 0 ? (
+        <HistorialPagosAdmin
+          negocioId={negocio.id}
+          precioMensual={negocio.precioMensual ?? 0}
+          pagos={pagos}
+          onPagosChange={setPagos}
+          puedeRegistrar={puedeRegistrarPago}
+        />
+      ) : null}
 
       <Stack spacing={1.5}>
         <Typography variant='h6' component='h2' fontWeight={700}>

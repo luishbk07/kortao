@@ -83,3 +83,62 @@ export const debeMostrarAvisoPagoSuscripcion = (
 export const formatearMontoRd = (monto: number): string => {
   return `RD$${new Intl.NumberFormat('es-DO').format(monto)}`
 }
+
+/**
+ * Latest billing anniversary on or before `hoy`, derived only from
+ * fecha_inicio_suscripcion (same month-stepping as próxima fecha de pago).
+ * Returns null if the subscription start is still in the future.
+ */
+export const calcularUltimaFechaVencimiento = (
+  fechaInicioSuscripcion: Date,
+  hoy: Date = new Date()
+): Date | null => {
+  let actualIso = formatearFechaCalendario(fechaInicioSuscripcion)
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(actualIso)) {
+    throw new Error(
+      `fecha_inicio_suscripcion inválida: ${String(fechaInicioSuscripcion)}`
+    )
+  }
+
+  const hoyIso = formatearFechaCalendario(hoy)
+
+  if (actualIso > hoyIso) {
+    return null
+  }
+
+  while (true) {
+    const siguienteIso = sumarUnMesCalendario(actualIso)
+
+    if (siguienteIso > hoyIso) {
+      return parsearFechaCalendario(actualIso)
+    }
+
+    actualIso = siguienteIso
+  }
+}
+
+/** Read-only aid: latest ledger payment covers the current billing cycle. */
+export const cicloActualEstaAlDia = (
+  fechaInicioSuscripcion: Date,
+  fechaUltimoPago: Date | null,
+  hoy: Date = new Date()
+): boolean | null => {
+  const ultimaVencimiento = calcularUltimaFechaVencimiento(
+    fechaInicioSuscripcion,
+    hoy
+  )
+
+  if (ultimaVencimiento === null) {
+    return null
+  }
+
+  if (fechaUltimoPago === null) {
+    return false
+  }
+
+  return (
+    formatearFechaCalendario(fechaUltimoPago) >=
+    formatearFechaCalendario(ultimaVencimiento)
+  )
+}

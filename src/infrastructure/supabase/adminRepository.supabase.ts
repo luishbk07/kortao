@@ -4,9 +4,11 @@ import type {
   CitaAdminResumen,
   DetalleNegocioAdmin,
   MetricasNegocioAdmin,
-  NegocioAdminDetalle
+  NegocioAdminDetalle,
+  PagoNegocioAdmin
 } from '@/domain/admin/admin.types'
 import type { EstadoCita } from '@/domain/booking/booking.types'
+import { parsearFechaCalendario } from '@/shared/utils/fechas'
 
 type NegocioFila = {
   id: string
@@ -27,6 +29,12 @@ type CitaFila = {
   servicios?: { nombre: string } | { nombre: string }[] | null
 }
 
+type PagoFila = {
+  id: string
+  fecha_pago: string
+  monto: number | string
+}
+
 const mapearNumeroOpcional = (
   valor: number | string | null | undefined
 ): number | null => {
@@ -36,6 +44,14 @@ const mapearNumeroOpcional = (
 
   const numero = Number(valor)
   return Number.isFinite(numero) ? numero : null
+}
+
+const mapearMonto = (valor: number | string): number => {
+  const numero = Number(valor)
+  if (!Number.isFinite(numero)) {
+    throw new Error('Monto de pago inválido')
+  }
+  return numero
 }
 
 const obtenerNombreServicio = (
@@ -58,8 +74,16 @@ const mapearNegocio = (fila: NegocioFila): NegocioAdminDetalle => ({
   slug: fila.slug,
   plan: fila.plan ?? 'estandar',
   precioMensual: mapearNumeroOpcional(fila.precio_mensual),
-  fechaInicioSuscripcion: new Date(fila.fecha_inicio_suscripcion),
+  fechaInicioSuscripcion: parsearFechaCalendario(
+    fila.fecha_inicio_suscripcion.slice(0, 10)
+  ),
   suscripcionActiva: fila.suscripcion_activa
+})
+
+const mapearPago = (fila: PagoFila): PagoNegocioAdmin => ({
+  id: fila.id,
+  fechaPago: parsearFechaCalendario(fila.fecha_pago.slice(0, 10)),
+  monto: mapearMonto(fila.monto)
 })
 
 const calcularMetricas = (citas: CitaFila[]): MetricasNegocioAdmin => {
@@ -131,5 +155,55 @@ export const crearAdminRepository = (
     }
 
     return detalle
+  },
+
+  obtenerHistorialPagos: async (negocioId) => {
+    const { data, error } = await cliente
+      .from('pagos_negocio')
+      .select('id, fecha_pago, monto')
+      .eq('negocio_id', negocioId)
+      .order('fecha_pago', { ascending: false })
+      .order('creado_en', { ascending: false })
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return ((data as PagoFila[] | null) ?? []).map(mapearPago)
+  },
+
+  registrarPago: async (negocioId, monto) => {
+    if (!Number.isFinite(monto) || monto < 0) {
+      throw new Error('El monto del pago no es válido')
+    }
+
+    const {
+      data: { user },
+      error: errorUsuario
+    } = await cliente.auth.getUser()
+
+    if (errorUsuario) {
+      throw new Error(errorUsuario.message)
+    }
+
+    if (!user) {
+      throw new Error('No hay una sesión activa')
+    }
+
+    const { data, error } = await cliente
+      .from('pagos_negocio')
+      .insert({
+        negocio_id: negocioId,
+        monto,
+        registrado_por: user.id
+      })
+      .select('id, fecha_pago, monto')
+      .single()
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return mapearPago(data as PagoFila)
   }
 })

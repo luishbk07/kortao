@@ -31,3 +31,9 @@ export type DetalleNegocioAdmin = {
   metricas: MetricasNegocioAdmin
   citasRecientes: CitaAdminResumen[]
 }
+
+export type PagoNegocioAdmin = {
+  id: string
+  fechaPago: Date
+  monto: number
+}

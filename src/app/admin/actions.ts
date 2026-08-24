@@ -1,6 +1,9 @@
 'use server'
 
+import { crearRegistrarPago } from '@/application/useCases/admin/registrarPago'
+import { crearAdminRepository } from '@/infrastructure/supabase/adminRepository.supabase'
 import { crearClienteServidor } from '@/infrastructure/supabase/clienteServidor'
+import { formatearFechaCalendario } from '@/shared/utils/fechas'
 
 const exigirAdminAutenticado = async () => {
   const supabase = crearClienteServidor()
@@ -93,5 +96,21 @@ export const actualizarPlanAction = async (
 
   if (error) {
     throw new Error(error.message)
+  }
+}
+
+export const registrarPagoAction = async (
+  negocioId: string,
+  monto: number
+): Promise<{ id: string; fechaPago: string; monto: number }> => {
+  const supabase = await exigirAdminAutenticado()
+  const adminRepository = crearAdminRepository(supabase)
+  const registrarPago = crearRegistrarPago(adminRepository)
+  const pago = await registrarPago(negocioId, monto)
+
+  return {
+    id: pago.id,
+    fechaPago: formatearFechaCalendario(pago.fechaPago),
+    monto: pago.monto
   }
 }
