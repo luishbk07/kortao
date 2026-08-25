@@ -6,20 +6,17 @@ import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined'
 import Badge from '@mui/material/Badge'
 import Button from '@mui/material/Button'
 import Stack from '@mui/material/Stack'
-
-type NavegacionAdminProps = {
-  reportesPendientes: number
-}
+import { useContadorReportesPendientes } from '@/presentation/lib/contadorReportesPendientes'
 
 const enlacesAdmin = [
   { href: '/admin', etiqueta: 'Negocios', esNegocios: true },
   { href: '/admin/soporte', etiqueta: 'Soporte', esNegocios: false }
 ]
 
-export const NavegacionAdmin = ({
-  reportesPendientes
-}: NavegacionAdminProps) => {
+export const NavegacionAdmin = () => {
   const pathname = usePathname()
+  const contador = useContadorReportesPendientes()
+  const reportesPendientes = contador?.reportesPendientes ?? 0
 
   return (
     <Stack

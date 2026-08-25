@@ -21,6 +21,7 @@ import {
   formatearFechaLegible,
   formatearHoraLegible
 } from '@/shared/utils/fechas'
+import { useContadorReportesPendientes } from '@/presentation/lib/contadorReportesPendientes'
 
 type TablaReportesSoporteAdminProps = {
   reportesIniciales: ReporteSoporteAdmin[]
@@ -61,10 +62,12 @@ export const TablaReportesSoporteAdmin = ({
   const [actualizandoId, setActualizandoId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const ordenados = useMemo(() => ordenarReportes(reportes), [reportes])
+  const contador = useContadorReportesPendientes()
 
   const handleToggleEstado = async (reporte: ReporteSoporteAdmin) => {
     const siguienteEstado: EstadoReporteSoporte =
       reporte.estado === 'pendiente' ? 'resuelto' : 'pendiente'
+    const deltaPendientes = siguienteEstado === 'resuelto' ? -1 : 1
 
     setError(null)
     setActualizandoId(reporte.id)
@@ -75,6 +78,7 @@ export const TablaReportesSoporteAdmin = ({
           : item
       )
     )
+    contador?.ajustarReportesPendientes(deltaPendientes)
 
     try {
       await actualizarEstadoReporteSoporteAction(reporte.id, siguienteEstado)
@@ -86,6 +90,7 @@ export const TablaReportesSoporteAdmin = ({
             : item
         )
       )
+      contador?.ajustarReportesPendientes(-deltaPendientes)
       setError('No se pudo actualizar el estado. Inténtalo de nuevo.')
     } finally {
       setActualizandoId(null)

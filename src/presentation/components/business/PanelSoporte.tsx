@@ -22,6 +22,7 @@ import {
   formatearHoraLegible
 } from '@/shared/utils/fechas'
 import { esPlanPremium } from '@/shared/utils/planes'
+import { useContadorReportesPendientes } from '@/presentation/lib/contadorReportesPendientes'
 
 type PanelSoporteProps = {
   nombreNegocio: string
@@ -62,6 +63,7 @@ export const PanelSoporte = ({
   const [enviando, setEnviando] = useState(false)
   const [exito, setExito] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const contador = useContadorReportesPendientes()
   const esPremium = esPlanPremium(plan)
   const enlaceWhatsapp =
     esPremium && telefonoWhatsappSoporte
@@ -92,6 +94,9 @@ export const PanelSoporte = ({
       setReportes((actuales) => [reporte, ...actuales])
       setMensaje('')
       setExito('Reporte enviado. Te responderemos lo antes posible.')
+      if (creado.estado === 'pendiente') {
+        contador?.ajustarReportesPendientes(1)
+      }
     } catch {
       setError('No se pudo enviar el reporte. Inténtalo de nuevo.')
     } finally {

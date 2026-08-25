@@ -31,6 +31,7 @@ import Toolbar from '@mui/material/Toolbar'
 import { crearCerrarSesion } from '@/application/useCases/auth/cerrarSesion'
 import { LogoKortao } from '@/presentation/components/ui/LogoKortao'
 import { crearDependenciasPanelNavegador } from '@/presentation/lib/crearDependenciasPanelNavegador'
+import { useContadorReportesPendientes } from '@/presentation/lib/contadorReportesPendientes'
 
 export type AccesoAdminPanel = {
   reportesPendientes: number
@@ -110,7 +111,10 @@ export const NavegacionPanel = ({ accesoAdmin }: NavegacionPanelProps) => {
   const pathname = usePathname()
   const router = useRouter()
   const [menuAbierto, setMenuAbierto] = useState(false)
+  const contador = useContadorReportesPendientes()
   const adminActivo = pathname.startsWith('/admin')
+  const reportesPendientes =
+    contador?.reportesPendientes ?? accesoAdmin?.reportesPendientes ?? 0
 
   useEffect(() => {
     setMenuAbierto(false)
@@ -135,7 +139,7 @@ export const NavegacionPanel = ({ accesoAdmin }: NavegacionPanelProps) => {
         sx={estilosEnlaceAdmin}
       >
         <Badge
-          badgeContent={accesoAdmin.reportesPendientes}
+          badgeContent={reportesPendientes}
           color='error'
           max={99}
           sx={{
@@ -178,7 +182,7 @@ export const NavegacionPanel = ({ accesoAdmin }: NavegacionPanelProps) => {
       >
         <ListItemIcon sx={{ minWidth: 40, color: 'error.main' }}>
           <Badge
-            badgeContent={accesoAdmin.reportesPendientes}
+            badgeContent={reportesPendientes}
             color='error'
             max={99}
           >

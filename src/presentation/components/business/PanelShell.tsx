@@ -12,6 +12,7 @@ import {
   NavegacionPanel,
   type AccesoAdminPanel
 } from '@/presentation/components/business/NavegacionPanel'
+import { ContadorReportesPendientesProvider } from '@/presentation/lib/contadorReportesPendientes'
 
 type PanelShellProps = {
   children: ReactNode
@@ -20,10 +21,10 @@ type PanelShellProps = {
   accesoAdmin?: AccesoAdminPanel
 }
 
-export const PanelShell = ({
+const PanelShellContenido = ({
   children,
   plan,
-  recordatorioPago = null,
+  recordatorioPago,
   accesoAdmin
 }: PanelShellProps) => {
   return (
@@ -38,5 +39,37 @@ export const PanelShell = ({
         {children}
       </Container>
     </Box>
+  )
+}
+
+export const PanelShell = ({
+  children,
+  plan,
+  recordatorioPago = null,
+  accesoAdmin
+}: PanelShellProps) => {
+  if (!accesoAdmin) {
+    return (
+      <PanelShellContenido
+        plan={plan}
+        recordatorioPago={recordatorioPago}
+      >
+        {children}
+      </PanelShellContenido>
+    )
+  }
+
+  return (
+    <ContadorReportesPendientesProvider
+      inicial={accesoAdmin.reportesPendientes}
+    >
+      <PanelShellContenido
+        plan={plan}
+        recordatorioPago={recordatorioPago}
+        accesoAdmin={accesoAdmin}
+      >
+        {children}
+      </PanelShellContenido>
+    </ContadorReportesPendientesProvider>
   )
 }

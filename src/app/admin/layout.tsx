@@ -1,11 +1,7 @@
 import { redirect } from 'next/navigation'
 import type { ReactNode } from 'react'
-import Box from '@mui/material/Box'
-import Container from '@mui/material/Container'
-import Stack from '@mui/material/Stack'
 import { crearClienteServidor } from '@/infrastructure/supabase/clienteServidor'
-import { NavegacionAdmin } from '@/presentation/components/admin/NavegacionAdmin'
-import { EncabezadoMarca } from '@/presentation/components/ui/EncabezadoMarca'
+import { AdminShell } from '@/presentation/components/admin/AdminShell'
 
 type AdminLayoutProps = {
   children: ReactNode
@@ -37,15 +33,7 @@ const AdminLayout = async ({ children }: AdminLayoutProps) => {
     .eq('estado', 'pendiente')
 
   return (
-    <Box bgcolor='background.default' minHeight='100vh'>
-      <EncabezadoMarca />
-      <Container maxWidth='lg' sx={{ py: { xs: 3, sm: 4 } }}>
-        <Stack spacing={3}>
-          <NavegacionAdmin reportesPendientes={count ?? 0} />
-          {children}
-        </Stack>
-      </Container>
-    </Box>
+    <AdminShell reportesPendientes={count ?? 0}>{children}</AdminShell>
   )
 }
 
