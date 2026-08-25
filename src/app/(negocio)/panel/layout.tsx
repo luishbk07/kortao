@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { PanelShell } from '@/presentation/components/business/PanelShell'
 import { CuentaPausada } from '@/presentation/components/business/CuentaPausada'
@@ -13,6 +14,13 @@ import {
   debeMostrarAvisoPagoSuscripcion
 } from '@/shared/utils/suscripcion'
 import type { AccesoAdminPanel } from '@/presentation/components/business/NavegacionPanel'
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false
+  }
+}
 
 type PanelLayoutProps = {
   children: ReactNode

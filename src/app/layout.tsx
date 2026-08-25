@@ -11,16 +11,53 @@ const inter = Inter({
   display: 'swap'
 })
 
+const DESCRIPCION_SITIO =
+  'Kortao es la plataforma de reservas online para barberías, salones y negocios de belleza. Configura servicios, horarios y recibe citas con notificaciones por WhatsApp y correo.'
+
 export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://kortao.com'
   ),
   title: {
-    default: 'Kortao',
+    default: 'Kortao | Reservas online para barberías y salones',
     template: '%s | Kortao'
   },
-  description: 'Reservas simples para barberías, salones, entre otros.',
+  description: DESCRIPCION_SITIO,
   applicationName: 'Kortao',
+  keywords: [
+    'reservas online',
+    'barbería',
+    'salón de belleza',
+    'citas',
+    'agenda',
+    'Kortao',
+    'reservar cita'
+  ],
+  authors: [{ name: 'Kortao' }],
+  creator: 'Kortao',
+  publisher: 'Kortao',
+  openGraph: {
+    type: 'website',
+    locale: 'es_DO',
+    url: '/',
+    siteName: 'Kortao',
+    title: 'Kortao | Reservas online para barberías y salones',
+    description: DESCRIPCION_SITIO,
+    images: [
+      {
+        url: '/icons/icon-512.png',
+        width: 512,
+        height: 512,
+        alt: 'Kortao'
+      }
+    ]
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Kortao | Reservas online para barberías y salones',
+    description: DESCRIPCION_SITIO,
+    images: ['/icons/icon-512.png']
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

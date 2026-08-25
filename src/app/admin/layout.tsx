@@ -1,7 +1,15 @@
 import { redirect } from 'next/navigation'
+import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { crearClienteServidor } from '@/infrastructure/supabase/clienteServidor'
 import { AdminShell } from '@/presentation/components/admin/AdminShell'
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false
+  }
+}
 
 type AdminLayoutProps = {
   children: ReactNode

@@ -4,7 +4,11 @@ import { FormularioLogin } from '@/presentation/components/business/FormularioLo
 export const metadata: Metadata = {
   title: 'Iniciar sesión',
   description:
-    'Inicia sesión en Kortao para gestionar las citas, servicios y horarios de tu negocio.'
+    'Inicia sesión en Kortao para gestionar las citas, servicios y horarios de tu negocio.',
+  robots: {
+    index: false,
+    follow: false
+  }
 }
 
 const LoginPage = () => {
