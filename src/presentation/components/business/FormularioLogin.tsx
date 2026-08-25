@@ -77,16 +77,17 @@ export const FormularioLogin = () => {
     <Box component='main' bgcolor='background.default' minHeight='100vh'>
       <EncabezadoMarca />
       <Container maxWidth='xs' sx={{ py: { xs: 5, sm: 8 } }}>
-        <Stack spacing={3}>
+        <Stack spacing={3} data-nosnippet=''>
           {vista === 'entrar' ? (
             <>
               <Stack spacing={1} alignItems='center'>
                 <LockOutlinedIcon color='primary' fontSize='large' />
                 <Typography variant='h4' component='h1' color='primary'>
-                  Panel del negocio
+                  Iniciar sesión
                 </Typography>
                 <Typography color='text.secondary' textAlign='center'>
-                  Inicia sesión para gestionar tus citas, servicios y horarios.
+                  Accede a Kortao para gestionar las citas, servicios y horarios
+                  de tu negocio.
                 </Typography>
               </Stack>
 

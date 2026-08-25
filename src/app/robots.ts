@@ -8,7 +8,9 @@ const robots = (): MetadataRoute.Robots => {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/panel', '/admin', '/login', '/registro']
+      // Do NOT disallow /login or /registro: Google must be able to crawl
+      // them to see robots noindex and drop the old form-label snippets.
+      disallow: ['/panel/', '/admin/']
     },
     sitemap: `${origen}/sitemap.xml`,
     host: origen

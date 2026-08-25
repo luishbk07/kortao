@@ -4,10 +4,18 @@ import { FormularioRegistro } from '@/presentation/components/auth/FormularioReg
 export const metadata: Metadata = {
   title: 'Crear cuenta',
   description:
-    'Registra tu negocio en Kortao y empieza a recibir reservas online.',
+    'Registra tu negocio en Kortao para recibir reservas online de tus clientes.',
   robots: {
     index: false,
-    follow: false
+    follow: false,
+    noarchive: true,
+    nosnippet: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      noarchive: true,
+      nosnippet: true
+    }
   }
 }
 
