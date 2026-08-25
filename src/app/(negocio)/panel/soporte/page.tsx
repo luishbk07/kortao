@@ -17,7 +17,7 @@ const SoportePanelPage = async () => {
   const supportRepository = crearSupportRepository(crearClienteServidor())
   const reportes = await supportRepository.listarPorNegocio(negocioId)
   const telefonoWhatsappSoporte =
-    process.env.NEXT_PUBLIC_SOPORTE_WHATSAPP?.trim() || null
+    process.env.SOPORTE_WHATSAPP?.trim() || null
 
   return (
     <PanelSoporte

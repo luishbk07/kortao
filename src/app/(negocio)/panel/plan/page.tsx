@@ -13,7 +13,7 @@ const PlanPage = async () => {
   }
 
   const telefonoSoporte =
-    process.env.NEXT_PUBLIC_SOPORTE_WHATSAPP?.trim() || null
+    process.env.SOPORTE_WHATSAPP?.trim() || null
 
   return (
     <PanelPlan

@@ -7,7 +7,7 @@ import Typography from '@mui/material/Typography'
 import { EncabezadoMarca } from '@/presentation/components/ui/EncabezadoMarca'
 
 const construirEnlaceSoporte = (): string | null => {
-  const telefono = process.env.NEXT_PUBLIC_SOPORTE_WHATSAPP?.replace(/\D/g, '')
+  const telefono = process.env.SOPORTE_WHATSAPP?.replace(/\D/g, '')
 
   if (!telefono) {
     return null
