@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined'
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined'
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined'
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined'
@@ -14,6 +15,7 @@ import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined'
 import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined'
 import SupportAgentOutlinedIcon from '@mui/icons-material/SupportAgentOutlined'
 import AppBar from '@mui/material/AppBar'
+import Badge from '@mui/material/Badge'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
@@ -29,6 +31,14 @@ import Toolbar from '@mui/material/Toolbar'
 import { crearCerrarSesion } from '@/application/useCases/auth/cerrarSesion'
 import { LogoKortao } from '@/presentation/components/ui/LogoKortao'
 import { crearDependenciasPanelNavegador } from '@/presentation/lib/crearDependenciasPanelNavegador'
+
+export type AccesoAdminPanel = {
+  reportesPendientes: number
+}
+
+type NavegacionPanelProps = {
+  accesoAdmin?: AccesoAdminPanel
+}
 
 const enlaces = [
   {
@@ -68,10 +78,39 @@ const enlaces = [
   }
 ]
 
-export const NavegacionPanel = () => {
+const estilosEnlaceAdmin = {
+  flexShrink: 0,
+  px: 1.25,
+  minWidth: 0,
+  whiteSpace: 'nowrap' as const,
+  border: '1px solid',
+  borderColor: 'error.main',
+  color: 'error.main',
+  '&:hover': {
+    borderColor: 'error.dark',
+    bgcolor: 'transparent',
+    color: 'error.dark'
+  },
+  '&.MuiButton-contained': {
+    bgcolor: 'error.main',
+    borderColor: 'error.main',
+    color: 'common.white',
+    '&:hover': {
+      bgcolor: 'error.dark',
+      borderColor: 'error.dark',
+      color: 'common.white'
+    }
+  },
+  '& .MuiButton-startIcon': {
+    mr: 0.5
+  }
+}
+
+export const NavegacionPanel = ({ accesoAdmin }: NavegacionPanelProps) => {
   const pathname = usePathname()
   const router = useRouter()
   const [menuAbierto, setMenuAbierto] = useState(false)
+  const adminActivo = pathname.startsWith('/admin')
 
   useEffect(() => {
     setMenuAbierto(false)
@@ -84,6 +123,71 @@ export const NavegacionPanel = () => {
     router.replace('/login')
     router.refresh()
   }
+
+  const enlaceAdmin =
+    accesoAdmin !== undefined ? (
+      <Button
+        component={Link}
+        href='/admin'
+        size='small'
+        startIcon={<AdminPanelSettingsOutlinedIcon fontSize='small' />}
+        variant={adminActivo ? 'contained' : 'outlined'}
+        sx={estilosEnlaceAdmin}
+      >
+        <Badge
+          badgeContent={accesoAdmin.reportesPendientes}
+          color='error'
+          max={99}
+          sx={{
+            '& .MuiBadge-badge': {
+              position: 'relative',
+              transform: 'none',
+              ml: 1
+            }
+          }}
+        >
+          Admin
+        </Badge>
+      </Button>
+    ) : null
+
+  const enlaceAdminDrawer =
+    accesoAdmin !== undefined ? (
+      <ListItemButton
+        component={Link}
+        href='/admin'
+        selected={adminActivo}
+        sx={{
+          borderRadius: 2,
+          mb: 0.5,
+          border: '1px solid',
+          borderColor: 'error.main',
+          color: 'error.main',
+          '&.Mui-selected': {
+            bgcolor: 'error.main',
+            color: 'common.white',
+            borderColor: 'error.main',
+            '&:hover': {
+              bgcolor: 'error.dark'
+            },
+            '& .MuiListItemIcon-root': {
+              color: 'common.white'
+            }
+          }
+        }}
+      >
+        <ListItemIcon sx={{ minWidth: 40, color: 'error.main' }}>
+          <Badge
+            badgeContent={accesoAdmin.reportesPendientes}
+            color='error'
+            max={99}
+          >
+            <AdminPanelSettingsOutlinedIcon />
+          </Badge>
+        </ListItemIcon>
+        <ListItemText primary='Admin' />
+      </ListItemButton>
+    ) : null
 
   return (
     <>
@@ -155,6 +259,7 @@ export const NavegacionPanel = () => {
                   </Button>
                 )
               })}
+              {enlaceAdmin}
             </Stack>
 
             <Button
@@ -250,6 +355,7 @@ export const NavegacionPanel = () => {
               </ListItemButton>
             )
           })}
+          {enlaceAdminDrawer}
         </List>
         <Divider />
         <Box px={1} py={1}>

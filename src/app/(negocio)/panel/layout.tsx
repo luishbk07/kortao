@@ -3,12 +3,16 @@ import { headers } from 'next/headers'
 import { PanelShell } from '@/presentation/components/business/PanelShell'
 import { CuentaPausada } from '@/presentation/components/business/CuentaPausada'
 import { crearClienteServidor } from '@/infrastructure/supabase/clienteServidor'
-import { formatearFechaCalendario, parsearFechaCalendario } from '@/shared/utils/fechas'
+import {
+  formatearFechaCalendario,
+  parsearFechaCalendario
+} from '@/shared/utils/fechas'
 import { PRECIO_LISTA_PLAN_PREMIUM } from '@/shared/utils/planes'
 import {
   calcularProximaFechaPago,
   debeMostrarAvisoPagoSuscripcion
 } from '@/shared/utils/suscripcion'
+import type { AccesoAdminPanel } from '@/presentation/components/business/NavegacionPanel'
 
 type PanelLayoutProps = {
   children: ReactNode
@@ -72,6 +76,7 @@ const PanelLayout = async ({ children }: PanelLayoutProps) => {
     precioMensual: number
     fechaProximoPago: string
   } | null = null
+  let accesoAdmin: AccesoAdminPanel | undefined
 
   if (user) {
     const { data: membresia } = await supabase
@@ -114,10 +119,31 @@ const PanelLayout = async ({ children }: PanelLayoutProps) => {
         fechaProximoPago: formatearFechaCalendario(proxima)
       }
     }
+
+    const { data: admin } = await supabase
+      .from('administradores_kortao')
+      .select('auth_user_id')
+      .eq('auth_user_id', user.id)
+      .maybeSingle()
+
+    if (admin) {
+      const { count } = await supabase
+        .from('reportes_soporte')
+        .select('*', { count: 'exact', head: true })
+        .eq('estado', 'pendiente')
+
+      accesoAdmin = {
+        reportesPendientes: count ?? 0
+      }
+    }
   }
 
   return (
-    <PanelShell plan={plan} recordatorioPago={recordatorioPago}>
+    <PanelShell
+      plan={plan}
+      recordatorioPago={recordatorioPago}
+      {...(accesoAdmin ? { accesoAdmin } : {})}
+    >
       {children}
     </PanelShell>
   )

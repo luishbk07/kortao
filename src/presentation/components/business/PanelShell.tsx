@@ -8,22 +8,27 @@ import {
   BannerRecordatorioPago,
   type RecordatorioPagoPanel
 } from '@/presentation/components/business/BannerRecordatorioPago'
-import { NavegacionPanel } from '@/presentation/components/business/NavegacionPanel'
+import {
+  NavegacionPanel,
+  type AccesoAdminPanel
+} from '@/presentation/components/business/NavegacionPanel'
 
 type PanelShellProps = {
   children: ReactNode
   plan: string
   recordatorioPago?: RecordatorioPagoPanel | null
+  accesoAdmin?: AccesoAdminPanel
 }
 
 export const PanelShell = ({
   children,
   plan,
-  recordatorioPago = null
+  recordatorioPago = null,
+  accesoAdmin
 }: PanelShellProps) => {
   return (
     <Box bgcolor='background.default' minHeight='100vh'>
-      <NavegacionPanel />
+      <NavegacionPanel accesoAdmin={accesoAdmin} />
       {recordatorioPago ? (
         <BannerRecordatorioPago recordatorio={recordatorioPago} />
       ) : (

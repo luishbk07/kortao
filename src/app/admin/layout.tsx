@@ -31,12 +31,17 @@ const AdminLayout = async ({ children }: AdminLayoutProps) => {
     redirect('/')
   }
 
+  const { count } = await supabase
+    .from('reportes_soporte')
+    .select('*', { count: 'exact', head: true })
+    .eq('estado', 'pendiente')
+
   return (
     <Box bgcolor='background.default' minHeight='100vh'>
       <EncabezadoMarca />
       <Container maxWidth='lg' sx={{ py: { xs: 3, sm: 4 } }}>
         <Stack spacing={3}>
-          <NavegacionAdmin />
+          <NavegacionAdmin reportesPendientes={count ?? 0} />
           {children}
         </Stack>
       </Container>
