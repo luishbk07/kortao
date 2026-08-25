@@ -12,6 +12,7 @@ import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined'
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined'
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined'
 import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined'
+import SupportAgentOutlinedIcon from '@mui/icons-material/SupportAgentOutlined'
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -59,6 +60,11 @@ const enlaces = [
     href: '/panel/negocio',
     etiqueta: 'Negocio',
     icono: StorefrontOutlinedIcon
+  },
+  {
+    href: '/panel/soporte',
+    etiqueta: 'Soporte',
+    icono: SupportAgentOutlinedIcon
   }
 ]
 

@@ -2,6 +2,7 @@
 
 import { crearRegistrarPago } from '@/application/useCases/admin/registrarPago'
 import { crearAdminRepository } from '@/infrastructure/supabase/adminRepository.supabase'
+import { crearSupportRepository } from '@/infrastructure/supabase/supportRepository.supabase'
 import { crearClienteServidor } from '@/infrastructure/supabase/clienteServidor'
 import { formatearFechaCalendario } from '@/shared/utils/fechas'
 
@@ -112,5 +113,34 @@ export const registrarPagoAction = async (
     id: pago.id,
     fechaPago: formatearFechaCalendario(pago.fechaPago),
     monto: pago.monto
+  }
+}
+
+export const actualizarEstadoReporteSoporteAction = async (
+  reporteId: string,
+  estado: 'pendiente' | 'resuelto'
+): Promise<{
+  id: string
+  negocioId: string
+  negocioNombre: string
+  mensaje: string
+  estado: 'pendiente' | 'resuelto'
+  creadoEn: string
+}> => {
+  if (estado !== 'pendiente' && estado !== 'resuelto') {
+    throw new Error('El estado del reporte no es válido')
+  }
+
+  const supabase = await exigirAdminAutenticado()
+  const supportRepository = crearSupportRepository(supabase)
+  const reporte = await supportRepository.actualizarEstado(reporteId, estado)
+
+  return {
+    id: reporte.id,
+    negocioId: reporte.negocioId,
+    negocioNombre: reporte.negocioNombre,
+    mensaje: reporte.mensaje,
+    estado: reporte.estado,
+    creadoEn: reporte.creadoEn.toISOString()
   }
 }
