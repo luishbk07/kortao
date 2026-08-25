@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined'
 import RocketLaunchOutlinedIcon from '@mui/icons-material/RocketLaunchOutlined'
@@ -15,14 +15,36 @@ type BannerPromocionalProps = {
   plan: string
 }
 
-const obtenerSlotAdSense = (): string | null => {
-  const slot = process.env.NEXT_PUBLIC_ADSENSE_SLOT_ID?.trim()
+type VentanaAdsByGoogle = Window & {
+  adsbygoogle?: Record<string, unknown>[]
+}
+
+const obtenerSlotAdSenseSuperior = (): string | null => {
+  const slot = process.env.NEXT_PUBLIC_ADSENSE_SLOT_ID_SUPERIOR?.trim()
   return slot || null
+}
+
+const activarUnidadAdSense = (): void => {
+  const ventana = window as VentanaAdsByGoogle
+  ventana.adsbygoogle = ventana.adsbygoogle ?? []
+  ventana.adsbygoogle.push({})
 }
 
 export const BannerPromocional = ({ plan }: BannerPromocionalProps) => {
   const [descartado, setDescartado] = useState(false)
-  const slotAdSense = obtenerSlotAdSense()
+  const slotAdSense = obtenerSlotAdSenseSuperior()
+
+  useEffect(() => {
+    if (!slotAdSense || esPlanPremium(plan) || descartado) {
+      return
+    }
+
+    try {
+      activarUnidadAdSense()
+    } catch {
+      // AdSense may throw if the script is not ready yet.
+    }
+  }, [slotAdSense, plan, descartado])
 
   if (esPlanPremium(plan) || descartado) {
     return null
@@ -46,11 +68,6 @@ export const BannerPromocional = ({ plan }: BannerPromocionalProps) => {
       >
         {slotAdSense ? (
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            {/*
-              AdSense: once the account is approved, set NEXT_PUBLIC_ADSENSE_CLIENT_ID
-              and NEXT_PUBLIC_ADSENSE_SLOT_ID, then load the AdSense script in the
-              root layout. Replace data-ad-client below with your publisher ID.
-            */}
             <ins
               className='adsbygoogle'
               style={{ display: 'block' }}
