@@ -7,15 +7,7 @@ export const metadata: Metadata = {
     'Acceso al panel de Kortao para gestionar citas, servicios y horarios de tu negocio.',
   robots: {
     index: false,
-    follow: false,
-    noarchive: true,
-    nosnippet: true,
-    googleBot: {
-      index: false,
-      follow: false,
-      noarchive: true,
-      nosnippet: true
-    }
+    follow: false
   }
 }
 

@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 import type { BusinessHours } from '@/domain/booking/booking.types'
 import { crearClienteServidor } from '@/infrastructure/supabase/clienteServidor'
 import { ReservarNegocio } from '@/presentation/components/booking/ReservarNegocio'
@@ -6,6 +7,13 @@ import type {
   NegocioPublico,
   ServicioPublico
 } from '@/presentation/components/booking/tiposReservar'
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false
+  }
+}
 
 type ReservarPageProps = {
   params: {

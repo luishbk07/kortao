@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google'
 import Script from 'next/script'
 import { RegistrarServiceWorker } from '@/presentation/components/ui/RegistrarServiceWorker'
 import { ThemeRegistry } from '@/presentation/theme/ThemeRegistry'
+import { obtenerOrigenSitio } from '@/shared/utils/sitio'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -11,37 +12,31 @@ const inter = Inter({
   display: 'swap'
 })
 
+const TITULO_SITIO =
+  'Kortao — Agenda y reservas para tu negocio en República Dominicana'
+
 const DESCRIPCION_SITIO =
-  'Kortao es la plataforma de reservas online para barberías, salones y negocios de belleza. Configura servicios, horarios y recibe citas con notificaciones por WhatsApp y correo.'
+  'Gestiona las citas de tu negocio y deja que tus clientes reserven online con un enlace. Recordatorios automáticos por WhatsApp y correo.'
+
+const URL_SITIO = obtenerOrigenSitio()
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://kortao.com'
-  ),
+  metadataBase: new URL(URL_SITIO),
   title: {
-    default: 'Kortao | Reservas online para barberías y salones',
+    default: TITULO_SITIO,
     template: '%s | Kortao'
   },
   description: DESCRIPCION_SITIO,
   applicationName: 'Kortao',
-  keywords: [
-    'reservas online',
-    'barbería',
-    'salón de belleza',
-    'citas',
-    'agenda',
-    'Kortao',
-    'reservar cita'
-  ],
   authors: [{ name: 'Kortao' }],
   creator: 'Kortao',
   publisher: 'Kortao',
   openGraph: {
     type: 'website',
     locale: 'es_DO',
-    url: '/',
+    url: URL_SITIO,
     siteName: 'Kortao',
-    title: 'Kortao | Reservas online para barberías y salones',
+    title: TITULO_SITIO,
     description: DESCRIPCION_SITIO,
     images: [
       {
@@ -54,7 +49,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary',
-    title: 'Kortao | Reservas online para barberías y salones',
+    title: TITULO_SITIO,
     description: DESCRIPCION_SITIO,
     images: ['/icons/icon-512.png']
   },
@@ -67,8 +62,6 @@ export const metadata: Metadata = {
     telephone: false
   },
   icons: {
-    // Same pattern as luishenriquez.com: root /favicon.svg first.
-    // Also expose a stable 48x48 PNG (Google Search requirement).
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
       { url: '/favicon-48x48.png', sizes: '48x48', type: 'image/png' },

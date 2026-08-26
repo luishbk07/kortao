@@ -2,9 +2,9 @@
 
 import Link from 'next/link'
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined'
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+import LinkOutlinedIcon from '@mui/icons-material/LinkOutlined'
 import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsActiveOutlined'
-import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined'
-import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
@@ -12,48 +12,22 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import { EncabezadoMarca } from '@/presentation/components/ui/EncabezadoMarca'
 
-const pasos = [
+const caracteristicas = [
   {
-    titulo: 'Crea tu cuenta',
-    descripcion:
-      'Registra tu negocio en minutos y configura tu perfil público de reservas.'
-  },
-  {
-    titulo: 'Define servicios y horarios',
-    descripcion:
-      'Agrega precios, duración y la disponibilidad de cada día de la semana.'
-  },
-  {
-    titulo: 'Recibe citas',
-    descripcion:
-      'Tus clientes reservan online y tú gestionas todo desde el panel.'
-  }
-] as const
-
-const beneficios = [
-  {
-    icono: CalendarMonthOutlinedIcon,
-    titulo: 'Agenda clara',
-    descripcion:
-      'Consulta, confirma o cancela citas desde un panel pensado para el día a día del negocio.'
-  },
-  {
-    icono: ScheduleOutlinedIcon,
-    titulo: 'Horarios a tu medida',
-    descripcion:
-      'Controla bloques de atención y evita solapamientos al recibir reservas.'
+    icono: LinkOutlinedIcon,
+    texto: 'Reservas online con un enlace que compartes con tus clientes'
   },
   {
     icono: NotificationsActiveOutlinedIcon,
-    titulo: 'Avisos a clientes',
-    descripcion:
-      'Envía confirmaciones y recordatorios por WhatsApp y correo para reducir inasistencias.'
+    texto: 'Recordatorios automáticos por WhatsApp y correo'
   },
   {
-    icono: StorefrontOutlinedIcon,
-    titulo: 'Página de reservas',
-    descripcion:
-      'Comparte un enlace público para que tus clientes elijan servicio, fecha y hora.'
+    icono: CalendarMonthOutlinedIcon,
+    texto: 'Panel simple para ver y gestionar las citas del día'
+  },
+  {
+    icono: CheckCircleOutlineIcon,
+    texto: 'Horarios y servicios configurados a tu medida'
   }
 ] as const
 
@@ -65,24 +39,43 @@ export const LandingKortao = () => {
       <Container
         maxWidth='sm'
         sx={{
-          py: { xs: 8, sm: 12 },
-          display: 'flex',
-          alignItems: 'center',
-          minHeight: { xs: 'auto', sm: 'calc(100vh - 64px)' }
+          py: { xs: 6, sm: 10 }
         }}
       >
-        <Stack spacing={4} alignItems='center' textAlign='center' width='100%'>
-          <Stack spacing={1.5} alignItems='center'>
+        <Stack spacing={4} width='100%'>
+          <Stack spacing={2} textAlign='center' alignItems='center'>
             <Typography variant='h2' component='h1' color='primary'>
               Kortao
             </Typography>
-            <Typography variant='h6' component='p' color='text.secondary'>
-              Reservas online para barberías, salones y negocios de belleza.
+            <Typography variant='h5' component='h2' fontWeight={600}>
+              Deja de coordinar citas por WhatsApp a mano
             </Typography>
             <Typography color='text.secondary'>
-              Configura tus servicios, comparte tu enlace y empieza a recibir
-              citas en minutos.
+              Entre mensajes, capturas de pantalla y agendas en papel, es fácil
+              perder una reserva o chocar dos clientes a la misma hora. Kortao
+              organiza las citas de tu negocio en un solo lugar: tú defines
+              servicios y horarios, tus clientes reservan por un enlace, y
+              ambos reciben avisos automáticos.
             </Typography>
+          </Stack>
+
+          <Stack spacing={1.5} component='ul' sx={{ listStyle: 'none', m: 0, p: 0 }}>
+            {caracteristicas.map((item) => {
+              const Icono = item.icono
+
+              return (
+                <Stack
+                  key={item.texto}
+                  component='li'
+                  direction='row'
+                  spacing={1.5}
+                  alignItems='flex-start'
+                >
+                  <Icono color='primary' sx={{ mt: 0.25, flexShrink: 0 }} />
+                  <Typography color='text.primary'>{item.texto}</Typography>
+                </Stack>
+              )
+            })}
           </Stack>
 
           <Stack
@@ -114,136 +107,6 @@ export const LandingKortao = () => {
           </Stack>
         </Stack>
       </Container>
-
-      <Box
-        component='section'
-        sx={{
-          borderTop: '1px solid',
-          borderColor: 'divider',
-          bgcolor: 'background.paper',
-          py: { xs: 6, sm: 8 }
-        }}
-      >
-        <Container maxWidth='md'>
-          <Stack spacing={4}>
-            <Stack spacing={1} textAlign='center'>
-              <Typography variant='h4' component='h2' color='primary'>
-                Cómo funciona
-              </Typography>
-              <Typography color='text.secondary'>
-                Tres pasos para digitalizar la agenda de tu negocio.
-              </Typography>
-            </Stack>
-
-            <Stack
-              direction={{ xs: 'column', md: 'row' }}
-              spacing={3}
-              useFlexGap
-            >
-              {pasos.map((paso, indice) => (
-                <Stack key={paso.titulo} spacing={1} flex={1}>
-                  <Typography
-                    variant='overline'
-                    color='secondary'
-                    fontWeight={700}
-                  >
-                    Paso {indice + 1}
-                  </Typography>
-                  <Typography variant='h6' component='h3' fontWeight={700}>
-                    {paso.titulo}
-                  </Typography>
-                  <Typography color='text.secondary'>
-                    {paso.descripcion}
-                  </Typography>
-                </Stack>
-              ))}
-            </Stack>
-          </Stack>
-        </Container>
-      </Box>
-
-      <Box
-        component='section'
-        sx={{
-          borderTop: '1px solid',
-          borderColor: 'divider',
-          py: { xs: 6, sm: 8 }
-        }}
-      >
-        <Container maxWidth='md'>
-          <Stack spacing={4}>
-            <Stack spacing={1} textAlign='center'>
-              <Typography variant='h4' component='h2' color='primary'>
-                Todo lo que necesitas para recibir citas
-              </Typography>
-              <Typography color='text.secondary'>
-                Pensado para barberías, salones, spas y negocios basados en
-                agenda.
-              </Typography>
-            </Stack>
-
-            <Stack
-              direction='row'
-              flexWrap='wrap'
-              useFlexGap
-              spacing={3}
-              justifyContent='center'
-            >
-              {beneficios.map((beneficio) => {
-                const Icono = beneficio.icono
-
-                return (
-                  <Stack
-                    key={beneficio.titulo}
-                    spacing={1}
-                    sx={{ flex: '1 1 240px', maxWidth: 320 }}
-                  >
-                    <Icono color='primary' />
-                    <Typography variant='h6' component='h3' fontWeight={700}>
-                      {beneficio.titulo}
-                    </Typography>
-                    <Typography color='text.secondary'>
-                      {beneficio.descripcion}
-                    </Typography>
-                  </Stack>
-                )
-              })}
-            </Stack>
-          </Stack>
-        </Container>
-      </Box>
-
-      <Box
-        component='section'
-        sx={{
-          borderTop: '1px solid',
-          borderColor: 'divider',
-          bgcolor: 'primary.dark',
-          color: 'common.white',
-          py: { xs: 6, sm: 8 }
-        }}
-      >
-        <Container maxWidth='sm'>
-          <Stack spacing={3} alignItems='center' textAlign='center'>
-            <Typography variant='h4' component='h2' color='inherit'>
-              Empieza a recibir reservas hoy
-            </Typography>
-            <Typography sx={{ opacity: 0.9 }}>
-              Crea tu cuenta gratis, configura tu negocio y comparte tu enlace
-              de reservas con tus clientes.
-            </Typography>
-            <Button
-              component={Link}
-              href='/registro'
-              variant='contained'
-              color='secondary'
-              size='large'
-            >
-              Crear cuenta
-            </Button>
-          </Stack>
-        </Container>
-      </Box>
     </Box>
   )
 }

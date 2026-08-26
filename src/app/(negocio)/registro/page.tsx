@@ -7,15 +7,7 @@ export const metadata: Metadata = {
     'Registra tu negocio en Kortao para recibir reservas online de tus clientes.',
   robots: {
     index: false,
-    follow: false,
-    noarchive: true,
-    nosnippet: true,
-    googleBot: {
-      index: false,
-      follow: false,
-      noarchive: true,
-      nosnippet: true
-    }
+    follow: false
   }
 }
 

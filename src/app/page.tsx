@@ -23,7 +23,7 @@ const construirJsonLd = () => {
         url: origen,
         logo: `${origen}/icons/icon-512.png`,
         description:
-          'Plataforma de reservas online para barberías, salones y negocios de belleza.'
+          'Agenda y reservas online para negocios en República Dominicana.'
       },
       {
         '@type': 'WebSite',
@@ -31,7 +31,7 @@ const construirJsonLd = () => {
         url: origen,
         name: 'Kortao',
         description:
-          'Reservas online para barberías, salones y negocios de belleza.',
+          'Gestiona citas, comparte un enlace de reservas y envía recordatorios automáticos.',
         publisher: {
           '@id': `${origen}/#organization`
         },
@@ -44,7 +44,7 @@ const construirJsonLd = () => {
         operatingSystem: 'Web',
         url: origen,
         description:
-          'Agenda citas, configura servicios y horarios, y notifica a tus clientes por WhatsApp y correo.',
+          'Los negocios gestionan su agenda; los clientes reservan online; WhatsApp y correo recuerdan cada cita.',
         offers: {
           '@type': 'Offer',
           price: '0',
