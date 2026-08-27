@@ -41,6 +41,8 @@ const FILAS_ESTANDAR: FilaComparacion[] = [
   { etiqueta: 'Anuncios en el panel', disponible: true },
   { etiqueta: 'Clientes recurrentes', disponible: false },
   { etiqueta: 'Reportes extendidos', disponible: false },
+  { etiqueta: 'Crear tus propias citas', disponible: false },
+  { etiqueta: 'Código QR para tu negocio', disponible: false },
   { etiqueta: 'Personalización de color', disponible: false }
 ]
 
@@ -54,6 +56,8 @@ const FILAS_PREMIUM: FilaComparacion[] = [
   { etiqueta: 'Sin anuncios en el panel', disponible: true },
   { etiqueta: 'Clientes recurrentes', disponible: true },
   { etiqueta: 'Reportes extendidos', disponible: true },
+  { etiqueta: 'Crear tus propias citas', disponible: true },
+  { etiqueta: 'Código QR para tu negocio', disponible: true },
   { etiqueta: 'Personalización de color', disponible: true }
 ]
 
