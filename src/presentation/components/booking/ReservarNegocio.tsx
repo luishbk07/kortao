@@ -20,6 +20,7 @@ import { useFlujoReservar } from '@/presentation/hooks/useFlujoReservar'
 import { crearTema } from '@/presentation/theme/theme'
 import { CLAVE_MODO_COLOR } from '@/presentation/theme/palette'
 import { esPlanPremium } from '@/shared/utils/planes'
+import { construirUrlMapas } from '@/shared/utils/sitio'
 import { FormularioCliente } from './FormularioCliente'
 import { ListaServicios } from './ListaServicios'
 import { ListaSlots } from './ListaSlots'
@@ -211,22 +212,53 @@ export const ReservarNegocio = ({
               </Typography>
             ) : null}
             {negocio.direccion ? (
-              <Stack
-                direction='row'
-                spacing={0.75}
-                alignItems='center'
-                justifyContent={tieneLogo ? 'center' : 'flex-start'}
+              <Link
+                href={construirUrlMapas(
+                  negocio.direccion,
+                  negocio.latitud,
+                  negocio.longitud
+                )}
+                target='_blank'
+                rel='noopener noreferrer'
+                underline='hover'
+                color='primary'
+                aria-label={`Abrir ubicación en mapas: ${negocio.direccion}`}
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 0.75,
+                  maxWidth: '100%',
+                  alignSelf: tieneLogo ? 'center' : 'flex-start',
+                  fontWeight: 500
+                }}
               >
-                <PlaceOutlinedIcon fontSize='small' color='action' />
-                <Typography color='text.secondary'>
+                <PlaceOutlinedIcon fontSize='small' color='primary' />
+                <Typography
+                  component='span'
+                  color='inherit'
+                  sx={{ textDecoration: 'none', textUnderlineOffset: 3 }}
+                >
                   {negocio.direccion}
                 </Typography>
-              </Stack>
+                <DirectionsOutlinedIcon
+                  fontSize='small'
+                  color='secondary'
+                  sx={{
+                    '&:hover': {
+                      color: 'secondary.dark',
+                    },
+                  }}
+                />
+              </Link>
             ) : null}
             {negocio.latitud !== null && negocio.longitud !== null ? (
               <Button
                 component='a'
-                href={`https://www.google.com/maps/dir/?api=1&destination=${negocio.latitud},${negocio.longitud}`}
+                href={construirUrlMapas(
+                  negocio.direccion ?? negocio.nombre,
+                  negocio.latitud,
+                  negocio.longitud
+                )}
                 target='_blank'
                 rel='noopener noreferrer'
                 variant='outlined'

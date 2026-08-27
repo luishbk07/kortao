@@ -102,11 +102,13 @@ export const EnlaceReservaPublica = ({
           }}
           sx={{
             flexShrink: 0,
-            bgcolor: 'primary.main',
-            color: 'secondary.contrastText',
+            color: 'secondary.main',
             borderRadius: 2,
             '&:hover': {
-              bgcolor: 'secondary.dark'
+              color: 'secondary.dark'
+            },
+            '& svg': {
+              fill: 'currentColor',
             }
           }}
         >
@@ -121,13 +123,13 @@ export const EnlaceReservaPublica = ({
           }}
           sx={{
             flexShrink: 0,
-            border: '1px solid',
-            borderColor: 'divider',
+            color: 'secondary.main',
             borderRadius: 2,
-            backgroundColor: 'primary.main',
-            color: 'secondary.contrastText',
             '&:hover': {
-              backgroundColor: 'secondary.dark'
+              color: 'secondary.dark'
+            },
+            '& svg': {
+              fill: 'currentColor',
             }
           }}
         >
