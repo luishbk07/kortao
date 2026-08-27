@@ -22,6 +22,10 @@ type FormularioClienteProps = {
   onCambiarTelefono: (valor: string) => void
   onCambiarCorreo: (valor: string) => void
   onConfirmar: () => void
+  titulo?: string
+  textoBoton?: string
+  textoBotonCargando?: string
+  helperCorreo?: string
 }
 
 export const FormularioCliente = ({
@@ -32,7 +36,11 @@ export const FormularioCliente = ({
   onCambiarNombre,
   onCambiarTelefono,
   onCambiarCorreo,
-  onConfirmar
+  onConfirmar,
+  titulo = 'Tus datos',
+  textoBoton = 'Confirmar reserva',
+  textoBotonCargando = 'Reservando...',
+  helperCorreo = 'Opcional. Te enviamos la confirmación por correo.'
 }: FormularioClienteProps) => {
   const correoTrim = clienteCorreo.trim()
   const correoOk = correoTrim.length === 0 || esCorreoValido(correoTrim)
@@ -56,7 +64,7 @@ export const FormularioCliente = ({
       <Stack direction='row' spacing={1} alignItems='center'>
         <PersonOutlineOutlinedIcon color='primary' />
         <Typography variant='h6' component='h2'>
-          Tus datos
+          {titulo}
         </Typography>
       </Stack>
       <TextField
@@ -86,7 +94,7 @@ export const FormularioCliente = ({
         value={clienteCorreo}
         onChange={(evento) => onCambiarCorreo(evento.target.value)}
         autoComplete='email'
-        helperText='Opcional. Te enviamos la confirmación por correo.'
+        helperText={helperCorreo}
         error={correoTrim.length > 0 && !correoOk}
         fullWidth
       />
@@ -98,7 +106,7 @@ export const FormularioCliente = ({
         disabled={!formularioValido || enviando}
         fullWidth
       >
-        {enviando ? 'Reservando...' : 'Confirmar reserva'}
+        {enviando ? textoBotonCargando : textoBoton}
       </Button>
     </Stack>
   )

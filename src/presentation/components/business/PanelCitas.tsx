@@ -1,20 +1,24 @@
 'use client'
 
 import { useCallback, useEffect, useState, type SyntheticEvent } from 'react'
+import AddOutlinedIcon from '@mui/icons-material/AddOutlined'
 import Alert from '@mui/material/Alert'
+import Button from '@mui/material/Button'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
 import { crearObtenerCitasPorRango } from '@/application/useCases/booking/obtenerCitasPorRango'
-import type { Booking } from '@/domain/booking/booking.types'
+import type { Booking, BusinessHours } from '@/domain/booking/booking.types'
 import { bookingRepositorySupabase } from '@/infrastructure/supabase/bookingRepository.supabase'
+import type { ServicioPublico } from '@/presentation/components/booking/tiposReservar'
 import {
   obtenerRangoTabCitas,
   type TabCitas
 } from '@/shared/utils/rangosCitas'
 import { formatearFechaLegible } from '@/shared/utils/fechas'
+import { DialogNuevaCita } from './DialogNuevaCita'
 import { EnlaceReservaPublica } from './EnlaceReservaPublica'
 import { EsqueletoListaCitas } from './EsqueletoListaCitas'
 import { IndicadorUsoPlanGratis } from './IndicadorUsoPlanGratis'
@@ -24,6 +28,9 @@ type PanelCitasProps = {
   negocioId: string
   negocioSlug: string
   citasFuturasActivas: number | null
+  esPremium: boolean
+  servicios: ServicioPublico[]
+  horariosNegocio: BusinessHours[]
 }
 
 const obtenerCitasPorRango = crearObtenerCitasPorRango(
@@ -80,7 +87,10 @@ const ResumenPasadas = ({ citas }: { citas: Booking[] }) => {
 export const PanelCitas = ({
   negocioId,
   negocioSlug,
-  citasFuturasActivas
+  citasFuturasActivas,
+  esPremium,
+  servicios,
+  horariosNegocio
 }: PanelCitasProps) => {
   const [tab, setTab] = useState<TabCitas>('hoy')
   const [citas, setCitas] = useState<Booking[]>([])
@@ -89,6 +99,7 @@ export const PanelCitas = ({
   const [conteoCitasActivas, setConteoCitasActivas] = useState(
     citasFuturasActivas
   )
+  const [dialogoNuevaCitaAbierto, setDialogoNuevaCitaAbierto] = useState(false)
 
   const fechaHoy = formatearFechaLegible(new Date(), false)
 
@@ -137,9 +148,19 @@ export const PanelCitas = ({
     setTab(nuevoValor)
   }
 
+  const handleCitaCreada = () => {
+    void cargarCitas(tab)
+    void refrescarConteoPlanGratis()
+  }
+
   return (
     <Stack spacing={3}>
-      <Stack spacing={1}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={1.5}
+        justifyContent='space-between'
+        alignItems={{ xs: 'stretch', sm: 'flex-start' }}
+      >
         <Stack spacing={0.5}>
           <Typography variant='h5' component='h1' color='primary'>
             Citas
@@ -152,10 +173,21 @@ export const PanelCitas = ({
           </Typography>
         </Stack>
 
-        {conteoCitasActivas !== null ? (
-          <IndicadorUsoPlanGratis citasActivas={conteoCitasActivas} />
+        {esPremium ? (
+          <Button
+            variant='contained'
+            color='secondary'
+            startIcon={<AddOutlinedIcon />}
+            onClick={() => setDialogoNuevaCitaAbierto(true)}
+          >
+            Nueva cita
+          </Button>
         ) : null}
       </Stack>
+
+      {conteoCitasActivas !== null ? (
+        <IndicadorUsoPlanGratis citasActivas={conteoCitasActivas} />
+      ) : null}
 
       {negocioSlug ? (
         <EnlaceReservaPublica negocioSlug={negocioSlug} />
@@ -197,6 +229,17 @@ export const PanelCitas = ({
           />
         </Stack>
       )}
+
+      {esPremium ? (
+        <DialogNuevaCita
+          abierto={dialogoNuevaCitaAbierto}
+          negocioId={negocioId}
+          servicios={servicios}
+          horariosNegocio={horariosNegocio}
+          onCerrar={() => setDialogoNuevaCitaAbierto(false)}
+          onExito={handleCitaCreada}
+        />
+      ) : null}
     </Stack>
   )
 }
