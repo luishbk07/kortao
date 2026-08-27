@@ -216,10 +216,14 @@ export const NavegacionPanel = ({ accesoAdmin }: NavegacionPanelProps) => {
             }}
           >
             <Box
+              component={Link}
+              href='/panel/citas'
+              aria-label='Ir a citas'
               sx={{
                 flexShrink: 0,
                 display: 'inline-flex',
-                alignItems: 'center'
+                alignItems: 'center',
+                textDecoration: 'none'
               }}
             >
               <LogoKortao variant='horizontal' size={32} />
@@ -333,7 +337,14 @@ export const NavegacionPanel = ({ accesoAdmin }: NavegacionPanelProps) => {
           px={2}
           py={1.5}
         >
-          <LogoKortao variant='horizontal' size={32} />
+          <Box
+            component={Link}
+            href='/panel/citas'
+            aria-label='Ir a citas'
+            sx={{ display: 'inline-flex', textDecoration: 'none' }}
+          >
+            <LogoKortao variant='horizontal' size={32} />
+          </Box>
           <IconButton
             color='primary'
             aria-label='Cerrar menú'
