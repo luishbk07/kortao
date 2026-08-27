@@ -1,12 +1,13 @@
 'use client'
 
-import { createTheme, type PaletteMode, type Theme } from '@mui/material/styles'
+import { createTheme, type Theme } from '@mui/material/styles'
 import {
   crearOpcionesPaleta,
-  opcionesTemaCompartidas
+  opcionesTemaCompartidas,
+  type ModoColor
 } from './palette'
 
-export const crearTema = (modo: PaletteMode): Theme => {
+export const crearTema = (modo: ModoColor): Theme => {
   return createTheme({
     ...opcionesTemaCompartidas,
     palette: crearOpcionesPaleta(modo)

@@ -1,4 +1,6 @@
-import type { PaletteMode, ThemeOptions } from '@mui/material/styles'
+import type { ThemeOptions } from '@mui/material/styles'
+
+export type ModoColor = 'light' | 'dark'
 
 /** Light palette — DISEÑO.md (cream + forest + terracotta). */
 export const paletteClaro = {
@@ -104,7 +106,7 @@ export const opcionesTemaCompartidas: ThemeOptions = {
   }
 }
 
-export const crearOpcionesPaleta = (modo: PaletteMode): ThemeOptions['palette'] => {
+export const crearOpcionesPaleta = (modo: ModoColor): ThemeOptions['palette'] => {
   const colores = modo === 'dark' ? paletteOscuro : paletteClaro
 
   return {

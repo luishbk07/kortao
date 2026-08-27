@@ -9,11 +9,10 @@ import {
   useSyncExternalStore,
   type ReactNode
 } from 'react'
-import type { PaletteMode } from '@mui/material/styles'
-import { CLAVE_MODO_COLOR } from './palette'
+import { CLAVE_MODO_COLOR, type ModoColor } from './palette'
 
 type ContextoModoColor = {
-  modo: PaletteMode
+  modo: ModoColor
   alternarModo: () => void
 }
 
@@ -21,11 +20,11 @@ type Suscriptor = () => void
 
 const ModoColorContext = createContext<ContextoModoColor | null>(null)
 
-const esModoValido = (valor: string | null): valor is PaletteMode => {
+const esModoValido = (valor: string | null): valor is ModoColor => {
   return valor === 'light' || valor === 'dark'
 }
 
-const leerModoDesdeStorage = (): PaletteMode => {
+const leerModoDesdeStorage = (): ModoColor => {
   try {
     const guardado = localStorage.getItem(CLAVE_MODO_COLOR)
     if (esModoValido(guardado)) {
@@ -38,17 +37,17 @@ const leerModoDesdeStorage = (): PaletteMode => {
   return 'light'
 }
 
-const aplicarModoEnDocumento = (modo: PaletteMode): void => {
+const aplicarModoEnDocumento = (modo: ModoColor): void => {
   document.documentElement.setAttribute('data-color-mode', modo)
   document.documentElement.style.colorScheme = modo
   document.documentElement.style.backgroundColor =
     modo === 'dark' ? '#0F1614' : '#FBF8F3'
 }
 
-let modoEnMemoria: PaletteMode | null = null
+let modoEnMemoria: ModoColor | null = null
 const suscriptores = new Set<Suscriptor>()
 
-const obtenerModoCliente = (): PaletteMode => {
+const obtenerModoCliente = (): ModoColor => {
   if (modoEnMemoria === null) {
     modoEnMemoria = leerModoDesdeStorage()
   }
@@ -62,7 +61,7 @@ const notificarSuscriptores = (): void => {
   })
 }
 
-const establecerModo = (modo: PaletteMode): void => {
+const establecerModo = (modo: ModoColor): void => {
   modoEnMemoria = modo
 
   try {
@@ -83,7 +82,7 @@ const suscribirse = (callback: Suscriptor): (() => void) => {
   }
 }
 
-const snapshotServidor = (): PaletteMode => 'light'
+const snapshotServidor = (): ModoColor => 'light'
 
 type ProveedorModoColorProps = {
   children: ReactNode
