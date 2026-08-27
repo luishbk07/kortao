@@ -239,7 +239,7 @@ export const PanelPlan = ({
               }}
             >
               <Typography variant='body2'>
-                Los primeros 10 negocios en actualizar pagan solo RD$500/mes de
+                Los primeros 10 negocios en actualizar pagan solo RD${(PRECIO_LISTA_PLAN_PREMIUM / 2) - 1}/mes de
                 por vida
               </Typography>
             </Box>
