@@ -16,7 +16,8 @@ type CodigoQrReservaProps = {
   negocioSlug: string
 }
 
-const TAMANO_QR = 240
+const TAMANO_QR = 200
+const TAMANO_QR_MOVIL = 168
 
 const descargarPng = (dataUrl: string, nombreArchivo: string): void => {
   const enlace = document.createElement('a')
@@ -77,7 +78,12 @@ export const CodigoQrReserva = ({ negocioSlug }: CodigoQrReservaProps) => {
   }
 
   return (
-    <Stack spacing={1.5}>
+    <Stack
+      spacing={1.5}
+      height='100%'
+      alignItems='stretch'
+      sx={{ width: '100%', minWidth: 0 }}
+    >
       <Stack spacing={0.5}>
         <Stack direction='row' spacing={1} alignItems='center'>
           <QrCode2OutlinedIcon color='primary' fontSize='small' />
@@ -96,14 +102,12 @@ export const CodigoQrReserva = ({ negocioSlug }: CodigoQrReservaProps) => {
         </Alert>
       ) : null}
 
-      <Stack
-        spacing={2}
-        alignItems={{ xs: 'stretch', sm: 'flex-start' }}
-      >
+      <Stack spacing={2} alignItems='center' sx={{ flex: 1, justifyContent: 'center' }}>
         <Box
           sx={{
-            width: TAMANO_QR,
-            height: TAMANO_QR,
+            width: { xs: TAMANO_QR_MOVIL, sm: TAMANO_QR },
+            height: { xs: TAMANO_QR_MOVIL, sm: TAMANO_QR },
+            maxWidth: '100%',
             border: '1px solid',
             borderColor: 'divider',
             borderRadius: 3,
@@ -111,8 +115,7 @@ export const CodigoQrReserva = ({ negocioSlug }: CodigoQrReservaProps) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            overflow: 'hidden',
-            alignSelf: { xs: 'center', sm: 'flex-start' }
+            overflow: 'hidden'
           }}
         >
           {dataUrl ? (
@@ -120,12 +123,22 @@ export const CodigoQrReserva = ({ negocioSlug }: CodigoQrReservaProps) => {
               component='img'
               src={dataUrl}
               alt={`Código QR para reservar en ${negocioSlug}`}
-              width={TAMANO_QR}
-              height={TAMANO_QR}
-              sx={{ display: 'block' }}
+              sx={{
+                display: 'block',
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain'
+              }}
             />
           ) : (
-            <Skeleton variant='rounded' width={TAMANO_QR} height={TAMANO_QR} />
+            <Skeleton
+              variant='rounded'
+              sx={{
+                width: { xs: TAMANO_QR_MOVIL, sm: TAMANO_QR },
+                height: { xs: TAMANO_QR_MOVIL, sm: TAMANO_QR },
+                maxWidth: '100%'
+              }}
+            />
           )}
         </Box>
 
@@ -135,7 +148,7 @@ export const CodigoQrReserva = ({ negocioSlug }: CodigoQrReservaProps) => {
           startIcon={<DownloadOutlinedIcon />}
           onClick={handleDescargar}
           disabled={!dataUrl}
-          sx={{ alignSelf: { xs: 'stretch', sm: 'flex-start' } }}
+          sx={{ width: { xs: '100%', sm: 'auto' } }}
         >
           Descargar QR
         </Button>

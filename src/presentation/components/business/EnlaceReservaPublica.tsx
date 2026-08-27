@@ -4,6 +4,7 @@ import { useState } from 'react'
 import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined'
 import IosShareOutlinedIcon from '@mui/icons-material/IosShareOutlined'
 import Alert from '@mui/material/Alert'
+import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
 import Link from '@mui/material/Link'
 import Stack from '@mui/material/Stack'
@@ -64,7 +65,14 @@ export const EnlaceReservaPublica = ({
   }
 
   return (
-    <Stack spacing={1.5}>
+    <Stack
+      spacing={1.5}
+      sx={{
+        width: '100%',
+        minWidth: 0,
+        height: '100%'
+      }}
+    >
       <Stack spacing={0.5}>
         <Typography variant='subtitle1' color='primary' fontWeight={600}>
           Enlace para tus clientes
@@ -74,16 +82,36 @@ export const EnlaceReservaPublica = ({
         </Typography>
       </Stack>
 
-      <Stack direction='row' spacing={0.5} alignItems='center'>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+          width: '100%',
+          minWidth: 0,
+          maxWidth: '100%',
+          boxSizing: 'border-box',
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 2,
+          bgcolor: 'background.default',
+          px: { xs: 1, sm: 1.5 },
+          py: 1,
+          mt: 'auto',
+          overflow: 'hidden'
+        }}
+      >
         <Link
           href={urlPublica}
           target='_blank'
           rel='noopener noreferrer'
           color='primary'
           underline='hover'
+          title={urlPublica}
           sx={{
-            flexGrow: 1,
+            flex: '1 1 auto',
             minWidth: 0,
+            display: 'block',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
@@ -100,19 +128,17 @@ export const EnlaceReservaPublica = ({
           onClick={() => {
             void copiarEnlace()
           }}
+          size='small'
           sx={{
-            flexShrink: 0,
+            flex: '0 0 auto',
             color: 'secondary.main',
             borderRadius: 2,
             '&:hover': {
               color: 'secondary.dark'
-            },
-            '& svg': {
-              fill: 'currentColor',
             }
           }}
         >
-          <ContentCopyOutlinedIcon />
+          <ContentCopyOutlinedIcon fontSize='small' />
         </IconButton>
 
         <IconButton
@@ -121,21 +147,19 @@ export const EnlaceReservaPublica = ({
           onClick={() => {
             void compartirEnlace()
           }}
+          size='small'
           sx={{
-            flexShrink: 0,
+            flex: '0 0 auto',
             color: 'secondary.main',
             borderRadius: 2,
             '&:hover': {
               color: 'secondary.dark'
-            },
-            '& svg': {
-              fill: 'currentColor',
             }
           }}
         >
-          <IosShareOutlinedIcon />
+          <IosShareOutlinedIcon fontSize='small' />
         </IconButton>
-      </Stack>
+      </Box>
 
       {mensaje ? (
         <Alert severity='success' onClose={() => setMensaje(null)}>

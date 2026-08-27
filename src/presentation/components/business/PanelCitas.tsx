@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, type SyntheticEvent } from 'react'
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined'
 import Alert from '@mui/material/Alert'
+import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
@@ -192,15 +193,57 @@ export const PanelCitas = ({
       ) : null}
 
       {negocioSlug ? (
-        <Stack spacing={3}>
-          <EnlaceReservaPublica negocioSlug={negocioSlug} />
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          spacing={2}
+          alignItems='stretch'
+          sx={{ width: '100%', minWidth: 0 }}
+        >
+          <Paper
+            variant='outlined'
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              maxWidth: '100%',
+              p: { xs: 2, sm: 2.5 },
+              borderRadius: 3,
+              display: 'flex',
+              overflow: 'hidden'
+            }}
+          >
+            <EnlaceReservaPublica negocioSlug={negocioSlug} />
+          </Paper>
+
           {esPremium ? (
-            <CodigoQrReserva negocioSlug={negocioSlug} />
+            <Paper
+              variant='outlined'
+              sx={{
+                flex: { xs: '1 1 auto', md: '0 0 300px' },
+                width: { xs: '100%', md: 300 },
+                maxWidth: '100%',
+                minWidth: 0,
+                p: { xs: 2, sm: 2.5 },
+                borderRadius: 3,
+                display: 'flex',
+                overflow: 'hidden'
+              }}
+            >
+              <CodigoQrReserva negocioSlug={negocioSlug} />
+            </Paper>
           ) : (
-            <AvisoPlanPremium
-              titulo='Código QR de reservas'
-              mensaje='Disponible en Plan Premium. Genera e imprime un QR con tu enlace de reservas.'
-            />
+            <Box
+              sx={{
+                flex: { xs: '1 1 auto', md: '0 0 300px' },
+                width: { xs: '100%', md: 300 },
+                maxWidth: '100%',
+                minWidth: 0
+              }}
+            >
+              <AvisoPlanPremium
+                titulo='Código QR de reservas'
+                mensaje='Disponible en Plan Premium. Genera e imprime un QR con tu enlace de reservas.'
+              />
+            </Box>
           )}
         </Stack>
       ) : null}
