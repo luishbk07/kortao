@@ -80,6 +80,11 @@ export const useFlujoReservar = ({
     (servicio) => servicio.id === servicioId
   ) ?? null
 
+  const mostrarError = (mensaje: string) => {
+    setMensajeError(mensaje)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   useEffect(() => {
     setSlotSeleccionado(null)
     setMensajeError(null)
@@ -110,7 +115,7 @@ export const useFlujoReservar = ({
       } catch {
         if (!cancelado) {
           setSlots([])
-          setMensajeError(
+          mostrarError(
             'No se pudieron cargar los horarios. Inténtalo de nuevo.'
           )
         }
@@ -211,7 +216,7 @@ export const useFlujoReservar = ({
       setSlots(disponibles)
     } catch (error) {
       if (esErrorHorarioNoDisponible(error)) {
-        setMensajeError(
+        mostrarError(
           'Ese horario ya no está disponible. Elige otro e inténtalo de nuevo.'
         )
         setSlotSeleccionado(null)
@@ -224,11 +229,11 @@ export const useFlujoReservar = ({
         )
         setSlots(disponibles)
       } else if (esErrorLimiteDePlan(error)) {
-        setMensajeError(
+        mostrarError(
           'Este negocio no tiene cupo disponible por ahora, contáctalo directamente para coordinar tu cita.'
         )
       } else {
-        setMensajeError(
+        mostrarError(
           'No se pudo completar la reserva. Inténtalo de nuevo.'
         )
       }
