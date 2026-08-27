@@ -46,3 +46,8 @@ export const esTelefonoCompleto = (valor: string): boolean => {
   const normalizado = normalizarTelefonoValor(valor)
   return normalizado.length === 11 && normalizado.startsWith('1')
 }
+
+export const construirEnlaceWhatsapp = (telefono: string): string => {
+  const digitos = soloDigitos(telefono)
+  return `https://wa.me/${digitos}`
+}

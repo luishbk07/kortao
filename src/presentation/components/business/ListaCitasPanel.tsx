@@ -10,6 +10,7 @@ import Card from '@mui/material/Card'
 import CardActions from '@mui/material/CardActions'
 import CardContent from '@mui/material/CardContent'
 import Chip from '@mui/material/Chip'
+import Link from '@mui/material/Link'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import {
@@ -22,6 +23,10 @@ import {
   formatearFechaLegible,
   formatearHoraLegible
 } from '@/shared/utils/fechas'
+import {
+  construirEnlaceWhatsapp,
+  formatearTelefonoVisual
+} from '@/shared/utils/telefono'
 
 type ListaCitasPanelProps = {
   citas: Booking[]
@@ -167,10 +172,40 @@ export const ListaCitasPanel = ({
                     color={colorEstado(cita.estado)}
                   />
                 </Stack>
-                <Stack direction='row' spacing={0.75} alignItems='center'>
-                  <PersonOutlineOutlinedIcon fontSize='small' color='action' />
-                  <Typography>
-                    {cita.clienteNombre} · {cita.clienteTelefono}
+                <Stack
+                  direction='row'
+                  spacing={0.75}
+                  alignItems='flex-start'
+                  flexWrap='wrap'
+                >
+                  <PersonOutlineOutlinedIcon
+                    fontSize='small'
+                    color='action'
+                    sx={{ mt: 0.25 }}
+                  />
+                  <Typography component='span'>
+                    {cita.clienteNombre}
+                    {' · '}
+                    <Link
+                      href={construirEnlaceWhatsapp(cita.clienteTelefono)}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      underline='hover'
+                    >
+                      {formatearTelefonoVisual(cita.clienteTelefono) ||
+                        cita.clienteTelefono}
+                    </Link>
+                    {cita.clienteCorreo ? (
+                      <>
+                        {' · '}
+                        <Link
+                          href={`mailto:${cita.clienteCorreo}`}
+                          underline='hover'
+                        >
+                          {cita.clienteCorreo}
+                        </Link>
+                      </>
+                    ) : null}
                   </Typography>
                 </Stack>
               </Stack>
