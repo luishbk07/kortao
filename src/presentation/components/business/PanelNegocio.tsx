@@ -20,6 +20,7 @@ import {
   formatearTelefonoVisual,
   normalizarTelefonoValor
 } from '@/shared/utils/telefono'
+import { AvisoPlanPremium } from './AvisoPlanPremium'
 import { EditorLogoNegocio } from './EditorLogoNegocio'
 import { FormularioCambiarContrasena } from './FormularioCambiarContrasena'
 import {
@@ -231,23 +232,10 @@ export const PanelNegocio = ({ negocio }: PanelNegocioProps) => {
             </Stack>
           </Stack>
         ) : (
-          <Box
-            sx={{
-              border: '1px solid',
-              borderColor: 'divider',
-              borderRadius: 3,
-              bgcolor: 'background.paper',
-              px: 2.5,
-              py: 2
-            }}
-          >
-            <Typography variant='subtitle1' fontWeight={600} gutterBottom>
-              Color de acento
-            </Typography>
-            <Typography variant='body2' color='text.secondary'>
-              Disponible en Plan Premium. El pago aún no está disponible.
-            </Typography>
-          </Box>
+          <AvisoPlanPremium
+            titulo='Color de acento'
+            mensaje='Disponible en Plan Premium. Personaliza los botones de tu página de reservas.'
+          />
         )}
 
         <Button

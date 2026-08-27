@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import Link from 'next/link'
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined'
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined'
 import WhatsAppIcon from '@mui/icons-material/WhatsApp'
@@ -23,6 +22,7 @@ import {
 } from '@/shared/utils/fechas'
 import { esPlanPremium } from '@/shared/utils/planes'
 import { useContadorReportesPendientes } from '@/presentation/lib/contadorReportesPendientes'
+import { AvisoPlanPremium } from './AvisoPlanPremium'
 
 type PanelSoporteProps = {
   nombreNegocio: string
@@ -115,17 +115,17 @@ export const PanelSoporte = ({
         </Typography>
       </Stack>
 
-      <Box
-        sx={{
-          border: '1px solid',
-          borderColor: 'divider',
-          borderRadius: 3,
-          bgcolor: 'background.paper',
-          px: 2.5,
-          py: 2
-        }}
-      >
-        {esPremium ? (
+      {esPremium ? (
+        <Box
+          sx={{
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: 3,
+            bgcolor: 'background.paper',
+            px: 2.5,
+            py: 2
+          }}
+        >
           <Stack
             direction={{ xs: 'column', sm: 'row' }}
             spacing={1.5}
@@ -154,22 +154,10 @@ export const PanelSoporte = ({
               </Button>
             ) : null}
           </Stack>
-        ) : (
-          <Typography variant='body2' color='text.secondary'>
-            El soporte directo por WhatsApp está disponible en el{' '}
-            <Typography
-              component={Link}
-              href='/panel/plan'
-              color='secondary'
-              fontWeight={600}
-              sx={{ textDecoration: 'underline' }}
-            >
-              plan Premium
-            </Typography>
-            .
-          </Typography>
-        )}
-      </Box>
+        </Box>
+      ) : (
+        <AvisoPlanPremium mensaje='El soporte directo por WhatsApp está disponible en el Plan Premium.' />
+      )}
 
       <Stack
         component='form'
