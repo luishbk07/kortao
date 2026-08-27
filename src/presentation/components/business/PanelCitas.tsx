@@ -19,10 +19,12 @@ import {
 } from '@/shared/utils/rangosCitas'
 import { formatearFechaLegible } from '@/shared/utils/fechas'
 import { DialogNuevaCita } from './DialogNuevaCita'
+import { CodigoQrReserva } from './CodigoQrReserva'
 import { EnlaceReservaPublica } from './EnlaceReservaPublica'
 import { EsqueletoListaCitas } from './EsqueletoListaCitas'
 import { IndicadorUsoPlanGratis } from './IndicadorUsoPlanGratis'
 import { ListaCitasPanel } from './ListaCitasPanel'
+import { AvisoPlanPremium } from './AvisoPlanPremium'
 
 type PanelCitasProps = {
   negocioId: string
@@ -190,7 +192,17 @@ export const PanelCitas = ({
       ) : null}
 
       {negocioSlug ? (
-        <EnlaceReservaPublica negocioSlug={negocioSlug} />
+        <Stack spacing={3}>
+          <EnlaceReservaPublica negocioSlug={negocioSlug} />
+          {esPremium ? (
+            <CodigoQrReserva negocioSlug={negocioSlug} />
+          ) : (
+            <AvisoPlanPremium
+              titulo='Código QR de reservas'
+              mensaje='Disponible en Plan Premium. Genera e imprime un QR con tu enlace de reservas.'
+            />
+          )}
+        </Stack>
       ) : null}
 
       <Tabs
