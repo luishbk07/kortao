@@ -1,6 +1,7 @@
 'use client'
 
 import { useTheme } from '@mui/material/styles'
+import { paletteClaro } from '@/presentation/theme/palette'
 
 type LogoKortaoProps = {
   variant?: 'horizontal' | 'icon'
@@ -12,8 +13,13 @@ export const LogoKortao = ({
   size
 }: LogoKortaoProps) => {
   const theme = useTheme()
-  const colorMarca = theme.palette.primary.main
-  const colorIcono = theme.palette.background.default
+  const esOscuro = theme.palette.mode === 'dark'
+  // Brand mark stays forest green; wordmark lightens in dark mode for contrast.
+  const colorMarca = esOscuro
+    ? theme.palette.primary.light
+    : paletteClaro.primary.main
+  const colorCuadrado = paletteClaro.primary.main
+  const colorIcono = paletteClaro.background.default
   const colorAcento = theme.palette.secondary.main
 
   if (variant === 'icon') {
@@ -28,7 +34,7 @@ export const LogoKortao = ({
         role='img'
         aria-label='Kortao'
       >
-        <rect width='120' height='120' rx='28' fill={colorMarca} />
+        <rect width='120' height='120' rx='28' fill={colorCuadrado} />
         <path
           d='M38 30V90M38 60L70 30M38 60L70 90'
           stroke={colorIcono}
@@ -54,7 +60,7 @@ export const LogoKortao = ({
       role='img'
       aria-label='Kortao'
     >
-      <rect width='56' height='56' rx='14' fill={colorMarca} />
+      <rect width='56' height='56' rx='14' fill={colorCuadrado} />
       <path
         d='M18 14V42M18 28L33 14M18 28L33 42'
         stroke={colorIcono}

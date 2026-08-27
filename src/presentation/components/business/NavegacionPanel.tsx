@@ -29,6 +29,7 @@ import ListItemText from '@mui/material/ListItemText'
 import Stack from '@mui/material/Stack'
 import Toolbar from '@mui/material/Toolbar'
 import { crearCerrarSesion } from '@/application/useCases/auth/cerrarSesion'
+import { BotonModoColor } from '@/presentation/components/ui/BotonModoColor'
 import { LogoKortao } from '@/presentation/components/ui/LogoKortao'
 import { crearDependenciasPanelNavegador } from '@/presentation/lib/crearDependenciasPanelNavegador'
 import { useContadorReportesPendientes } from '@/presentation/lib/contadorReportesPendientes'
@@ -266,34 +267,50 @@ export const NavegacionPanel = ({ accesoAdmin }: NavegacionPanelProps) => {
               {enlaceAdmin}
             </Stack>
 
-            <Button
-              size='small'
-              startIcon={<LogoutOutlinedIcon fontSize='small' />}
-              color='primary'
+            <Stack
+              direction='row'
+              alignItems='center'
+              spacing={0.5}
               sx={{
-                display: { xs: 'none', md: 'inline-flex' },
-                flexShrink: 0,
-                px: 1.25,
-                whiteSpace: 'nowrap'
-              }}
-              onClick={() => {
-                void handleCerrarSesion()
+                display: { xs: 'none', md: 'flex' },
+                flexShrink: 0
               }}
             >
-              Salir
-            </Button>
+              <BotonModoColor />
+              <Button
+                size='small'
+                startIcon={<LogoutOutlinedIcon fontSize='small' />}
+                color='primary'
+                sx={{
+                  px: 1.25,
+                  whiteSpace: 'nowrap'
+                }}
+                onClick={() => {
+                  void handleCerrarSesion()
+                }}
+              >
+                Salir
+              </Button>
+            </Stack>
 
             <Box sx={{ flexGrow: 1, display: { xs: 'block', md: 'none' } }} />
 
-            <IconButton
-              color='primary'
-              edge='end'
-              aria-label='Abrir menú'
-              onClick={() => setMenuAbierto(true)}
+            <Stack
+              direction='row'
+              alignItems='center'
+              spacing={0.25}
               sx={{ display: { xs: 'inline-flex', md: 'none' } }}
             >
-              <MenuOutlinedIcon />
-            </IconButton>
+              <BotonModoColor />
+              <IconButton
+                color='primary'
+                edge='end'
+                aria-label='Abrir menú'
+                onClick={() => setMenuAbierto(true)}
+              >
+                <MenuOutlinedIcon />
+              </IconButton>
+            </Stack>
           </Toolbar>
         </Container>
       </AppBar>

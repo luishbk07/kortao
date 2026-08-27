@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import DirectionsOutlinedIcon from '@mui/icons-material/DirectionsOutlined'
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined'
@@ -11,12 +11,14 @@ import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
 import Link from '@mui/material/Link'
 import Stack from '@mui/material/Stack'
+import type { Theme } from '@mui/material/styles'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 import type { BusinessHours } from '@/domain/booking/booking.types'
 import { EncabezadoMarca } from '@/presentation/components/ui/EncabezadoMarca'
 import { useFlujoReservar } from '@/presentation/hooks/useFlujoReservar'
-import { theme as temaBase } from '@/presentation/theme/theme'
+import { crearTema } from '@/presentation/theme/theme'
+import { CLAVE_MODO_COLOR } from '@/presentation/theme/palette'
 import { esPlanPremium } from '@/shared/utils/planes'
 import { FormularioCliente } from './FormularioCliente'
 import { ListaServicios } from './ListaServicios'
@@ -32,6 +34,7 @@ type ReservarNegocioProps = {
 }
 
 const crearTemaReservar = (
+  temaBase: Theme,
   plan: string,
   colorAcento: string | null
 ) => {
@@ -115,8 +118,10 @@ export const ReservarNegocio = ({
   horariosNegocio,
   disponible = true
 }: ReservarNegocioProps) => {
+  // Public booking links always stay light — clients share them; dark mode is for the panel.
   const temaReservar = useMemo(
-    () => crearTemaReservar(negocio.plan, negocio.colorAcento),
+    () =>
+      crearTemaReservar(crearTema('light'), negocio.plan, negocio.colorAcento),
     [negocio.plan, negocio.colorAcento]
   )
 
@@ -127,6 +132,31 @@ export const ReservarNegocio = ({
     servicios,
     horariosNegocio
   })
+
+  useEffect(() => {
+    const html = document.documentElement
+
+    html.style.backgroundColor = '#FBF8F3'
+    html.style.colorScheme = 'light'
+    html.setAttribute('data-color-mode', 'light')
+
+    return () => {
+      let preferido = 'light'
+      try {
+        const guardado = localStorage.getItem(CLAVE_MODO_COLOR)
+        if (guardado === 'dark' || guardado === 'light') {
+          preferido = guardado
+        }
+      } catch {
+        // Ignore
+      }
+
+      html.style.backgroundColor =
+        preferido === 'dark' ? '#0F1614' : '#FBF8F3'
+      html.style.colorScheme = preferido
+      html.setAttribute('data-color-mode', preferido)
+    }
+  }, [])
 
   const tieneLogo = Boolean(negocio.logoUrl)
 
@@ -141,7 +171,7 @@ export const ReservarNegocio = ({
       {tieneLogo ? (
         <EncabezadoIdentidadNegocio negocio={negocio} />
       ) : (
-        <EncabezadoMarca />
+        <EncabezadoMarca mostrarModoColor={false} />
       )}
       <Container maxWidth='sm' sx={{ py: { xs: 8, sm: 12 }, flex: 1 }}>
         <Stack spacing={2} alignItems='center' textAlign='center'>
@@ -170,7 +200,7 @@ export const ReservarNegocio = ({
       {tieneLogo ? (
         <EncabezadoIdentidadNegocio negocio={negocio} />
       ) : (
-        <EncabezadoMarca />
+        <EncabezadoMarca mostrarModoColor={false} />
       )}
       <Container maxWidth='sm' sx={{ py: { xs: 3, sm: 5 }, flex: 1 }}>
         <Stack spacing={3}>

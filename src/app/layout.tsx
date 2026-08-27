@@ -80,14 +80,17 @@ export const viewport: Viewport = {
   themeColor: '#1F4B3F'
 }
 
+const SCRIPT_MODO_COLOR = `(function(){try{var k='kortao-modo-color';var m=localStorage.getItem(k);if(m!=='dark'&&m!=='light')return;document.documentElement.setAttribute('data-color-mode',m);document.documentElement.style.colorScheme=m;document.documentElement.style.backgroundColor=m==='dark'?'#0F1614':'#FBF8F3';}catch(e){}})();`
+
 type RootLayoutProps = {
   children: ReactNode
 }
 
 const RootLayout = ({ children }: RootLayoutProps) => {
   return (
-    <html lang='es'>
+    <html lang='es' suppressHydrationWarning>
       <body className={inter.variable}>
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_MODO_COLOR }} />
         <ThemeRegistry>
           {children}
           <RegistrarServiceWorker />
