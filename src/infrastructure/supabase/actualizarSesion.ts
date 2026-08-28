@@ -35,9 +35,20 @@ export const actualizarSesion = async (request: NextRequest) => {
     }
   })
 
-  const {
-    data: { user }
-  } = await supabase.auth.getUser()
+  let user = null
+
+  try {
+    const {
+      data: { user: usuarioSesion },
+      error
+    } = await supabase.auth.getUser()
+
+    if (!error) {
+      user = usuarioSesion
+    }
+  } catch {
+    user = null
+  }
 
   return { respuesta, usuario: user }
 }

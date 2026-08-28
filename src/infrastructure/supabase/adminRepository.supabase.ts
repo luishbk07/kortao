@@ -177,13 +177,19 @@ export const crearAdminRepository = (
       throw new Error('El monto del pago no es válido')
     }
 
-    const {
-      data: { user },
-      error: errorUsuario
-    } = await cliente.auth.getUser()
+    let user: { id: string } | null = null
 
-    if (errorUsuario) {
-      throw new Error(errorUsuario.message)
+    try {
+      const {
+        data: { user: usuarioSesion },
+        error: errorUsuario
+      } = await cliente.auth.getUser()
+
+      if (!errorUsuario && usuarioSesion) {
+        user = usuarioSesion
+      }
+    } catch {
+      user = null
     }
 
     if (!user) {

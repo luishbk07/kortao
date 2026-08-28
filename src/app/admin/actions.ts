@@ -8,9 +8,21 @@ import { formatearFechaCalendario } from '@/shared/utils/fechas'
 
 const exigirAdminAutenticado = async () => {
   const supabase = crearClienteServidor()
-  const {
-    data: { user }
-  } = await supabase.auth.getUser()
+
+  let user: { id: string } | null = null
+
+  try {
+    const {
+      data: { user: usuarioSesion },
+      error
+    } = await supabase.auth.getUser()
+
+    if (!error && usuarioSesion) {
+      user = usuarioSesion
+    }
+  } catch {
+    user = null
+  }
 
   if (!user) {
     throw new Error('No hay una sesión activa')

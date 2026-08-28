@@ -64,20 +64,21 @@ export const crearAuthService = (cliente: SupabaseClient): AuthService => ({
   },
 
   obtenerUsuarioActual: async () => {
-    const {
-      data: { user },
-      error
-    } = await cliente.auth.getUser()
+    try {
+      const {
+        data: { user },
+        error
+      } = await cliente.auth.getUser()
 
-    if (error) {
-      lanzarErrorSupabase(error)
-    }
+      // Missing/invalid session is not authenticated — never throw here.
+      if (error || !user) {
+        return null
+      }
 
-    if (!user) {
+      return mapearUsuario(user)
+    } catch {
       return null
     }
-
-    return mapearUsuario(user)
   },
 
   solicitarRestablecimientoContrasena: async (email) => {
