@@ -124,12 +124,34 @@ const PanelLayout = async ({ children }: PanelLayoutProps) => {
           )
         : null
 
+    const negocioId = (membresia as MembresiaFila | null)?.negocio_id ?? null
+
+    let fechaUltimoPago: Date | null = null
+
+    if (negocioId && fechaInicio) {
+      const { data: ultimosPagos } = await supabase
+        .from('pagos_negocio')
+        .select('fecha_pago')
+        .eq('negocio_id', negocioId)
+        .order('fecha_pago', { ascending: false })
+        .limit(1)
+
+      const fechaPagoRaw = ultimosPagos?.[0]?.fecha_pago
+
+      if (fechaPagoRaw) {
+        fechaUltimoPago = parsearFechaCalendario(
+          String(fechaPagoRaw).slice(0, 10)
+        )
+      }
+    }
+
     if (
       negocio &&
       debeMostrarAvisoPagoSuscripcion(
         plan,
         negocio.suscripcion_activa,
-        fechaInicio
+        fechaInicio,
+        fechaUltimoPago
       ) &&
       fechaInicio
     ) {

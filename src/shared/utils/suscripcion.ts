@@ -61,6 +61,7 @@ export const debeMostrarAvisoPagoSuscripcion = (
   plan: string,
   suscripcionActiva: boolean,
   fechaInicioSuscripcion: Date | null,
+  fechaUltimoPago: Date | null = null,
   hoy: Date = new Date()
 ): boolean => {
   if (
@@ -72,6 +73,13 @@ export const debeMostrarAvisoPagoSuscripcion = (
   }
 
   try {
+    if (
+      cicloActualEstaAlDia(fechaInicioSuscripcion, fechaUltimoPago, hoy) ===
+      true
+    ) {
+      return false
+    }
+
     const proxima = calcularProximaFechaPago(fechaInicioSuscripcion, hoy)
     const dias = diasHastaFecha(proxima, hoy)
     return dias >= 0 && dias <= DIAS_AVISO_PAGO_SUSCRIPCION
