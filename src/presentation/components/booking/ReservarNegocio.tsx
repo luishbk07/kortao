@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import DirectionsOutlinedIcon from '@mui/icons-material/DirectionsOutlined'
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined'
@@ -19,6 +19,7 @@ import { EncabezadoMarca } from '@/presentation/components/ui/EncabezadoMarca'
 import { useFlujoReservar } from '@/presentation/hooks/useFlujoReservar'
 import { crearTema } from '@/presentation/theme/theme'
 import { CLAVE_MODO_COLOR } from '@/presentation/theme/palette'
+import { desplazarAlInicio } from '@/shared/utils/desplazamiento'
 import { esPlanPremium } from '@/shared/utils/planes'
 import { construirUrlMapas } from '@/shared/utils/sitio'
 import { FormularioCliente } from './FormularioCliente'
@@ -133,6 +134,20 @@ export const ReservarNegocio = ({
     servicios,
     horariosNegocio
   })
+
+  const refResultado = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!flujo.mensajeExito && !flujo.mensajeError) {
+      return
+    }
+
+    desplazarAlInicio()
+    refResultado.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    })
+  }, [flujo.mensajeExito, flujo.mensajeError])
 
   useEffect(() => {
     const html = document.documentElement
@@ -280,45 +295,48 @@ export const ReservarNegocio = ({
             </Typography>
           </Stack>
 
-          {flujo.mensajeExito ? (
-            <Stack spacing={1.5}>
-              <Alert
-                severity='success'
-                icon={<CheckCircleOutlineIcon fontSize='inherit' />}
-              >
-                {flujo.mensajeExito}
-              </Alert>
-              {flujo.enlaceGoogleCalendar ? (
-                <Stack spacing={1}>
-                  <Typography color='text.secondary'>
-                    Te gustaría agregarla a Google Calendar?
-                  </Typography>
-                  <Button
-                    component='a'
-                    href={flujo.enlaceGoogleCalendar}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    variant='outlined'
-                    color='primary'
-                    size='small'
-                    startIcon={<EventOutlinedIcon />}
-                    sx={{ alignSelf: 'flex-start' }}
-                  >
-                    Añadir a Google Calendar
-                  </Button>
-                </Stack>
-              ) : null}
-            </Stack>
-          ) : null}
+          <Box ref={refResultado}>
+            {flujo.mensajeExito ? (
+              <Stack spacing={1.5}>
+                <Alert
+                  severity='success'
+                  icon={<CheckCircleOutlineIcon fontSize='inherit' />}
+                >
+                  {flujo.mensajeExito}
+                </Alert>
+                {flujo.enlaceGoogleCalendar ? (
+                  <Stack spacing={1}>
+                    <Typography color='text.secondary'>
+                      Te gustaría agregarla a Google Calendar?
+                    </Typography>
+                    <Button
+                      component='a'
+                      href={flujo.enlaceGoogleCalendar}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      variant='outlined'
+                      color='primary'
+                      size='small'
+                      startIcon={<EventOutlinedIcon />}
+                      sx={{ alignSelf: 'flex-start' }}
+                    >
+                      Añadir a Google Calendar
+                    </Button>
+                  </Stack>
+                ) : null}
+              </Stack>
+            ) : null}
 
-          {flujo.mensajeError ? (
-            <Alert
-              severity='error'
-              onClose={() => flujo.setMensajeError(null)}
-            >
-              {flujo.mensajeError}
-            </Alert>
-          ) : null}
+            {flujo.mensajeError ? (
+              <Alert
+                severity='error'
+                onClose={() => flujo.setMensajeError(null)}
+                sx={{ mt: flujo.mensajeExito ? 1.5 : 0 }}
+              >
+                {flujo.mensajeError}
+              </Alert>
+            ) : null}
+          </Box>
 
           <Stack spacing={1.5}>
             <Typography variant='h6' component='h2'>

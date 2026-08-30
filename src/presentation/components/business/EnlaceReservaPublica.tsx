@@ -10,6 +10,7 @@ import Link from '@mui/material/Link'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import { construirUrlReserva } from '@/shared/utils/sitio'
+import { copiarAlPortapapeles } from '@/shared/utils/portapapeles'
 
 type EnlaceReservaPublicaProps = {
   negocioSlug: string
@@ -30,7 +31,7 @@ export const EnlaceReservaPublica = ({
     setError(null)
 
     try {
-      await navigator.clipboard.writeText(urlPublica)
+      await copiarAlPortapapeles(urlPublica)
       setMensaje('Enlace copiado')
     } catch {
       setMensaje(null)
@@ -52,7 +53,7 @@ export const EnlaceReservaPublica = ({
         return
       }
 
-      await navigator.clipboard.writeText(texto)
+      await copiarAlPortapapeles(texto)
       setMensaje('Texto de compartir copiado')
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') {

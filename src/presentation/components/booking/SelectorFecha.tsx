@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
@@ -49,7 +50,7 @@ const estilosCalendario = {
     }
   },
   actionBar: {
-    actions: ['today', 'cancel'] as ('today' | 'cancel')[]
+    actions: [] as []
   }
 }
 
@@ -58,12 +59,15 @@ export const SelectorFecha = ({
   fechaMinima,
   onCambiarFecha
 }: SelectorFechaProps) => {
+  const [abierto, setAbierto] = useState(false)
+
   const handleChange = (nuevaFecha: Dayjs | null) => {
     if (!nuevaFecha || !nuevaFecha.isValid()) {
       return
     }
 
     onCambiarFecha(nuevaFecha.format('YYYY-MM-DD'))
+    setAbierto(false)
   }
 
   return (
@@ -79,14 +83,19 @@ export const SelectorFecha = ({
           label='Fecha'
           value={dayjs(fecha)}
           minDate={dayjs(fechaMinima)}
+          open={abierto}
+          onOpen={() => setAbierto(true)}
+          onClose={() => setAbierto(false)}
           onChange={handleChange}
+          closeOnSelect
           format='DD/MM/YYYY'
           slots={{
             openPickerIcon: CalendarMonthOutlinedIcon
           }}
           slotProps={{
             textField: {
-              fullWidth: true
+              fullWidth: true,
+              onClick: () => setAbierto(true)
             },
             ...estilosCalendario
           }}

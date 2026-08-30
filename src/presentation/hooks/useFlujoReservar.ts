@@ -16,6 +16,7 @@ import {
   parsearFechaCalendario
 } from '@/shared/utils/fechas'
 import { crearEnlaceGoogleCalendar } from '@/shared/utils/googleCalendar'
+import { desplazarAlInicio } from '@/shared/utils/desplazamiento'
 
 type UseFlujoReservarParams = {
   negocioId: string
@@ -82,7 +83,7 @@ export const useFlujoReservar = ({
 
   const mostrarError = (mensaje: string) => {
     setMensajeError(mensaje)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    desplazarAlInicio()
   }
 
   useEffect(() => {
@@ -188,7 +189,7 @@ export const useFlujoReservar = ({
       setMensajeExito(
         'Tu reserva está confirmada. Te esperamos en el horario elegido.'
       )
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      desplazarAlInicio()
 
       if (esCorreoGmail(correoUsado)) {
         setEnlaceGoogleCalendar(
