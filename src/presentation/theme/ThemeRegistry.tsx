@@ -6,6 +6,7 @@ import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider } from '@mui/material/styles'
 import { ProveedorModoColor, useModoColor } from './ProveedorModoColor'
 import { crearTema } from './theme'
+import { IndicadorAmbientePruebas } from '@/presentation/components/ui/IndicadorAmbientePruebas'
 
 type ThemeRegistryProps = {
   children: ReactNode
@@ -18,6 +19,7 @@ const ThemeRegistryInterno = ({ children }: ThemeRegistryProps) => {
   return (
     <ThemeProvider theme={tema}>
       <CssBaseline enableColorScheme />
+      <IndicadorAmbientePruebas />
       {children}
     </ThemeProvider>
   )
