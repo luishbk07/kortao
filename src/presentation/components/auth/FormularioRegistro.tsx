@@ -74,6 +74,8 @@ export const FormularioRegistro = () => {
       router.replace('/panel/onboarding')
       router.refresh()
     } catch (err) {
+      console.error(err)
+
       const mensaje =
         err instanceof Error
           ? err.message
