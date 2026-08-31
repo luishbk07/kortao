@@ -5,6 +5,7 @@ import type {
   Servicio
 } from '@/domain/business/business.types'
 import type { DescuentoTipo } from '@/domain/business/servicio.rules'
+import type { CicloFacturacion } from '@/shared/utils/planes'
 
 export type CrearServicioInput = {
   negocioId: string
@@ -52,6 +53,8 @@ export type NegocioDetalle = {
   colorAcento: string | null
   plan: string
   precioMensual: number | null
+  cicloFacturacion: CicloFacturacion
+  fechaInicioSuscripcion: Date | null
 }
 
 export type BusinessRepository = {

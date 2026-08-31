@@ -7,10 +7,13 @@ import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+import type { CicloFacturacion } from '@/shared/utils/planes'
+import { etiquetaProximoPagoCiclo } from '@/shared/utils/planes'
 import { formatearMontoRd } from '@/shared/utils/suscripcion'
 
 export type RecordatorioPagoPanel = {
-  precioMensual: number
+  montoCiclo: number
+  cicloFacturacion: CicloFacturacion
   /** YYYY-MM-DD (calendar day, no timezone shift). */
   fechaProximoPago: string
 }
@@ -39,8 +42,11 @@ export const BannerRecordatorioPago = ({
     return null
   }
 
-  const monto = formatearMontoRd(recordatorio.precioMensual)
+  const monto = formatearMontoRd(recordatorio.montoCiclo)
   const fechaTexto = formatearFechaPago(recordatorio.fechaProximoPago)
+  const etiquetaPago = etiquetaProximoPagoCiclo(
+    recordatorio.cicloFacturacion
+  )
 
   return (
     <Box
@@ -66,7 +72,7 @@ export const BannerRecordatorioPago = ({
         >
           <PaymentsOutlinedIcon sx={{ mt: 0.25, opacity: 0.95 }} />
           <Typography variant='body2'>
-            Tu próximo pago ({monto}) es el {fechaTexto} — no olvides
+            Tu {etiquetaPago} ({monto}) es el {fechaTexto} — no olvides
             coordinarlo.
           </Typography>
         </Stack>

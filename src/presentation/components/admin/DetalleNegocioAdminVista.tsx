@@ -2,9 +2,13 @@
 
 import { useState, type ReactNode } from 'react'
 import ArrowBackOutlinedIcon from '@mui/icons-material/ArrowBackOutlined'
+import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
+import FormControl from '@mui/material/FormControl'
+import MenuItem from '@mui/material/MenuItem'
+import Select from '@mui/material/Select'
 import Stack from '@mui/material/Stack'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
@@ -13,6 +17,7 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
+import { actualizarCicloFacturacionAction } from '@/app/admin/actions'
 import type {
   DetalleNegocioAdmin,
   PagoNegocioAdmin
@@ -23,10 +28,16 @@ import {
   formatearFechaLegible,
   formatearHoraLegible
 } from '@/shared/utils/fechas'
-import { esPlanPremium, formatearPrecioMensual } from '@/shared/utils/planes'
+import {
+  calcularMontoCiclo,
+  esPlanPremium,
+  formatearPrecioMensual,
+  type CicloFacturacion
+} from '@/shared/utils/planes'
 import {
   calcularProximaFechaPago,
-  cicloActualEstaAlDia
+  cicloActualEstaAlDia,
+  formatearMontoRd
 } from '@/shared/utils/suscripcion'
 import Link from 'next/link'
 
@@ -115,28 +126,66 @@ const TarjetaDato = ({
         {etiqueta}
       </Typography>
       <Typography fontWeight={600}>{valor}</Typography>
-      {complemento ? (
-        <Box sx={{ mt: 1 }}>{complemento}</Box>
-      ) : null}
+      {complemento ? <Box sx={{ mt: 1 }}>{complemento}</Box> : null}
     </Box>
   )
 }
+
+const OPCIONES_CICLO = [
+  { valor: 'mensual' as const, etiqueta: 'Mensual' },
+  { valor: 'anual' as const, etiqueta: 'Anual' }
+]
 
 export const DetalleNegocioAdminVista = ({
   detalle,
   historialPagos
 }: DetalleNegocioAdminVistaProps) => {
-  const { negocio, metricas, citasRecientes } = detalle
+  const { negocio: negocioInicial, metricas, citasRecientes } = detalle
+  const [negocio, setNegocio] = useState(negocioInicial)
   const [pagos, setPagos] = useState(historialPagos)
-  const proximaPago = calcularProximaFechaPago(negocio.fechaInicioSuscripcion)
+  const [errorCiclo, setErrorCiclo] = useState<string | null>(null)
+  const [guardandoCiclo, setGuardandoCiclo] = useState(false)
+
+  const proximaPago = calcularProximaFechaPago(
+    negocio.fechaInicioSuscripcion,
+    negocio.cicloFacturacion,
+    new Date(),
+    pagos[0]?.fechaPago ?? null
+  )
   const estadoCiclo = cicloActualEstaAlDia(
     negocio.fechaInicioSuscripcion,
-    pagos[0]?.fechaPago ?? null
+    pagos[0]?.fechaPago ?? null,
+    negocio.cicloFacturacion
   )
   const puedeRegistrarPago =
     esPlanPremium(negocio.plan) &&
     negocio.suscripcionActiva &&
     negocio.precioMensual !== null
+
+  const montoProximoPago =
+    negocio.precioMensual === null
+      ? null
+      : calcularMontoCiclo(negocio.precioMensual, negocio.cicloFacturacion)
+
+  const handleCambiarCiclo = async (ciclo: CicloFacturacion) => {
+    if (ciclo === negocio.cicloFacturacion) {
+      return
+    }
+
+    setErrorCiclo(null)
+    setGuardandoCiclo(true)
+    const anterior = negocio.cicloFacturacion
+    setNegocio((actual) => ({ ...actual, cicloFacturacion: ciclo }))
+
+    try {
+      await actualizarCicloFacturacionAction(negocio.id, ciclo)
+    } catch {
+      setNegocio((actual) => ({ ...actual, cicloFacturacion: anterior }))
+      setErrorCiclo('No se pudo actualizar el ciclo de facturación.')
+    } finally {
+      setGuardandoCiclo(false)
+    }
+  }
 
   return (
     <Stack spacing={3}>
@@ -163,6 +212,12 @@ export const DetalleNegocioAdminVista = ({
         </Button>
       </Stack>
 
+      {errorCiclo ? (
+        <Alert severity='error' onClose={() => setErrorCiclo(null)}>
+          {errorCiclo}
+        </Alert>
+      ) : null}
+
       <Stack spacing={1.5}>
         <Typography variant='h6' component='h2' fontWeight={700}>
           Datos básicos
@@ -179,13 +234,57 @@ export const DetalleNegocioAdminVista = ({
                 : formatearPrecioMensual(negocio.precioMensual)
             }
           />
+          <Box
+            sx={{
+              flex: '1 1 180px',
+              minWidth: 0,
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 3,
+              bgcolor: 'background.paper',
+              px: 2,
+              py: 1.75
+            }}
+          >
+            <Typography variant='body2' color='text.secondary' gutterBottom>
+              Ciclo de facturación
+            </Typography>
+            <FormControl size='small' fullWidth>
+              <Select
+                value={negocio.cicloFacturacion}
+                disabled={guardandoCiclo}
+                onChange={(evento) => {
+                  void handleCambiarCiclo(
+                    evento.target.value as CicloFacturacion
+                  )
+                }}
+                inputProps={{
+                  'aria-label': 'Ciclo de facturación'
+                }}
+              >
+                {OPCIONES_CICLO.map((opcion) => (
+                  <MenuItem key={opcion.valor} value={opcion.valor}>
+                    {opcion.etiqueta}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
           <TarjetaDato
             etiqueta='Inicio de suscripción'
             valor={formatearFechaLegible(negocio.fechaInicioSuscripcion, true)}
           />
           <TarjetaDato
-            etiqueta='Próximo pago'
-            valor={formatearFechaLegible(proximaPago, true)}
+            etiqueta={
+              negocio.cicloFacturacion === 'anual'
+                ? 'Próximo pago anual'
+                : 'Próximo pago mensual'
+            }
+            valor={
+              montoProximoPago === null
+                ? formatearFechaLegible(proximaPago, true)
+                : `${formatearFechaLegible(proximaPago, true)} · ${formatearMontoRd(montoProximoPago)}`
+            }
             complemento={
               estadoCiclo === null ? null : (
                 <Chip
@@ -238,7 +337,15 @@ export const DetalleNegocioAdminVista = ({
       {puedeRegistrarPago || pagos.length > 0 ? (
         <HistorialPagosAdmin
           negocioId={negocio.id}
-          precioMensual={negocio.precioMensual ?? 0}
+          montoCiclo={
+            negocio.precioMensual === null
+              ? 0
+              : calcularMontoCiclo(
+                  negocio.precioMensual,
+                  negocio.cicloFacturacion
+                )
+          }
+          cicloFacturacion={negocio.cicloFacturacion}
           pagos={pagos}
           onPagosChange={setPagos}
           puedeRegistrar={puedeRegistrarPago}

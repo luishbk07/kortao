@@ -112,6 +112,32 @@ export const actualizarPlanAction = async (
   }
 }
 
+const CICLOS_PERMITIDOS = ['mensual', 'anual'] as const
+
+export const actualizarCicloFacturacionAction = async (
+  negocioId: string,
+  cicloFacturacion: string
+): Promise<void> => {
+  const supabase = await exigirAdminAutenticado()
+
+  if (
+    !CICLOS_PERMITIDOS.includes(
+      cicloFacturacion as (typeof CICLOS_PERMITIDOS)[number]
+    )
+  ) {
+    throw new Error('El ciclo de facturación no es válido')
+  }
+
+  const { error } = await supabase
+    .from('negocios')
+    .update({ ciclo_facturacion: cicloFacturacion })
+    .eq('id', negocioId)
+
+  if (error) {
+    throw new Error(error.message)
+  }
+}
+
 export const registrarPagoAction = async (
   negocioId: string,
   monto: number

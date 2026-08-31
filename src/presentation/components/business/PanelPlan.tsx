@@ -11,18 +11,28 @@ import ListItemText from '@mui/material/ListItemText'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import {
+  calcularMontoCiclo,
   construirEnlaceWhatsappSoporte,
   esPlanPremium,
   formatearPrecioMensual,
   LIMITE_CITAS_FUTURAS_PLAN_GRATIS,
   PRECIO_LISTA_PLAN_PREMIUM,
-  TELEFONO_SOPORTE_KORTAO
+  TELEFONO_SOPORTE_KORTAO,
+  type CicloFacturacion
 } from '@/shared/utils/planes'
+import {
+  calcularProximaFechaPago,
+  formatearMontoRd
+} from '@/shared/utils/suscripcion'
+import { formatearFechaLegible } from '@/shared/utils/fechas'
 
 type PanelPlanProps = {
   nombreNegocio: string
   plan: string
   precioMensual: number | null
+  cicloFacturacion: CicloFacturacion
+  fechaInicioSuscripcion: Date | null
+  fechaUltimoPago?: Date | null
   telefonoSoporte?: string | null
 }
 
@@ -149,13 +159,29 @@ export const PanelPlan = ({
   nombreNegocio,
   plan,
   precioMensual,
+  cicloFacturacion,
+  fechaInicioSuscripcion,
+  fechaUltimoPago = null,
   telefonoSoporte
 }: PanelPlanProps) => {
   const esPremium = esPlanPremium(plan)
   const precioLista = formatearPrecioMensual(PRECIO_LISTA_PLAN_PREMIUM)
-  const precioPremiumActual = formatearPrecioMensual(
-    precioMensual ?? PRECIO_LISTA_PLAN_PREMIUM
-  )
+  const precioBase = precioMensual ?? PRECIO_LISTA_PLAN_PREMIUM
+  const montoCiclo = calcularMontoCiclo(precioBase, cicloFacturacion)
+  const precioPremiumActual =
+    cicloFacturacion === 'anual'
+      ? `${formatearMontoRd(montoCiclo)}/año`
+      : formatearPrecioMensual(precioBase)
+
+  const proximaPago =
+    esPremium && fechaInicioSuscripcion
+      ? calcularProximaFechaPago(
+          fechaInicioSuscripcion,
+          cicloFacturacion,
+          new Date(),
+          fechaUltimoPago
+        )
+      : null
 
   const enlaceWhatsapp = construirEnlaceWhatsappSoporte(
     telefonoSoporte?.trim() || TELEFONO_SOPORTE_KORTAO,
@@ -192,7 +218,19 @@ export const PanelPlan = ({
             </Typography>
             <Typography color='text.secondary'>
               {precioPremiumActual}
+              {cicloFacturacion === 'anual' ? ' (facturación anual)' : ''}
             </Typography>
+            {proximaPago ? (
+              <Typography color='text.secondary' sx={{ pt: 0.5 }}>
+                {cicloFacturacion === 'anual'
+                  ? 'Próximo pago anual'
+                  : 'Próximo pago mensual'}
+                {': '}
+                {formatearFechaLegible(proximaPago, true)}
+                {' · '}
+                {formatearMontoRd(montoCiclo)}
+              </Typography>
+            ) : null}
           </Stack>
         </Box>
       ) : null}

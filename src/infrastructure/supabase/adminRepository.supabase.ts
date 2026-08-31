@@ -9,6 +9,7 @@ import type {
 } from '@/domain/admin/admin.types'
 import type { EstadoCita } from '@/domain/booking/booking.types'
 import { parsearFechaCalendario } from '@/shared/utils/fechas'
+import { normalizarCicloFacturacion } from '@/shared/utils/planes'
 
 type NegocioFila = {
   id: string
@@ -16,6 +17,7 @@ type NegocioFila = {
   slug: string
   plan: string | null
   precio_mensual: number | string | null
+  ciclo_facturacion: string | null
   fecha_inicio_suscripcion: string
   suscripcion_activa: boolean
 }
@@ -74,6 +76,7 @@ const mapearNegocio = (fila: NegocioFila): NegocioAdminDetalle => ({
   slug: fila.slug,
   plan: fila.plan ?? 'estandar',
   precioMensual: mapearNumeroOpcional(fila.precio_mensual),
+  cicloFacturacion: normalizarCicloFacturacion(fila.ciclo_facturacion),
   fechaInicioSuscripcion: parsearFechaCalendario(
     fila.fecha_inicio_suscripcion.slice(0, 10)
   ),
@@ -122,7 +125,7 @@ export const crearAdminRepository = (
     const { data: negocioData, error: errorNegocio } = await cliente
       .from('negocios')
       .select(
-        'id, nombre, slug, plan, precio_mensual, fecha_inicio_suscripcion, suscripcion_activa'
+        'id, nombre, slug, plan, precio_mensual, ciclo_facturacion, fecha_inicio_suscripcion, suscripcion_activa'
       )
       .eq('id', negocioId)
       .maybeSingle()

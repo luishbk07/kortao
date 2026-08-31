@@ -26,8 +26,13 @@ import {
 } from '@/app/admin/actions'
 import { formatearFechaLegible } from '@/shared/utils/fechas'
 import {
+  calcularMontoCiclo,
+  type CicloFacturacion
+} from '@/shared/utils/planes'
+import {
   calcularProximaFechaPago,
-  diasHastaFecha
+  diasHastaFecha,
+  formatearMontoRd
 } from '@/shared/utils/suscripcion'
 
 export type NegocioAdminFila = {
@@ -37,6 +42,7 @@ export type NegocioAdminFila = {
   fechaInicioSuscripcion: string
   suscripcionActiva: boolean
   precioMensual: number | null
+  cicloFacturacion: CicloFacturacion
 }
 
 type TablaNegociosAdminProps = {
@@ -91,14 +97,25 @@ export const TablaNegociosAdmin = ({
     return [...negocios]
       .map((negocio) => {
         const fechaInicio = new Date(negocio.fechaInicioSuscripcion)
-        const proximaPago = calcularProximaFechaPago(fechaInicio)
+        const proximaPago = calcularProximaFechaPago(
+          fechaInicio,
+          negocio.cicloFacturacion
+        )
         const dias = diasHastaFecha(proximaPago)
+        const montoProximoPago =
+          negocio.precioMensual === null
+            ? null
+            : calcularMontoCiclo(
+                negocio.precioMensual,
+                negocio.cicloFacturacion
+              )
 
         return {
           ...negocio,
           fechaInicio,
           proximaPago,
-          dias
+          dias,
+          montoProximoPago
         }
       })
       .sort(
@@ -350,15 +367,25 @@ export const TablaNegociosAdmin = ({
                     {formatearFechaLegible(fila.fechaInicio, true)}
                   </TableCell>
                   <TableCell>
-                    <Stack direction='row' spacing={1} alignItems='center'>
-                      <Typography variant='body2'>
-                        {formatearFechaLegible(fila.proximaPago, true)}
+                    <Stack spacing={0.25}>
+                      <Stack direction='row' spacing={1} alignItems='center'>
+                        <Typography variant='body2'>
+                          {formatearFechaLegible(fila.proximaPago, true)}
+                        </Typography>
+                        {fila.dias < 0 ? (
+                          <Chip size='small' color='error' label='Vencido' />
+                        ) : fila.dias <= 3 ? (
+                          <Chip size='small' color='warning' label='Pronto' />
+                        ) : null}
+                      </Stack>
+                      <Typography variant='caption' color='text.secondary'>
+                        {fila.cicloFacturacion === 'anual'
+                          ? 'Pago anual'
+                          : 'Pago mensual'}
+                        {fila.montoProximoPago === null
+                          ? ''
+                          : ` · ${formatearMontoRd(fila.montoProximoPago)}`}
                       </Typography>
-                      {fila.dias < 0 ? (
-                        <Chip size='small' color='error' label='Vencido' />
-                      ) : fila.dias <= 3 ? (
-                        <Chip size='small' color='warning' label='Pronto' />
-                      ) : null}
                     </Stack>
                   </TableCell>
                   <TableCell

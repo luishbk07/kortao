@@ -22,7 +22,8 @@ import { formatearMontoRd } from '@/shared/utils/suscripcion'
 
 type HistorialPagosAdminProps = {
   negocioId: string
-  precioMensual: number
+  montoCiclo: number
+  cicloFacturacion: 'mensual' | 'anual'
   pagos: PagoNegocioAdmin[]
   onPagosChange: (pagos: PagoNegocioAdmin[]) => void
   puedeRegistrar: boolean
@@ -30,7 +31,8 @@ type HistorialPagosAdminProps = {
 
 export const HistorialPagosAdmin = ({
   negocioId,
-  precioMensual,
+  montoCiclo,
+  cicloFacturacion,
   pagos,
   onPagosChange,
   puedeRegistrar
@@ -38,12 +40,17 @@ export const HistorialPagosAdmin = ({
   const [registrando, setRegistrando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const etiquetaBoton =
+    cicloFacturacion === 'anual'
+      ? 'Registrar pago de este año'
+      : 'Registrar pago de este mes'
+
   const handleRegistrar = async () => {
     setError(null)
     setRegistrando(true)
 
     try {
-      const pago = await registrarPagoAction(negocioId, precioMensual)
+      const pago = await registrarPagoAction(negocioId, montoCiclo)
       const mapeado: PagoNegocioAdmin = {
         id: pago.id,
         fechaPago: parsearFechaCalendario(pago.fechaPago),
@@ -78,7 +85,7 @@ export const HistorialPagosAdmin = ({
               void handleRegistrar()
             }}
           >
-            {registrando ? 'Registrando...' : 'Registrar pago de este mes'}
+            {registrando ? 'Registrando...' : etiquetaBoton}
           </Button>
         ) : null}
       </Stack>

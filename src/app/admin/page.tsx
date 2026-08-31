@@ -5,6 +5,7 @@ import {
   TablaNegociosAdmin,
   type NegocioAdminFila
 } from '@/presentation/components/admin/TablaNegociosAdmin'
+import { normalizarCicloFacturacion } from '@/shared/utils/planes'
 
 type NegocioAdminDb = {
   id: string
@@ -13,6 +14,7 @@ type NegocioAdminDb = {
   fecha_inicio_suscripcion: string
   suscripcion_activa: boolean
   precio_mensual: number | string | null
+  ciclo_facturacion: string | null
 }
 
 const mapearPrecioMensual = (
@@ -31,7 +33,7 @@ const AdminPage = async () => {
   const { data, error } = await supabase
     .from('negocios')
     .select(
-      'id, nombre, plan, fecha_inicio_suscripcion, suscripcion_activa, precio_mensual'
+      'id, nombre, plan, fecha_inicio_suscripcion, suscripcion_activa, precio_mensual, ciclo_facturacion'
     )
 
   if (error) {
@@ -46,7 +48,8 @@ const AdminPage = async () => {
     plan: fila.plan,
     fechaInicioSuscripcion: fila.fecha_inicio_suscripcion,
     suscripcionActiva: fila.suscripcion_activa,
-    precioMensual: mapearPrecioMensual(fila.precio_mensual)
+    precioMensual: mapearPrecioMensual(fila.precio_mensual),
+    cicloFacturacion: normalizarCicloFacturacion(fila.ciclo_facturacion)
   }))
 
   return (

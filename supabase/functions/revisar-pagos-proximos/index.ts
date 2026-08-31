@@ -1,6 +1,9 @@
 // Kortao — revisar-pagos-proximos Edge Function
 // Runs once daily (schedule via Supabase cron / pg_cron, same pattern as
 // enviar-recordatorios). Uses the service_role key server-side only.
+//
+// Keep calcularMontoCiclo / calcularProximaFechaPago in sync with
+// src/shared/utils/planes.ts and src/shared/utils/suscripcion.ts.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -12,10 +15,13 @@ const LOGO_KORTAO = "https://kortao.com/brand/kortao-email-logo.png";
 const ZONA_HORARIA = "America/Santo_Domingo";
 const DIAS_AVISO = 5;
 
+type CicloFacturacion = "mensual" | "anual";
+
 type NegocioPremium = {
   id: string;
   nombre: string;
   precio_mensual: number | string | null;
+  ciclo_facturacion: string | null;
   fecha_inicio_suscripcion: string;
   usuarios_negocio:
     | { auth_user_id: string; rol: string }
@@ -24,6 +30,24 @@ type NegocioPremium = {
 };
 
 type TipoRecordatorioPago = "en_5_dias" | "vence_hoy";
+
+const normalizarCicloFacturacion = (
+  valor: string | null | undefined,
+): CicloFacturacion => {
+  return valor === "anual" ? "anual" : "mensual";
+};
+
+/** Must match src/shared/utils/planes.ts calcularMontoCiclo. */
+const calcularMontoCiclo = (
+  precioMensual: number,
+  ciclo: CicloFacturacion,
+): number => {
+  if (ciclo === "anual") {
+    return precioMensual * 12 * 0.9;
+  }
+
+  return precioMensual;
+};
 
 const parsearFechaCalendario = (valor: string): Date => {
   const soloFecha = valor.slice(0, 10);
@@ -51,23 +75,46 @@ const sumarUnMes = (fecha: Date): Date => {
   return new Date(anioSiguiente, indiceMesSiguiente, diaAjustado);
 };
 
+const sumarMeses = (fecha: Date, cantidadMeses: number): Date => {
+  let resultado = fecha;
+
+  for (let indice = 0; indice < cantidadMeses; indice += 1) {
+    resultado = sumarUnMes(resultado);
+  }
+
+  return resultado;
+};
+
 /**
- * Same 1-month-increment logic as src/shared/utils/suscripcion.ts
- * calcularProximaFechaPago (inclusive: on or after `hoy`).
+ * Same stepping as src/shared/utils/suscripcion.ts calcularProximaFechaPago
+ * (inclusive: on or after `hoy`; skips due dates already covered by payment).
  */
 const calcularProximaFechaPago = (
   fechaInicioSuscripcion: Date,
+  ciclo: CicloFacturacion,
   hoy: Date,
+  fechaUltimoPago: Date | null = null,
 ): Date => {
   let proxima = inicioDelDia(fechaInicioSuscripcion);
   const referencia = inicioDelDia(hoy);
+  const meses = ciclo === "anual" ? 12 : 1;
 
   if (Number.isNaN(proxima.getTime())) {
-    throw new Error(`fecha_inicio_suscripcion inválida: ${String(fechaInicioSuscripcion)}`);
+    throw new Error(
+      `fecha_inicio_suscripcion inválida: ${String(fechaInicioSuscripcion)}`,
+    );
   }
 
   while (proxima.getTime() < referencia.getTime()) {
-    proxima = sumarUnMes(proxima);
+    proxima = sumarMeses(proxima, meses);
+  }
+
+  if (fechaUltimoPago !== null) {
+    const ultimoPago = inicioDelDia(fechaUltimoPago);
+
+    while (ultimoPago.getTime() >= proxima.getTime()) {
+      proxima = sumarMeses(proxima, meses);
+    }
   }
 
   return proxima;
@@ -133,21 +180,27 @@ const obtenerMiembros = (
   return Array.isArray(miembros) ? miembros : [miembros];
 };
 
+const etiquetaPagoCiclo = (ciclo: CicloFacturacion): string => {
+  return ciclo === "anual" ? "pago anual" : "pago mensual";
+};
+
 const construirHtmlCorreoPago = (params: {
   nombreNegocio: string;
   montoTexto: string;
   fechaTexto: string;
   tipo: TipoRecordatorioPago;
+  ciclo: CicloFacturacion;
 }): string => {
+  const etiqueta = etiquetaPagoCiclo(params.ciclo);
   const titulo =
     params.tipo === "vence_hoy"
-      ? "Tu pago vence hoy"
-      : "Tu próximo pago es en 5 días";
+      ? `Tu ${etiqueta} vence hoy`
+      : `Tu próximo ${etiqueta} es en 5 días`;
 
   const cuerpo =
     params.tipo === "vence_hoy"
-      ? `Hoy vence el pago de <strong style="color:#1F4B3F;">${params.montoTexto}</strong> del plan Premium de <strong style="color:#1F4B3F;">${params.nombreNegocio}</strong>. Coordínalo para mantener tu cuenta activa.`
-      : `El <strong style="color:#1F4B3F;">${params.fechaTexto}</strong> vence el pago de <strong style="color:#1F4B3F;">${params.montoTexto}</strong> del plan Premium de <strong style="color:#1F4B3F;">${params.nombreNegocio}</strong>. Te quedan 5 días para coordinarlo.`;
+      ? `Hoy vence el ${etiqueta} de <strong style="color:#1F4B3F;">${params.montoTexto}</strong> del plan Premium de <strong style="color:#1F4B3F;">${params.nombreNegocio}</strong>. Coordínalo para mantener tu cuenta activa.`
+      : `El <strong style="color:#1F4B3F;">${params.fechaTexto}</strong> vence el ${etiqueta} de <strong style="color:#1F4B3F;">${params.montoTexto}</strong> del plan Premium de <strong style="color:#1F4B3F;">${params.nombreNegocio}</strong>. Te quedan 5 días para coordinarlo.`;
 
   return `
     <div style="background-color:#FBF8F3;padding:32px 16px;font-family:sans-serif;">
@@ -170,13 +223,15 @@ const enviarCorreoPago = async (params: {
   monto: number;
   fechaPago: Date;
   tipo: TipoRecordatorioPago;
+  ciclo: CicloFacturacion;
 }): Promise<void> => {
   const montoTexto = formatearMontoRd(params.monto);
   const fechaTexto = formatearFecha(params.fechaPago);
+  const etiqueta = etiquetaPagoCiclo(params.ciclo);
   const asunto =
     params.tipo === "vence_hoy"
-      ? "Tu pago vence hoy"
-      : "Tu próximo pago es en 5 días";
+      ? `Tu ${etiqueta} vence hoy`
+      : `Tu próximo ${etiqueta} es en 5 días`;
 
   const respuesta = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -193,6 +248,7 @@ const enviarCorreoPago = async (params: {
         montoTexto,
         fechaTexto,
         tipo: params.tipo,
+        ciclo: params.ciclo,
       }),
     }),
   });
@@ -210,7 +266,7 @@ Deno.serve(async () => {
   const { data: negocios, error } = await supabase
     .from("negocios")
     .select(
-      "id, nombre, precio_mensual, fecha_inicio_suscripcion, usuarios_negocio(auth_user_id, rol)",
+      "id, nombre, precio_mensual, ciclo_facturacion, fecha_inicio_suscripcion, usuarios_negocio(auth_user_id, rol)",
     )
     .eq("plan", "premium")
     .eq("suscripcion_activa", true);
@@ -240,11 +296,27 @@ Deno.serve(async () => {
       continue;
     }
 
+    const ciclo = normalizarCicloFacturacion(negocio.ciclo_facturacion);
+
+    const { data: ultimosPagos } = await supabase
+      .from("pagos_negocio")
+      .select("fecha_pago")
+      .eq("negocio_id", negocio.id)
+      .order("fecha_pago", { ascending: false })
+      .limit(1);
+
+    const fechaPagoRaw = ultimosPagos?.[0]?.fecha_pago ?? null;
+    const fechaUltimoPago = fechaPagoRaw
+      ? parsearFechaCalendario(String(fechaPagoRaw))
+      : null;
+
     let proximaPago: Date;
     try {
       proximaPago = calcularProximaFechaPago(
         parsearFechaCalendario(negocio.fecha_inicio_suscripcion),
+        ciclo,
         hoy,
+        fechaUltimoPago,
       );
     } catch (err) {
       resultados.push({
@@ -296,14 +368,16 @@ Deno.serve(async () => {
     }
 
     const correo = usuarioData.user.email;
+    const precioMensual = mapearPrecioMensual(negocio.precio_mensual);
 
     try {
       await enviarCorreoPago({
         correo,
         nombreNegocio: negocio.nombre,
-        monto: mapearPrecioMensual(negocio.precio_mensual),
+        monto: calcularMontoCiclo(precioMensual, ciclo),
         fechaPago: proximaPago,
         tipo,
+        ciclo,
       });
 
       resultados.push({

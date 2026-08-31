@@ -14,7 +14,8 @@ import type {
 } from '@/domain/business/business.types'
 import type { DescuentoTipo } from '@/domain/business/servicio.rules'
 import type { EstadoCita } from '@/domain/booking/booking.types'
-import { finDelDia, inicioDelDia } from '@/shared/utils/fechas'
+import { finDelDia, inicioDelDia, parsearFechaCalendario } from '@/shared/utils/fechas'
+import { normalizarCicloFacturacion } from '@/shared/utils/planes'
 
 type NegocioFila = {
   id: string
@@ -28,6 +29,8 @@ type NegocioFila = {
   color_acento: string | null
   plan: string | null
   precio_mensual: number | string | null
+  ciclo_facturacion: string | null
+  fecha_inicio_suscripcion: string | null
 }
 
 type ServicioFila = {
@@ -63,11 +66,15 @@ const mapearNegocioDetalle = (fila: NegocioFila): NegocioDetalle => ({
   logoUrl: fila.logo_url ?? null,
   colorAcento: fila.color_acento ?? null,
   plan: fila.plan ?? 'estandar',
-  precioMensual: mapearNumeroOpcional(fila.precio_mensual)
+  precioMensual: mapearNumeroOpcional(fila.precio_mensual),
+  cicloFacturacion: normalizarCicloFacturacion(fila.ciclo_facturacion),
+  fechaInicioSuscripcion: fila.fecha_inicio_suscripcion
+    ? parsearFechaCalendario(fila.fecha_inicio_suscripcion.slice(0, 10))
+    : null
 })
 
 const columnasNegocioDetalle =
-  'id, nombre, slug, telefono_whatsapp, direccion, latitud, longitud, logo_url, color_acento, plan, precio_mensual'
+  'id, nombre, slug, telefono_whatsapp, direccion, latitud, longitud, logo_url, color_acento, plan, precio_mensual, ciclo_facturacion, fecha_inicio_suscripcion'
 
 const columnasServicio =
   'id, negocio_id, nombre, duracion_minutos, precio, descuento_tipo, descuento_valor, activo'

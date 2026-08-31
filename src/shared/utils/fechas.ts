@@ -124,27 +124,39 @@ export const parsearFechaCalendario = (fechaIso: string): Date => {
   return crearFechaEnZona(anio, mes, dia, 0, 0, 0, 0)
 }
 
+/**
+ * Locale formatters (Node vs browser) may insert narrow no-break spaces
+ * around am/pm markers; normalize so SSR/CSR HTML matches.
+ */
+const normalizarEspaciosUnicode = (texto: string): string => {
+  return texto.replace(/[\u00a0\u202f\u2009]/g, ' ')
+}
+
 /** Human-readable date in America/Santo_Domingo (e.g. for WhatsApp/email). */
 export const formatearFechaLegible = (
   fecha: Date,
   conAnio: boolean
 ): string => {
-  return fecha.toLocaleDateString('es-DO', {
-    day: 'numeric',
-    month: 'long',
-    ...(conAnio ? { year: 'numeric' as const } : {}),
-    timeZone: ZONA_HORARIA_NEGOCIO
-  })
+  return normalizarEspaciosUnicode(
+    fecha.toLocaleDateString('es-DO', {
+      day: 'numeric',
+      month: 'long',
+      ...(conAnio ? { year: 'numeric' as const } : {}),
+      timeZone: ZONA_HORARIA_NEGOCIO
+    })
+  )
 }
 
 /** Human-readable time in America/Santo_Domingo (e.g. "10:30 a. m."). */
 export const formatearHoraLegible = (fecha: Date): string => {
-  return fecha.toLocaleTimeString('es-DO', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-    timeZone: ZONA_HORARIA_NEGOCIO
-  })
+  return normalizarEspaciosUnicode(
+    fecha.toLocaleTimeString('es-DO', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: ZONA_HORARIA_NEGOCIO
+    })
+  )
 }
 
 /** Relative time in Spanish for recent activity (e.g. "hace 5 min"). */

@@ -3,7 +3,10 @@ import {
   inicioDelDia,
   parsearFechaCalendario
 } from '@/shared/utils/fechas'
-import { esPlanPremium } from '@/shared/utils/planes'
+import {
+  esPlanPremium,
+  type CicloFacturacion
+} from '@/shared/utils/planes'
 
 /** Days before the next payment when we start showing in-panel notices. */
 export const DIAS_AVISO_PAGO_SUSCRIPCION = 5
@@ -22,14 +25,35 @@ const sumarUnMesCalendario = (fechaIso: string): string => {
   return `${anioSiguiente}-${mesTexto}-${diaTexto}`
 }
 
+const sumarMesesCalendario = (
+  fechaIso: string,
+  cantidadMeses: number
+): string => {
+  let resultado = fechaIso
+
+  for (let indice = 0; indice < cantidadMeses; indice += 1) {
+    resultado = sumarUnMesCalendario(resultado)
+  }
+
+  return resultado
+}
+
+const mesesPorCiclo = (ciclo: CicloFacturacion): number => {
+  return ciclo === 'anual' ? 12 : 1
+}
+
 /**
- * Next subscription payment date on or after `hoy` (calendar day in
- * America/Santo_Domingo). Advances one calendar month at a time from the
- * subscription start date.
+ * Next unpaid subscription due date on or after `hoy` (calendar day in
+ * America/Santo_Domingo). Advances by one month (mensual) or twelve
+ * (anual) from the subscription start date. If `fechaUltimoPago` already
+ * covers that anniversary, steps forward one more cycle (e.g. annual paid
+ * on the start date → next year).
  */
 export const calcularProximaFechaPago = (
   fechaInicioSuscripcion: Date,
-  hoy: Date = new Date()
+  ciclo: CicloFacturacion = 'mensual',
+  hoy: Date = new Date(),
+  fechaUltimoPago: Date | null = null
 ): Date => {
   let proximaIso = formatearFechaCalendario(fechaInicioSuscripcion)
 
@@ -40,9 +64,18 @@ export const calcularProximaFechaPago = (
   }
 
   const referenciaIso = formatearFechaCalendario(hoy)
+  const meses = mesesPorCiclo(ciclo)
 
   while (proximaIso < referenciaIso) {
-    proximaIso = sumarUnMesCalendario(proximaIso)
+    proximaIso = sumarMesesCalendario(proximaIso, meses)
+  }
+
+  if (fechaUltimoPago !== null) {
+    const ultimoPagoIso = formatearFechaCalendario(fechaUltimoPago)
+
+    while (ultimoPagoIso >= proximaIso) {
+      proximaIso = sumarMesesCalendario(proximaIso, meses)
+    }
   }
 
   return parsearFechaCalendario(proximaIso)
@@ -62,6 +95,7 @@ export const debeMostrarAvisoPagoSuscripcion = (
   suscripcionActiva: boolean,
   fechaInicioSuscripcion: Date | null,
   fechaUltimoPago: Date | null = null,
+  ciclo: CicloFacturacion = 'mensual',
   hoy: Date = new Date()
 ): boolean => {
   if (
@@ -74,13 +108,22 @@ export const debeMostrarAvisoPagoSuscripcion = (
 
   try {
     if (
-      cicloActualEstaAlDia(fechaInicioSuscripcion, fechaUltimoPago, hoy) ===
-      true
+      cicloActualEstaAlDia(
+        fechaInicioSuscripcion,
+        fechaUltimoPago,
+        ciclo,
+        hoy
+      ) === true
     ) {
       return false
     }
 
-    const proxima = calcularProximaFechaPago(fechaInicioSuscripcion, hoy)
+    const proxima = calcularProximaFechaPago(
+      fechaInicioSuscripcion,
+      ciclo,
+      hoy,
+      fechaUltimoPago
+    )
     const dias = diasHastaFecha(proxima, hoy)
     return dias >= 0 && dias <= DIAS_AVISO_PAGO_SUSCRIPCION
   } catch {
@@ -94,11 +137,12 @@ export const formatearMontoRd = (monto: number): string => {
 
 /**
  * Latest billing anniversary on or before `hoy`, derived only from
- * fecha_inicio_suscripcion (same month-stepping as próxima fecha de pago).
+ * fecha_inicio_suscripcion (same stepping as próxima fecha de pago).
  * Returns null if the subscription start is still in the future.
  */
 export const calcularUltimaFechaVencimiento = (
   fechaInicioSuscripcion: Date,
+  ciclo: CicloFacturacion = 'mensual',
   hoy: Date = new Date()
 ): Date | null => {
   let actualIso = formatearFechaCalendario(fechaInicioSuscripcion)
@@ -110,13 +154,14 @@ export const calcularUltimaFechaVencimiento = (
   }
 
   const hoyIso = formatearFechaCalendario(hoy)
+  const meses = mesesPorCiclo(ciclo)
 
   if (actualIso > hoyIso) {
     return null
   }
 
   while (true) {
-    const siguienteIso = sumarUnMesCalendario(actualIso)
+    const siguienteIso = sumarMesesCalendario(actualIso, meses)
 
     if (siguienteIso > hoyIso) {
       return parsearFechaCalendario(actualIso)
@@ -130,10 +175,12 @@ export const calcularUltimaFechaVencimiento = (
 export const cicloActualEstaAlDia = (
   fechaInicioSuscripcion: Date,
   fechaUltimoPago: Date | null,
+  ciclo: CicloFacturacion = 'mensual',
   hoy: Date = new Date()
 ): boolean | null => {
   const ultimaVencimiento = calcularUltimaFechaVencimiento(
     fechaInicioSuscripcion,
+    ciclo,
     hoy
   )
 

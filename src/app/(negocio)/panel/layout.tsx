@@ -8,7 +8,12 @@ import {
   formatearFechaCalendario,
   parsearFechaCalendario
 } from '@/shared/utils/fechas'
-import { PRECIO_LISTA_PLAN_PREMIUM } from '@/shared/utils/planes'
+import {
+  calcularMontoCiclo,
+  normalizarCicloFacturacion,
+  PRECIO_LISTA_PLAN_PREMIUM,
+  type CicloFacturacion
+} from '@/shared/utils/planes'
 import {
   calcularProximaFechaPago,
   debeMostrarAvisoPagoSuscripcion
@@ -31,6 +36,7 @@ type NegocioMembresia = {
   suscripcion_activa: boolean
   plan: string | null
   precio_mensual: number | string | null
+  ciclo_facturacion: string | null
   fecha_inicio_suscripcion: string | null
 }
 
@@ -94,7 +100,8 @@ const PanelLayout = async ({ children }: PanelLayoutProps) => {
 
   let plan = 'estandar'
   let recordatorioPago: {
-    precioMensual: number
+    montoCiclo: number
+    cicloFacturacion: CicloFacturacion
     fechaProximoPago: string
   } | null = null
   let accesoAdmin: AccesoAdminPanel | undefined
@@ -104,7 +111,7 @@ const PanelLayout = async ({ children }: PanelLayoutProps) => {
     const { data: membresia } = await supabase
       .from('usuarios_negocio')
       .select(
-        'negocio_id, negocios(suscripcion_activa, plan, precio_mensual, fecha_inicio_suscripcion)'
+        'negocio_id, negocios(suscripcion_activa, plan, precio_mensual, ciclo_facturacion, fecha_inicio_suscripcion)'
       )
       .eq('auth_user_id', user.id)
       .maybeSingle()
@@ -118,6 +125,9 @@ const PanelLayout = async ({ children }: PanelLayoutProps) => {
     }
 
     plan = negocio?.plan ?? 'estandar'
+    const cicloFacturacion = normalizarCicloFacturacion(
+      negocio?.ciclo_facturacion
+    )
 
     const fechaInicio =
       negocio?.fecha_inicio_suscripcion != null
@@ -153,13 +163,21 @@ const PanelLayout = async ({ children }: PanelLayoutProps) => {
         plan,
         negocio.suscripcion_activa,
         fechaInicio,
-        fechaUltimoPago
+        fechaUltimoPago,
+        cicloFacturacion
       ) &&
       fechaInicio
     ) {
-      const proxima = calcularProximaFechaPago(fechaInicio)
+      const proxima = calcularProximaFechaPago(
+        fechaInicio,
+        cicloFacturacion,
+        new Date(),
+        fechaUltimoPago
+      )
+      const precioMensual = mapearPrecioMensual(negocio.precio_mensual)
       recordatorioPago = {
-        precioMensual: mapearPrecioMensual(negocio.precio_mensual),
+        montoCiclo: calcularMontoCiclo(precioMensual, cicloFacturacion),
+        cicloFacturacion,
         fechaProximoPago: formatearFechaCalendario(proxima)
       }
     }

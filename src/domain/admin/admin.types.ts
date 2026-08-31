@@ -1,4 +1,5 @@
 import type { EstadoCita } from '@/domain/booking/booking.types'
+import type { CicloFacturacion } from '@/shared/utils/planes'
 
 export type CitaAdminResumen = {
   id: string
@@ -22,6 +23,7 @@ export type NegocioAdminDetalle = {
   slug: string
   plan: string
   precioMensual: number | null
+  cicloFacturacion: CicloFacturacion
   fechaInicioSuscripcion: Date
   suscripcionActiva: boolean
 }
