@@ -2,7 +2,6 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { AfiliadosRepository } from '@/application/ports/afiliadosRepository.port'
 import type {
   Afiliado,
-  AfiliadoConMetricas,
   AfiliadoOpcion
 } from '@/domain/admin/afiliado.types'
 import { esPlanPremium } from '@/shared/utils/planes'
