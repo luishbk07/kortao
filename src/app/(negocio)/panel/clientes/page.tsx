@@ -27,7 +27,8 @@ const ClientesPanelPage = async () => {
           Clientes
         </Typography>
         <Typography color='text.secondary'>
-          Clientes que han reservado 2 o más veces (sin contar canceladas).
+          Clientes que han reservado (sin contar canceladas). Por defecto se
+          muestran quienes tienen 2 o más visitas.
         </Typography>
       </Stack>
       <ListaClientesRecurrentes clientes={clientes} />

@@ -51,3 +51,8 @@ export const construirEnlaceWhatsapp = (telefono: string): string => {
   const digitos = soloDigitos(telefono)
   return `https://wa.me/${digitos}`
 }
+
+export const construirEnlaceTelefono = (telefono: string): string => {
+  const digitos = soloDigitos(telefono)
+  return digitos ? `tel:+${digitos}` : 'tel:'
+}

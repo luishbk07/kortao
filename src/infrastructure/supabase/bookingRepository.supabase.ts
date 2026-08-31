@@ -185,7 +185,7 @@ export const crearBookingRepository = (
   listarCitasParaClientesRecurrentes: async (negocioId) => {
     const { data, error } = await cliente
       .from('citas')
-      .select('cliente_telefono, cliente_nombre, fecha_hora')
+      .select('cliente_telefono, cliente_nombre, cliente_correo, fecha_hora')
       .eq('negocio_id', negocioId)
       .neq('estado', 'cancelada')
       .order('fecha_hora', { ascending: false })
@@ -197,13 +197,16 @@ export const crearBookingRepository = (
     return ((data as {
       cliente_telefono: string
       cliente_nombre: string
+      cliente_correo: string | null
       fecha_hora: string
     }[] | null) ?? []).map((fila): CitaParaClientes => ({
       clienteTelefono: fila.cliente_telefono,
       clienteNombre: fila.cliente_nombre,
+      clienteCorreo: fila.cliente_correo ?? null,
       fechaHora: new Date(fila.fecha_hora)
     }))
   },
+
 
   listarCitasCompletadasParaReportes: async (negocioId) => {
     const { data, error } = await cliente
