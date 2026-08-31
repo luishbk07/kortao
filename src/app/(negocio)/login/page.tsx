@@ -12,7 +12,9 @@ export const metadata: Metadata = {
 }
 
 const LoginPage = () => {
-  return <FormularioLogin />
+  const telefonoSoporte = process.env.SOPORTE_WHATSAPP?.trim() || null
+
+  return <FormularioLogin telefonoSoporte={telefonoSoporte} />
 }
 
 export default LoginPage

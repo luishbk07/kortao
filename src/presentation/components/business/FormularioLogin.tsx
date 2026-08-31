@@ -16,13 +16,20 @@ import { crearIniciarSesion } from '@/application/useCases/auth/iniciarSesion'
 import { crearSolicitarRestablecimientoContrasena } from '@/application/useCases/auth/solicitarRestablecimientoContrasena'
 import { crearDependenciasPanelNavegador } from '@/presentation/lib/crearDependenciasPanelNavegador'
 import { EncabezadoMarca } from '@/presentation/components/ui/EncabezadoMarca'
+import { EnlaceAyudaCrearCuenta } from '@/presentation/components/auth/EnlaceAyudaCrearCuenta'
 
 type VistaLogin = 'entrar' | 'olvidar'
 
 const MENSAJE_ENLACE_ENVIADO =
   'Si el correo existe, te enviamos un enlace para restablecer tu contraseña.'
 
-export const FormularioLogin = () => {
+type FormularioLoginProps = {
+  telefonoSoporte?: string | null
+}
+
+export const FormularioLogin = ({
+  telefonoSoporte = null
+}: FormularioLoginProps) => {
   const router = useRouter()
   const [vista, setVista] = useState<VistaLogin>('entrar')
   const [email, setEmail] = useState('')
@@ -228,6 +235,8 @@ export const FormularioLogin = () => {
               )}
             </>
           )}
+
+          <EnlaceAyudaCrearCuenta telefonoSoporte={telefonoSoporte} />
         </Stack>
       </Container>
     </Box>

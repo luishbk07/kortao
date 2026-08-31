@@ -13,6 +13,7 @@ import Typography from '@mui/material/Typography'
 import { keyframes } from '@mui/system'
 import { EncabezadoMarca } from '@/presentation/components/ui/EncabezadoMarca'
 import { LogoKortao } from '@/presentation/components/ui/LogoKortao'
+import { EnlaceAyudaCrearCuenta } from '@/presentation/components/auth/EnlaceAyudaCrearCuenta'
 
 const aparecer = keyframes`
   from {
@@ -50,7 +51,11 @@ const animacion = (retrasoMs: number) => ({
   animationDelay: `${retrasoMs}ms`
 })
 
-export const LandingKortao = () => {
+export const LandingKortao = ({
+  telefonoSoporte = null
+}: {
+  telefonoSoporte?: string | null
+}) => {
   return (
     <Box
       component='main'
@@ -249,6 +254,10 @@ export const LandingKortao = () => {
               Crear cuenta
             </Button>
           </Stack>
+
+          <Box sx={{ ...animacion(420), pt: 1 }}>
+            <EnlaceAyudaCrearCuenta telefonoSoporte={telefonoSoporte} />
+          </Box>
         </Stack>
       </Container>
     </Box>

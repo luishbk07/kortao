@@ -75,6 +75,7 @@ const HomePage = async () => {
 
   if (!user) {
     const jsonLd = construirJsonLd()
+    const telefonoSoporte = process.env.SOPORTE_WHATSAPP?.trim() || null
 
     return (
       <>
@@ -82,7 +83,7 @@ const HomePage = async () => {
           type='application/ld+json'
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        <LandingKortao />
+        <LandingKortao telefonoSoporte={telefonoSoporte} />
       </>
     )
   }
