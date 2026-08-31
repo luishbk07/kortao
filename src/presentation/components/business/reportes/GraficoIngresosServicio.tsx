@@ -11,6 +11,8 @@ type GraficoIngresosServicioProps = {
   datos: IngresoPorServicio[]
 }
 
+const TAMANO_DONUT = 200
+
 const formatearMonto = (monto: number): string => {
   return new Intl.NumberFormat('es-DO', {
     style: 'currency',
@@ -48,7 +50,8 @@ export const GraficoIngresosServicio = ({
         minHeight: 320,
         display: 'flex',
         flexDirection: 'column',
-        gap: 2
+        gap: 2,
+        overflow: 'hidden'
       }}
     >
       <Typography variant='subtitle1' fontWeight={700} color='primary'>
@@ -68,23 +71,34 @@ export const GraficoIngresosServicio = ({
         </Box>
       ) : (
         <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          spacing={2}
+          direction={{ xs: 'column', md: 'row' }}
+          spacing={2.5}
           alignItems='center'
           flex={1}
+          minWidth={0}
         >
-          <Box sx={{ width: '100%', maxWidth: 220, height: 200 }}>
-            <ResponsiveContainer width='100%' height='100%'>
+          <Box
+            sx={{
+              width: TAMANO_DONUT,
+              height: TAMANO_DONUT,
+              flexShrink: 0,
+              mx: 'auto'
+            }}
+          >
+            <ResponsiveContainer width='100%' height='100%' debounce={50}>
               <PieChart>
                 <Pie
                   data={datos}
                   dataKey='monto'
                   nameKey='nombre'
-                  innerRadius={55}
-                  outerRadius={85}
-                  paddingAngle={2}
+                  cx='50%'
+                  cy='50%'
+                  innerRadius='58%'
+                  outerRadius='82%'
+                  paddingAngle={3}
                   stroke={tema.palette.background.paper}
-                  strokeWidth={2}
+                  strokeWidth={3}
+                  isAnimationActive={false}
                 >
                   {datos.map((entrada, indice) => (
                     <Cell
@@ -95,7 +109,9 @@ export const GraficoIngresosServicio = ({
                 </Pie>
                 <Tooltip
                   formatter={(valor) =>
-                    typeof valor === 'number' ? formatearMonto(valor) : String(valor ?? '')
+                    typeof valor === 'number'
+                      ? formatearMonto(valor)
+                      : String(valor ?? '')
                   }
                   contentStyle={{
                     borderRadius: 12,
@@ -107,7 +123,7 @@ export const GraficoIngresosServicio = ({
             </ResponsiveContainer>
           </Box>
 
-          <Stack spacing={1} width='100%' flex={1}>
+          <Stack spacing={1} width='100%' flex={1} minWidth={0}>
             {datos.map((item, indice) => (
               <Stack
                 key={item.nombre}
@@ -116,7 +132,12 @@ export const GraficoIngresosServicio = ({
                 justifyContent='space-between'
                 spacing={1}
               >
-                <Stack direction='row' alignItems='center' spacing={1} minWidth={0}>
+                <Stack
+                  direction='row'
+                  alignItems='center'
+                  spacing={1}
+                  minWidth={0}
+                >
                   <Box
                     sx={{
                       width: 10,
@@ -135,7 +156,12 @@ export const GraficoIngresosServicio = ({
                     {item.nombre}
                   </Typography>
                 </Stack>
-                <Typography variant='body2' fontWeight={600} color='text.primary'>
+                <Typography
+                  variant='body2'
+                  fontWeight={600}
+                  color='text.primary'
+                  flexShrink={0}
+                >
                   {formatearMonto(item.monto)}
                 </Typography>
               </Stack>
