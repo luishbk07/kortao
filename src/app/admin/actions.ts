@@ -2,6 +2,7 @@
 
 import { crearRegistrarPago } from '@/application/useCases/admin/registrarPago'
 import { crearAdminRepository } from '@/infrastructure/supabase/adminRepository.supabase'
+import { crearAfiliadosRepository } from '@/infrastructure/supabase/afiliadosRepository.supabase'
 import { crearSupportRepository } from '@/infrastructure/supabase/supportRepository.supabase'
 import { crearClienteServidor } from '@/infrastructure/supabase/clienteServidor'
 import { formatearFechaCalendario } from '@/shared/utils/fechas'
@@ -180,5 +181,106 @@ export const actualizarEstadoReporteSoporteAction = async (
     mensaje: reporte.mensaje,
     estado: reporte.estado,
     creadoEn: reporte.creadoEn.toISOString()
+  }
+}
+
+export const crearAfiliadoAction = async (
+  nombre: string,
+  codigo: string
+): Promise<{
+  id: string
+  nombre: string
+  codigo: string
+  activo: boolean
+  creadoEn: string
+}> => {
+  const supabase = await exigirAdminAutenticado()
+  const afiliadosRepository = crearAfiliadosRepository(supabase)
+  const afiliado = await afiliadosRepository.crear(nombre, codigo)
+
+  return {
+    id: afiliado.id,
+    nombre: afiliado.nombre,
+    codigo: afiliado.codigo,
+    activo: afiliado.activo,
+    creadoEn: afiliado.creadoEn.toISOString()
+  }
+}
+
+export const actualizarAfiliadoAction = async (
+  afiliadoId: string,
+  nombre: string,
+  codigo: string
+): Promise<{
+  id: string
+  nombre: string
+  codigo: string
+  activo: boolean
+  creadoEn: string
+}> => {
+  const supabase = await exigirAdminAutenticado()
+  const afiliadosRepository = crearAfiliadosRepository(supabase)
+  const afiliado = await afiliadosRepository.actualizar(
+    afiliadoId,
+    nombre,
+    codigo
+  )
+
+  return {
+    id: afiliado.id,
+    nombre: afiliado.nombre,
+    codigo: afiliado.codigo,
+    activo: afiliado.activo,
+    creadoEn: afiliado.creadoEn.toISOString()
+  }
+}
+
+export const actualizarAfiliadoActivoAction = async (
+  afiliadoId: string,
+  activo: boolean
+): Promise<void> => {
+  const supabase = await exigirAdminAutenticado()
+  const afiliadosRepository = crearAfiliadosRepository(supabase)
+  await afiliadosRepository.actualizarActivo(afiliadoId, activo)
+}
+
+export const eliminarAfiliadoAction = async (
+  afiliadoId: string
+): Promise<void> => {
+  const supabase = await exigirAdminAutenticado()
+  const afiliadosRepository = crearAfiliadosRepository(supabase)
+  await afiliadosRepository.eliminar(afiliadoId)
+}
+
+export const actualizarAfiliadoNegocioAction = async (
+  negocioId: string,
+  afiliadoId: string | null
+): Promise<void> => {
+  const supabase = await exigirAdminAutenticado()
+
+  if (afiliadoId) {
+    const { data: afiliado, error: errorAfiliado } = await supabase
+      .from('afiliados')
+      .select('id')
+      .eq('id', afiliadoId)
+      .eq('activo', true)
+      .maybeSingle()
+
+    if (errorAfiliado) {
+      throw new Error(errorAfiliado.message)
+    }
+
+    if (!afiliado) {
+      throw new Error('El afiliado no está disponible')
+    }
+  }
+
+  const { error } = await supabase
+    .from('negocios')
+    .update({ afiliado_id: afiliadoId })
+    .eq('id', negocioId)
+
+  if (error) {
+    throw new Error(error.message)
   }
 }

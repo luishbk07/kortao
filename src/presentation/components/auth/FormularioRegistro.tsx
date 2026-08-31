@@ -12,8 +12,10 @@ import Container from '@mui/material/Container'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import { crearAfiliadosRepository } from '@/infrastructure/supabase/afiliadosRepository.supabase'
 import { crearClienteNavegador } from '@/infrastructure/supabase/clienteNavegador'
 import { EncabezadoMarca } from '@/presentation/components/ui/EncabezadoMarca'
+import { normalizarCodigoAfiliado } from '@/shared/utils/afiliado'
 import {
   esTelefonoCompleto,
   formatearTelefonoVisual,
@@ -27,6 +29,10 @@ export const FormularioRegistro = () => {
   const [nombreNegocio, setNombreNegocio] = useState('')
   const [telefonoWhatsapp, setTelefonoWhatsapp] = useState('')
   const [direccion, setDireccion] = useState('')
+  const [codigoAfiliado, setCodigoAfiliado] = useState('')
+  const [errorCodigoAfiliado, setErrorCodigoAfiliado] = useState<string | null>(
+    null
+  )
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [correoEnviado, setCorreoEnviado] = useState(false)
@@ -46,9 +52,30 @@ export const FormularioRegistro = () => {
 
     setEnviando(true)
     setError(null)
+    setErrorCodigoAfiliado(null)
 
     try {
       const supabase = crearClienteNavegador()
+      let afiliadoId: string | undefined
+
+      const codigoIngresado = normalizarCodigoAfiliado(codigoAfiliado)
+
+      if (codigoIngresado.length > 0) {
+        const afiliadosRepository = crearAfiliadosRepository(supabase)
+
+        try {
+          const afiliado =
+            await afiliadosRepository.buscarActivoPorCodigo(codigoIngresado)
+
+          if (afiliado) {
+            afiliadoId = afiliado.id
+          } else {
+            setErrorCodigoAfiliado('Código no válido')
+          }
+        } catch {
+          setErrorCodigoAfiliado('Código no válido')
+        }
+      }
 
       const { data, error: errorSignup } = await supabase.auth.signUp({
         email: email.trim(),
@@ -57,7 +84,8 @@ export const FormularioRegistro = () => {
           data: {
             nombreNegocio: nombreNegocio.trim(),
             telefonoWhatsapp,
-            direccion: direccion.trim()
+            direccion: direccion.trim(),
+            ...(afiliadoId ? { afiliadoId } : {})
           }
         }
       })
@@ -108,12 +136,26 @@ export const FormularioRegistro = () => {
 
           {correoEnviado ? (
             <Stack spacing={2} alignItems='center'>
-              <MarkEmailReadOutlinedIcon color='primary' sx={{ fontSize: 48 }} />
+              <MarkEmailReadOutlinedIcon
+                color='primary'
+                sx={{ fontSize: 48 }}
+              />
               <Alert severity='success' icon={false} sx={{ width: '100%' }}>
                 Revisa tu correo y confirma tu cuenta para continuar. Cuando
                 confirmes, inicia sesión y termina de configurar tu negocio.
               </Alert>
-              <Button component={Link} href='/login' color='secondary' variant='contained'>
+              {errorCodigoAfiliado ? (
+                <Alert severity='warning' sx={{ width: '100%' }}>
+                  {errorCodigoAfiliado}. Tu cuenta se creó sin código de
+                  afiliado.
+                </Alert>
+              ) : null}
+              <Button
+                component={Link}
+                href='/login'
+                color='secondary'
+                variant='contained'
+              >
                 Ir a iniciar sesión
               </Button>
             </Stack>
@@ -171,6 +213,19 @@ export const FormularioRegistro = () => {
                   label='Dirección'
                   value={direccion}
                   onChange={(evento) => setDireccion(evento.target.value)}
+                  fullWidth
+                />
+                <TextField
+                  label='Código de afiliado (opcional)'
+                  value={codigoAfiliado}
+                  onChange={(evento) => {
+                    setErrorCodigoAfiliado(null)
+                    setCodigoAfiliado(
+                      normalizarCodigoAfiliado(evento.target.value)
+                    )
+                  }}
+                  error={Boolean(errorCodigoAfiliado)}
+                  helperText={errorCodigoAfiliado ?? undefined}
                   fullWidth
                 />
                 <Button

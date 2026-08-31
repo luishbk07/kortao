@@ -25,12 +25,14 @@ type OnboardingNegocioProps = {
   nombreNegocioInicial: string
   telefonoWhatsappInicial: string
   direccionInicial: string
+  afiliadoIdInicial?: string | null
 }
 
 export const OnboardingNegocio = ({
   nombreNegocioInicial,
   telefonoWhatsappInicial,
-  direccionInicial
+  direccionInicial,
+  afiliadoIdInicial = null
 }: OnboardingNegocioProps) => {
   const router = useRouter()
   const [nombreNegocio, setNombreNegocio] = useState(nombreNegocioInicial)
@@ -121,7 +123,8 @@ export const OnboardingNegocio = ({
               telefono_whatsapp_param: telefonoWhatsapp,
               direccion_param: direccion.trim() || null,
               latitud_param: ubicacion?.latitud ?? null,
-              longitud_param: ubicacion?.longitud ?? null
+              longitud_param: ubicacion?.longitud ?? null,
+              afiliado_id_param: afiliadoIdInicial || null
             }
           )
 

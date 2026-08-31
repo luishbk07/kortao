@@ -5,6 +5,7 @@ export type UsuarioAutenticado = {
     nombreNegocio?: string
     telefonoWhatsapp?: string
     direccion?: string
+    afiliadoId?: string
   }
 }
 

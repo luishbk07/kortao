@@ -20,6 +20,7 @@ type NegocioFila = {
   ciclo_facturacion: string | null
   fecha_inicio_suscripcion: string
   suscripcion_activa: boolean
+  afiliado_id: string | null
 }
 
 type CitaFila = {
@@ -80,7 +81,8 @@ const mapearNegocio = (fila: NegocioFila): NegocioAdminDetalle => ({
   fechaInicioSuscripcion: parsearFechaCalendario(
     fila.fecha_inicio_suscripcion.slice(0, 10)
   ),
-  suscripcionActiva: fila.suscripcion_activa
+  suscripcionActiva: fila.suscripcion_activa,
+  afiliadoId: fila.afiliado_id
 })
 
 const mapearPago = (fila: PagoFila): PagoNegocioAdmin => ({
@@ -125,7 +127,7 @@ export const crearAdminRepository = (
     const { data: negocioData, error: errorNegocio } = await cliente
       .from('negocios')
       .select(
-        'id, nombre, slug, plan, precio_mensual, ciclo_facturacion, fecha_inicio_suscripcion, suscripcion_activa'
+        'id, nombre, slug, plan, precio_mensual, ciclo_facturacion, fecha_inicio_suscripcion, suscripcion_activa, afiliado_id'
       )
       .eq('id', negocioId)
       .maybeSingle()

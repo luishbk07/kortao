@@ -26,6 +26,7 @@ export type NegocioAdminDetalle = {
   cicloFacturacion: CicloFacturacion
   fechaInicioSuscripcion: Date
   suscripcionActiva: boolean
+  afiliadoId: string | null
 }
 
 export type DetalleNegocioAdmin = {

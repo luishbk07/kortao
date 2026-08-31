@@ -23,6 +23,7 @@ const OnboardingPage = async () => {
       nombreNegocioInicial={usuario.metadata?.nombreNegocio ?? ''}
       telefonoWhatsappInicial={usuario.metadata?.telefonoWhatsapp ?? ''}
       direccionInicial={usuario.metadata?.direccion ?? ''}
+      afiliadoIdInicial={usuario.metadata?.afiliadoId ?? null}
     />
   )
 }

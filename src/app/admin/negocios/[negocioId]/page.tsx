@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { crearObtenerDetalleNegocioAdmin } from '@/application/useCases/admin/obtenerDetalleNegocioAdmin'
 import { crearObtenerHistorialPagos } from '@/application/useCases/admin/obtenerHistorialPagos'
 import { crearAdminRepository } from '@/infrastructure/supabase/adminRepository.supabase'
+import { crearAfiliadosRepository } from '@/infrastructure/supabase/afiliadosRepository.supabase'
 import { crearClienteServidor } from '@/infrastructure/supabase/clienteServidor'
 import { DetalleNegocioAdminVista } from '@/presentation/components/admin/DetalleNegocioAdminVista'
 
@@ -16,6 +17,7 @@ const DetalleNegocioAdminPage = async ({
 }: DetalleNegocioAdminPageProps) => {
   const supabase = crearClienteServidor()
   const adminRepository = crearAdminRepository(supabase)
+  const afiliadosRepository = crearAfiliadosRepository(supabase)
   const obtenerDetalle = crearObtenerDetalleNegocioAdmin(adminRepository)
   const obtenerHistorial = crearObtenerHistorialPagos(adminRepository)
   const detalle = await obtenerDetalle(params.negocioId)
@@ -24,12 +26,16 @@ const DetalleNegocioAdminPage = async ({
     notFound()
   }
 
-  const historialPagos = await obtenerHistorial(params.negocioId)
+  const [historialPagos, afiliadosActivos] = await Promise.all([
+    obtenerHistorial(params.negocioId),
+    afiliadosRepository.listarActivos()
+  ])
 
   return (
     <DetalleNegocioAdminVista
       detalle={detalle}
       historialPagos={historialPagos}
+      afiliadosActivos={afiliadosActivos}
     />
   )
 }

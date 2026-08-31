@@ -17,11 +17,15 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
-import { actualizarCicloFacturacionAction } from '@/app/admin/actions'
+import {
+  actualizarAfiliadoNegocioAction,
+  actualizarCicloFacturacionAction
+} from '@/app/admin/actions'
 import type {
   DetalleNegocioAdmin,
   PagoNegocioAdmin
 } from '@/domain/admin/admin.types'
+import type { AfiliadoOpcion } from '@/domain/admin/afiliado.types'
 import type { EstadoCita } from '@/domain/booking/booking.types'
 import { HistorialPagosAdmin } from '@/presentation/components/admin/HistorialPagosAdmin'
 import {
@@ -44,6 +48,7 @@ import Link from 'next/link'
 type DetalleNegocioAdminVistaProps = {
   detalle: DetalleNegocioAdmin
   historialPagos: PagoNegocioAdmin[]
+  afiliadosActivos: AfiliadoOpcion[]
 }
 
 const etiquetaPlan = (plan: string): string => {
@@ -138,13 +143,16 @@ const OPCIONES_CICLO = [
 
 export const DetalleNegocioAdminVista = ({
   detalle,
-  historialPagos
+  historialPagos,
+  afiliadosActivos
 }: DetalleNegocioAdminVistaProps) => {
   const { negocio: negocioInicial, metricas, citasRecientes } = detalle
   const [negocio, setNegocio] = useState(negocioInicial)
   const [pagos, setPagos] = useState(historialPagos)
   const [errorCiclo, setErrorCiclo] = useState<string | null>(null)
   const [guardandoCiclo, setGuardandoCiclo] = useState(false)
+  const [errorAfiliado, setErrorAfiliado] = useState<string | null>(null)
+  const [guardandoAfiliado, setGuardandoAfiliado] = useState(false)
 
   const proximaPago = calcularProximaFechaPago(
     negocio.fechaInicioSuscripcion,
@@ -187,6 +195,48 @@ export const DetalleNegocioAdminVista = ({
     }
   }
 
+  const handleCambiarAfiliado = async (afiliadoId: string) => {
+    const nuevoId = afiliadoId === '' ? null : afiliadoId
+
+    if (nuevoId === negocio.afiliadoId) {
+      return
+    }
+
+    setErrorAfiliado(null)
+    setGuardandoAfiliado(true)
+    const anterior = negocio.afiliadoId
+    setNegocio((actual) => ({ ...actual, afiliadoId: nuevoId }))
+
+    try {
+      await actualizarAfiliadoNegocioAction(negocio.id, nuevoId)
+    } catch {
+      setNegocio((actual) => ({ ...actual, afiliadoId: anterior }))
+      setErrorAfiliado('No se pudo actualizar el afiliado.')
+    } finally {
+      setGuardandoAfiliado(false)
+    }
+  }
+
+  const opcionesAfiliado = (() => {
+    const activos = [...afiliadosActivos]
+    const asignado = negocio.afiliadoId
+      ? activos.find((afiliado) => afiliado.id === negocio.afiliadoId)
+      : null
+
+    if (negocio.afiliadoId && !asignado) {
+      return [
+        {
+          id: negocio.afiliadoId,
+          nombre: 'Afiliado inactivo',
+          codigo: negocio.afiliadoId.slice(0, 8)
+        },
+        ...activos
+      ]
+    }
+
+    return activos
+  })()
+
   return (
     <Stack spacing={3}>
       <Stack
@@ -215,6 +265,12 @@ export const DetalleNegocioAdminVista = ({
       {errorCiclo ? (
         <Alert severity='error' onClose={() => setErrorCiclo(null)}>
           {errorCiclo}
+        </Alert>
+      ) : null}
+
+      {errorAfiliado ? (
+        <Alert severity='error' onClose={() => setErrorAfiliado(null)}>
+          {errorAfiliado}
         </Alert>
       ) : null}
 
@@ -295,6 +351,44 @@ export const DetalleNegocioAdminVista = ({
               )
             }
           />
+          <Box
+            sx={{
+              flex: '1 1 180px',
+              minWidth: 0,
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 3,
+              bgcolor: 'background.paper',
+              px: 2,
+              py: 1.75
+            }}
+          >
+            <Typography variant='body2' color='text.secondary' gutterBottom>
+              Afiliado
+            </Typography>
+            <FormControl size='small' fullWidth>
+              <Select
+                value={negocio.afiliadoId ?? ''}
+                disabled={guardandoAfiliado}
+                displayEmpty
+                onChange={(evento) => {
+                  void handleCambiarAfiliado(evento.target.value)
+                }}
+                inputProps={{
+                  'aria-label': 'Afiliado del negocio'
+                }}
+              >
+                <MenuItem value=''>
+                  <em>Ninguno</em>
+                </MenuItem>
+                {opcionesAfiliado.map((afiliado) => (
+                  <MenuItem key={afiliado.id} value={afiliado.id}>
+                    {afiliado.nombre} ({afiliado.codigo})
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
           <TarjetaDato
             etiqueta='Suscripción'
             valor={negocio.suscripcionActiva ? 'Activa' : 'Pausada'}

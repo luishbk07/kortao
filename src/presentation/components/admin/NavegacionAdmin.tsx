@@ -10,6 +10,7 @@ import { useContadorReportesPendientes } from '@/presentation/lib/contadorReport
 
 const enlacesAdmin = [
   { href: '/admin', etiqueta: 'Negocios', esNegocios: true },
+  { href: '/admin/afiliados', etiqueta: 'Afiliados', esNegocios: false },
   { href: '/admin/soporte', etiqueta: 'Soporte', esNegocios: false }
 ]
 
@@ -31,7 +32,7 @@ export const NavegacionAdmin = () => {
         {enlacesAdmin.map((enlace) => {
           const activo = enlace.esNegocios
             ? pathname === '/admin' || pathname.startsWith('/admin/negocios')
-            : pathname.startsWith(enlace.href)
+            : pathname === enlace.href || pathname.startsWith(`${enlace.href}/`)
           const esSoporte = enlace.href === '/admin/soporte'
 
           return (
