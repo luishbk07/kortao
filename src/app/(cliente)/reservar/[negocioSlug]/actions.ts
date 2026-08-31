@@ -8,8 +8,13 @@ import { resendEmailNotificationService } from '@/infrastructure/notifications/r
 import { crearBookingRepository } from '@/infrastructure/supabase/bookingRepository.supabase'
 import { crearBusinessRepository } from '@/infrastructure/supabase/businessRepository.supabase'
 import { crearClienteServidor } from '@/infrastructure/supabase/clienteServidor'
+import { crearNotificacionesRepository } from '@/infrastructure/supabase/notificacionesRepository.supabase'
 import { whatsappNotificationService } from '@/infrastructure/whatsapp/whatsappNotificationService'
 import { normalizarCorreo } from '@/shared/utils/correo'
+import {
+  formatearFechaLegible,
+  formatearHoraLegible
+} from '@/shared/utils/fechas'
 
 type HorarioFila = {
   dia_semana: number
@@ -95,7 +100,7 @@ export const confirmarReserva = async (
   const { horarios, nombre, direccion, logoUrl, plan } =
     await obtenerDatosNegocio(inputNormalizado.negocioId)
 
-  return crearReserva(
+  const cita = await crearReserva(
     inputNormalizado,
     horarios,
     nombre,
@@ -103,4 +108,21 @@ export const confirmarReserva = async (
     logoUrl,
     plan
   )
+
+  try {
+    const notificacionesRepository = crearNotificacionesRepository(supabase)
+    const fecha = formatearFechaLegible(cita.fechaHora, true)
+    const hora = formatearHoraLegible(cita.fechaHora)
+
+    await notificacionesRepository.crear({
+      negocioId: cita.negocioId,
+      citaId: cita.id,
+      mensaje: `Nueva cita de ${cita.clienteNombre} para el ${fecha} a las ${hora}`
+    })
+  } catch (error) {
+    // Booking already succeeded; in-app notice must not fail the reservation.
+    console.error('No se pudo crear la notificación del negocio', error)
+  }
+
+  return cita
 }

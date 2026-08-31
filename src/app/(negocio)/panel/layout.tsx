@@ -14,6 +14,7 @@ import {
   debeMostrarAvisoPagoSuscripcion
 } from '@/shared/utils/suscripcion'
 import type { AccesoAdminPanel } from '@/presentation/components/business/NavegacionPanel'
+import { crearNotificacionesRepository } from '@/infrastructure/supabase/notificacionesRepository.supabase'
 
 export const metadata: Metadata = {
   robots: {
@@ -97,6 +98,7 @@ const PanelLayout = async ({ children }: PanelLayoutProps) => {
     fechaProximoPago: string
   } | null = null
   let accesoAdmin: AccesoAdminPanel | undefined
+  let notificacionesNoLeidas = 0
 
   if (user) {
     const { data: membresia } = await supabase
@@ -162,6 +164,17 @@ const PanelLayout = async ({ children }: PanelLayoutProps) => {
       }
     }
 
+    if (negocioId) {
+      try {
+        const notificacionesRepository =
+          crearNotificacionesRepository(supabase)
+        notificacionesNoLeidas =
+          await notificacionesRepository.contarNoLeidas(negocioId)
+      } catch {
+        notificacionesNoLeidas = 0
+      }
+    }
+
     const { data: admin } = await supabase
       .from('administradores_kortao')
       .select('auth_user_id')
@@ -184,6 +197,7 @@ const PanelLayout = async ({ children }: PanelLayoutProps) => {
     <PanelShell
       plan={plan}
       recordatorioPago={recordatorioPago}
+      notificacionesNoLeidas={notificacionesNoLeidas}
       {...(accesoAdmin ? { accesoAdmin } : {})}
     >
       {children}

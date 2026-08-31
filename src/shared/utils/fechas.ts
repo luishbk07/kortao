@@ -146,3 +146,36 @@ export const formatearHoraLegible = (fecha: Date): string => {
     timeZone: ZONA_HORARIA_NEGOCIO
   })
 }
+
+/** Relative time in Spanish for recent activity (e.g. "hace 5 min"). */
+export const formatearTiempoRelativo = (
+  fecha: Date,
+  ahora: Date = new Date()
+): string => {
+  const diferenciaMs = ahora.getTime() - fecha.getTime()
+  const segundos = Math.max(0, Math.floor(diferenciaMs / 1000))
+
+  if (segundos < 60) {
+    return 'hace un momento'
+  }
+
+  const minutos = Math.floor(segundos / 60)
+
+  if (minutos < 60) {
+    return minutos === 1 ? 'hace 1 min' : `hace ${minutos} min`
+  }
+
+  const horas = Math.floor(minutos / 60)
+
+  if (horas < 24) {
+    return horas === 1 ? 'hace 1 hora' : `hace ${horas} horas`
+  }
+
+  const dias = Math.floor(horas / 24)
+
+  if (dias < 7) {
+    return dias === 1 ? 'hace 1 día' : `hace ${dias} días`
+  }
+
+  return formatearFechaLegible(fecha, true)
+}

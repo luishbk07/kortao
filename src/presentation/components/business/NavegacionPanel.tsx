@@ -31,6 +31,7 @@ import Toolbar from '@mui/material/Toolbar'
 import { crearCerrarSesion } from '@/application/useCases/auth/cerrarSesion'
 import { BotonModoColor } from '@/presentation/components/ui/BotonModoColor'
 import { LogoKortao } from '@/presentation/components/ui/LogoKortao'
+import { MenuNotificacionesPanel } from '@/presentation/components/business/MenuNotificacionesPanel'
 import { crearDependenciasPanelNavegador } from '@/presentation/lib/crearDependenciasPanelNavegador'
 import { useContadorReportesPendientes } from '@/presentation/lib/contadorReportesPendientes'
 
@@ -40,6 +41,7 @@ export type AccesoAdminPanel = {
 
 type NavegacionPanelProps = {
   accesoAdmin?: AccesoAdminPanel
+  notificacionesNoLeidas?: number
 }
 
 const enlaces = [
@@ -108,7 +110,10 @@ const estilosEnlaceAdmin = {
   }
 }
 
-export const NavegacionPanel = ({ accesoAdmin }: NavegacionPanelProps) => {
+export const NavegacionPanel = ({
+  accesoAdmin,
+  notificacionesNoLeidas = 0
+}: NavegacionPanelProps) => {
   const pathname = usePathname()
   const router = useRouter()
   const [menuAbierto, setMenuAbierto] = useState(false)
@@ -271,6 +276,12 @@ export const NavegacionPanel = ({ accesoAdmin }: NavegacionPanelProps) => {
               {enlaceAdmin}
             </Stack>
 
+            <Box sx={{ flexGrow: 1, display: { xs: 'block', md: 'none' } }} />
+
+            <MenuNotificacionesPanel
+              noLeidasInicial={notificacionesNoLeidas}
+            />
+
             <Stack
               direction='row'
               alignItems='center'
@@ -296,8 +307,6 @@ export const NavegacionPanel = ({ accesoAdmin }: NavegacionPanelProps) => {
                 Salir
               </Button>
             </Stack>
-
-            <Box sx={{ flexGrow: 1, display: { xs: 'block', md: 'none' } }} />
 
             <Stack
               direction='row'

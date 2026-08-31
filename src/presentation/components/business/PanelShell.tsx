@@ -20,13 +20,15 @@ type PanelShellProps = {
   plan: string
   recordatorioPago?: RecordatorioPagoPanel | null
   accesoAdmin?: AccesoAdminPanel
+  notificacionesNoLeidas?: number
 }
 
 const PanelShellContenido = ({
   children,
   plan,
   recordatorioPago,
-  accesoAdmin
+  accesoAdmin,
+  notificacionesNoLeidas = 0
 }: PanelShellProps) => {
   return (
     <Box
@@ -35,7 +37,10 @@ const PanelShellContenido = ({
       display='flex'
       flexDirection='column'
     >
-      <NavegacionPanel accesoAdmin={accesoAdmin} />
+      <NavegacionPanel
+        accesoAdmin={accesoAdmin}
+        notificacionesNoLeidas={notificacionesNoLeidas}
+      />
       {recordatorioPago ? (
         <BannerRecordatorioPago recordatorio={recordatorioPago} />
       ) : (
@@ -53,13 +58,15 @@ export const PanelShell = ({
   children,
   plan,
   recordatorioPago = null,
-  accesoAdmin
+  accesoAdmin,
+  notificacionesNoLeidas = 0
 }: PanelShellProps) => {
   if (!accesoAdmin) {
     return (
       <PanelShellContenido
         plan={plan}
         recordatorioPago={recordatorioPago}
+        notificacionesNoLeidas={notificacionesNoLeidas}
       >
         {children}
       </PanelShellContenido>
@@ -74,6 +81,7 @@ export const PanelShell = ({
         plan={plan}
         recordatorioPago={recordatorioPago}
         accesoAdmin={accesoAdmin}
+        notificacionesNoLeidas={notificacionesNoLeidas}
       >
         {children}
       </PanelShellContenido>
