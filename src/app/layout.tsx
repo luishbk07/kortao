@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
 import { Inter } from 'next/font/google'
-import Script from 'next/script'
 import { RegistrarServiceWorker } from '@/presentation/components/ui/RegistrarServiceWorker'
 import { ThemeRegistry } from '@/presentation/theme/ThemeRegistry'
 import { obtenerOrigenSitio } from '@/shared/utils/sitio'
@@ -70,9 +69,6 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
     shortcut: [{ url: '/favicon.svg', type: 'image/svg+xml' }]
-  },
-  other: {
-    'google-adsense-account': 'ca-pub-7362041124232949'
   }
 }
 
@@ -95,11 +91,6 @@ const RootLayout = ({ children }: RootLayoutProps) => {
           {children}
           <RegistrarServiceWorker />
         </ThemeRegistry>
-        <Script
-          src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7362041124232949'
-          strategy='afterInteractive'
-          crossOrigin='anonymous'
-        />
       </body>
     </html>
   )
