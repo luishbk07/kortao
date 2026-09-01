@@ -5,15 +5,18 @@ import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
 import Toolbar from '@mui/material/Toolbar'
+import type { Breakpoint } from '@mui/material/styles'
 import { BotonModoColor } from '@/presentation/components/ui/BotonModoColor'
 import { LogoKortao } from '@/presentation/components/ui/LogoKortao'
 
 type EncabezadoMarcaProps = {
   mostrarModoColor?: boolean
+  anchoMaximo?: Breakpoint | false
 }
 
 export const EncabezadoMarca = ({
-  mostrarModoColor = true
+  mostrarModoColor = true,
+  anchoMaximo = 'sm'
 }: EncabezadoMarcaProps) => {
   return (
     <AppBar
@@ -26,7 +29,7 @@ export const EncabezadoMarca = ({
         bgcolor: 'background.paper'
       }}
     >
-      <Container maxWidth='sm'>
+      <Container maxWidth={anchoMaximo}>
         <Toolbar
           disableGutters
           sx={{

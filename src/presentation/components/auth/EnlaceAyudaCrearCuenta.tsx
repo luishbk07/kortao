@@ -6,6 +6,7 @@ import { TELEFONO_SOPORTE_KORTAO } from '@/shared/utils/planes'
 
 type EnlaceAyudaCrearCuentaProps = {
   telefonoSoporte?: string | null
+  alinear?: 'left' | 'center'
 }
 
 const MENSAJE_AYUDA_CUENTA =
@@ -18,7 +19,8 @@ const construirEnlace = (telefonoSoporte: string): string => {
 }
 
 export const EnlaceAyudaCrearCuenta = ({
-  telefonoSoporte
+  telefonoSoporte,
+  alinear = 'center'
 }: EnlaceAyudaCrearCuentaProps) => {
   const telefono = telefonoSoporte?.trim() || TELEFONO_SOPORTE_KORTAO
   const digitos = telefono.replace(/\D/g, '')
@@ -31,7 +33,7 @@ export const EnlaceAyudaCrearCuenta = ({
     <Typography
       variant='body2'
       color='text.secondary'
-      textAlign='center'
+      textAlign={alinear}
       sx={{ lineHeight: 1.5 }}
     >
       <Link
