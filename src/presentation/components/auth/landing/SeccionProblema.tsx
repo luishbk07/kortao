@@ -11,7 +11,7 @@ export const SeccionProblema = () => {
       maxWidth='md'
       sx={{ py: { xs: 6, sm: 8 } }}
     >
-      <Stack spacing={2} maxWidth={640}>
+      <Stack spacing={2} maxWidth={640} width='100%' sx={{ mx: 'auto' }}>
         <Typography
           variant='overline'
           color='secondary'

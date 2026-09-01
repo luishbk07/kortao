@@ -65,8 +65,8 @@ export const SeccionCaracteristicas = () => {
       maxWidth='md'
       sx={{ py: { xs: 6, sm: 8 } }}
     >
-      <Stack spacing={4}>
-        <Stack spacing={1.5} maxWidth={560}>
+      <Stack spacing={4} width='100%'>
+        <Stack spacing={1.5} maxWidth={560} width='100%' sx={{ mx: 'auto' }}>
           <Typography
             variant='overline'
             color='secondary'
@@ -85,7 +85,7 @@ export const SeccionCaracteristicas = () => {
               lineHeight: 1.25
             }}
           >
-            Herramientas pensadas para el ritmo de un salón o barbería
+            Herramientas pensadas para el ritmo de un salón, barbería o cualquier tipo de negocio que necesite una agenda.
           </Typography>
           <Typography color='text.secondary' sx={{ lineHeight: 1.65 }}>
             Nada de paneles eternos ni funciones que no vas a usar. Kortao se
@@ -101,7 +101,10 @@ export const SeccionCaracteristicas = () => {
               xs: '1fr',
               sm: '1fr 1fr'
             },
-            gap: 2
+            gap: 2,
+            width: '100%',
+            maxWidth: 720,
+            mx: 'auto'
           }}
         >
           {CARACTERISTICAS.map((item) => {

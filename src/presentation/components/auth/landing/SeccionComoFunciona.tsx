@@ -45,8 +45,8 @@ export const SeccionComoFunciona = () => {
       }}
     >
       <Container maxWidth='md'>
-        <Stack spacing={4}>
-          <Stack spacing={1.5} maxWidth={560}>
+        <Stack spacing={4} maxWidth={640} width='100%' sx={{ mx: 'auto' }}>
+          <Stack spacing={1.5}>
             <Typography
               variant='overline'
               color='secondary'

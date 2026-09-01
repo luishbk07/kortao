@@ -38,7 +38,9 @@ export const HeroLanding = ({ telefonoSoporte = null }: HeroLandingProps) => {
         <Stack
           spacing={3}
           maxWidth={640}
+          width='100%'
           sx={{
+            mx: 'auto',
             opacity: 0,
             animation: `${aparecer} 0.55s ease forwards`
           }}

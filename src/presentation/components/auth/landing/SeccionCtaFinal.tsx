@@ -21,8 +21,9 @@ export const SeccionCtaFinal = () => {
       <Container maxWidth='md'>
         <Stack
           spacing={3}
-          alignItems={{ xs: 'stretch', sm: 'flex-start' }}
           maxWidth={560}
+          width='100%'
+          sx={{ mx: 'auto' }}
         >
           <Typography
             variant='h4'

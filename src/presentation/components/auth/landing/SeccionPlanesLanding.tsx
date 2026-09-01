@@ -28,8 +28,8 @@ export const SeccionPlanesLanding = () => {
         borderColor: 'divider'
       }}
     >
-      <Stack spacing={4}>
-        <Stack spacing={1.5} maxWidth={560}>
+      <Stack spacing={4} width='100%' maxWidth={720} sx={{ mx: 'auto' }}>
+        <Stack spacing={1.5}>
           <Typography
             variant='overline'
             color='secondary'
@@ -61,6 +61,7 @@ export const SeccionPlanesLanding = () => {
           direction={{ xs: 'column', md: 'row' }}
           spacing={2}
           alignItems='stretch'
+          width='100%'
         >
           <TarjetaComparacionPlan
             titulo='Estándar'
