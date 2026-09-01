@@ -54,7 +54,7 @@ const mensajeErrorReserva = (error: unknown): string => {
     error instanceof LimiteDePlanError ||
     (error instanceof Error &&
       error.message ===
-        'Este negocio alcanzó su límite de citas activas por el momento')
+        'Este negocio alcanzó el límite de citas de su plan gratis')
   ) {
     return 'No hay cupo disponible por ahora. Revisa el límite de citas del plan.'
   }

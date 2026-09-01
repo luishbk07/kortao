@@ -15,7 +15,7 @@ import {
   construirEnlaceWhatsappSoporte,
   esPlanPremium,
   formatearPrecioMensual,
-  LIMITE_CITAS_FUTURAS_PLAN_GRATIS,
+  LIMITE_CITAS_PLAN_GRATIS,
   PRECIO_LISTA_PLAN_PREMIUM,
   TELEFONO_SOPORTE_KORTAO,
   type CicloFacturacion
@@ -45,7 +45,7 @@ type FilaComparacion = {
 const FILAS_ESTANDAR: FilaComparacion[] = [
   { etiqueta: 'Confirmación por WhatsApp y email', disponible: true },
   {
-    etiqueta: `Hasta ${LIMITE_CITAS_FUTURAS_PLAN_GRATIS} citas activas`,
+    etiqueta: `Hasta ${LIMITE_CITAS_PLAN_GRATIS} citas en total`,
     disponible: true
   },
   { etiqueta: 'Anuncios en el panel', disponible: true },
@@ -59,7 +59,7 @@ const FILAS_ESTANDAR: FilaComparacion[] = [
 const FILAS_PREMIUM: FilaComparacion[] = [
   { etiqueta: 'Confirmación por WhatsApp y email', disponible: true },
   {
-    etiqueta: 'Citas activas: ilimitadas',
+    etiqueta: 'Citas ilimitadas',
     disponible: true,
     destacado: true
   },

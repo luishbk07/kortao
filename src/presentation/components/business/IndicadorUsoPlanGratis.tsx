@@ -10,18 +10,20 @@ import LinearProgress from '@mui/material/LinearProgress'
 import Popover from '@mui/material/Popover'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import { LIMITE_CITAS_FUTURAS_PLAN_GRATIS } from '@/shared/utils/planes'
+import { LIMITE_CITAS_PLAN_GRATIS } from '@/shared/utils/planes'
 
 type IndicadorUsoPlanGratisProps = {
-  citasActivas: number
+  citasTotales: number
 }
 
-const obtenerColorBarra = (citasActivas: number): string => {
-  if (citasActivas >= LIMITE_CITAS_FUTURAS_PLAN_GRATIS) {
+const UMBRAL_ADVERTENCIA = Math.ceil(LIMITE_CITAS_PLAN_GRATIS * 0.6)
+
+const obtenerColorBarra = (citasTotales: number): string => {
+  if (citasTotales >= LIMITE_CITAS_PLAN_GRATIS) {
     return 'error.main'
   }
 
-  if (citasActivas >= 10) {
+  if (citasTotales >= UMBRAL_ADVERTENCIA) {
     return 'secondary.main'
   }
 
@@ -29,17 +31,17 @@ const obtenerColorBarra = (citasActivas: number): string => {
 }
 
 export const IndicadorUsoPlanGratis = ({
-  citasActivas
+  citasTotales
 }: IndicadorUsoPlanGratisProps) => {
   const anclaRef = useRef<HTMLButtonElement | null>(null)
   const [popoverAbierto, setPopoverAbierto] = useState(false)
-  const limiteAlcanzado = citasActivas >= LIMITE_CITAS_FUTURAS_PLAN_GRATIS
+  const limiteAlcanzado = citasTotales >= LIMITE_CITAS_PLAN_GRATIS
   const porcentaje = Math.min(
     100,
-    (citasActivas / LIMITE_CITAS_FUTURAS_PLAN_GRATIS) * 100
+    (citasTotales / LIMITE_CITAS_PLAN_GRATIS) * 100
   )
-  const colorBarra = obtenerColorBarra(citasActivas)
-  const etiqueta = `${citasActivas}/${LIMITE_CITAS_FUTURAS_PLAN_GRATIS} citas activas`
+  const colorBarra = obtenerColorBarra(citasTotales)
+  const etiqueta = `${citasTotales}/${LIMITE_CITAS_PLAN_GRATIS} citas en total`
 
   return (
     <Stack spacing={0.75} sx={{ width: '100%', maxWidth: 360 }}>
@@ -114,10 +116,9 @@ export const IndicadorUsoPlanGratis = ({
       >
         <Stack spacing={1.5}>
           <Typography variant='body2' color='text.secondary'>
-            En el plan gratis puedes tener hasta{' '}
-            {LIMITE_CITAS_FUTURAS_PLAN_GRATIS} citas activas a la vez. Si
-            necesitas superar ese límite, actualiza a Premium para citas
-            ilimitadas.
+            En el plan gratis puedes crear hasta {LIMITE_CITAS_PLAN_GRATIS}{' '}
+            citas en total. Si necesitas superar ese límite, actualiza a
+            Premium para citas ilimitadas.
           </Typography>
           <Button
             component={Link}

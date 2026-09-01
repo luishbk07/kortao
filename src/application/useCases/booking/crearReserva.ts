@@ -14,7 +14,7 @@ import { calcularPrecioFinal } from '@/domain/business/servicio.rules'
 import { finDelDia, inicioDelDia } from '@/shared/utils/fechas'
 import {
   esPlanPremium,
-  LIMITE_CITAS_FUTURAS_PLAN_GRATIS
+  LIMITE_CITAS_PLAN_GRATIS
 } from '@/shared/utils/planes'
 
 export const crearCrearReserva = (
@@ -31,10 +31,11 @@ export const crearCrearReserva = (
     negocioPlan = 'estandar'
   ): Promise<Booking> => {
     if (!esPlanPremium(negocioPlan)) {
-      const citasFuturasActivas =
-        await bookingRepository.contarCitasFuturasActivas(input.negocioId)
+      const citasTotales = await bookingRepository.contarCitasTotales(
+        input.negocioId
+      )
 
-      if (citasFuturasActivas >= LIMITE_CITAS_FUTURAS_PLAN_GRATIS) {
+      if (citasTotales >= LIMITE_CITAS_PLAN_GRATIS) {
         throw new LimiteDePlanError()
       }
     }

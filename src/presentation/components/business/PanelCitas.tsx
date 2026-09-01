@@ -30,7 +30,7 @@ import { AvisoPlanPremium } from './AvisoPlanPremium'
 type PanelCitasProps = {
   negocioId: string
   negocioSlug: string
-  citasFuturasActivas: number | null
+  citasTotales: number | null
   esPremium: boolean
   servicios: ServicioPublico[]
   horariosNegocio: BusinessHours[]
@@ -90,7 +90,7 @@ const ResumenPasadas = ({ citas }: { citas: Booking[] }) => {
 export const PanelCitas = ({
   negocioId,
   negocioSlug,
-  citasFuturasActivas,
+  citasTotales,
   esPremium,
   servicios,
   horariosNegocio
@@ -99,26 +99,24 @@ export const PanelCitas = ({
   const [citas, setCitas] = useState<Booking[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [conteoCitasActivas, setConteoCitasActivas] = useState(
-    citasFuturasActivas
-  )
+  const [conteoCitasTotales, setConteoCitasTotales] = useState(citasTotales)
   const [dialogoNuevaCitaAbierto, setDialogoNuevaCitaAbierto] = useState(false)
 
   const fechaHoy = formatearFechaLegible(new Date(), false)
 
   const refrescarConteoPlanGratis = useCallback(async () => {
-    if (citasFuturasActivas === null) {
+    if (citasTotales === null) {
       return
     }
 
     try {
       const conteo =
-        await bookingRepositorySupabase.contarCitasFuturasActivas(negocioId)
-      setConteoCitasActivas(conteo)
+        await bookingRepositorySupabase.contarCitasTotales(negocioId)
+      setConteoCitasTotales(conteo)
     } catch {
       // Keep the last known count if refresh fails.
     }
-  }, [citasFuturasActivas, negocioId])
+  }, [citasTotales, negocioId])
 
   const cargarCitas = useCallback(async (tabActiva: TabCitas) => {
     setCargando(true)
@@ -141,8 +139,8 @@ export const PanelCitas = ({
   }, [tab, cargarCitas])
 
   useEffect(() => {
-    setConteoCitasActivas(citasFuturasActivas)
-  }, [citasFuturasActivas])
+    setConteoCitasTotales(citasTotales)
+  }, [citasTotales])
 
   const handleCambiarTab = (
     _evento: SyntheticEvent,
@@ -188,8 +186,8 @@ export const PanelCitas = ({
         ) : null}
       </Stack>
 
-      {conteoCitasActivas !== null ? (
-        <IndicadorUsoPlanGratis citasActivas={conteoCitasActivas} />
+      {conteoCitasTotales !== null ? (
+        <IndicadorUsoPlanGratis citasTotales={conteoCitasTotales} />
       ) : null}
 
       {negocioSlug ? (

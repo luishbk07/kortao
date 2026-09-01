@@ -52,8 +52,8 @@ const CitasPanelPage = async () => {
   const esPremium = Boolean(negocio && esPlanPremium(negocio.plan))
   const mostrarLimitePlanGratis = Boolean(negocio && !esPremium)
 
-  const citasFuturasActivas = mostrarLimitePlanGratis
-    ? await bookingRepository.contarCitasFuturasActivas(negocioId)
+  const citasTotales = mostrarLimitePlanGratis
+    ? await bookingRepository.contarCitasTotales(negocioId)
     : null
 
   const serviciosActivos = servicios
@@ -64,7 +64,7 @@ const CitasPanelPage = async () => {
     <PanelCitas
       negocioId={negocioId}
       negocioSlug={negocioSlug ?? ''}
-      citasFuturasActivas={citasFuturasActivas}
+      citasTotales={citasTotales}
       esPremium={esPremium}
       servicios={serviciosActivos}
       horariosNegocio={horarios.map(mapearHorario)}

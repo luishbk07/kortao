@@ -28,7 +28,7 @@ export type BookingRepository = {
     desde: Date,
     hasta: Date
   ) => Promise<Booking[]>
-  contarCitasFuturasActivas: (negocioId: string) => Promise<number>
+  contarCitasTotales: (negocioId: string) => Promise<number>
   listarCitasParaClientesRecurrentes: (
     negocioId: string
   ) => Promise<CitaParaClientes[]>

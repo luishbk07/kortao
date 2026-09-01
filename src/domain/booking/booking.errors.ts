@@ -7,7 +7,7 @@ export class HorarioNoDisponibleError extends Error {
 
 export class LimiteDePlanError extends Error {
   constructor(
-    message = 'Este negocio alcanzó su límite de citas activas por el momento'
+    message = 'Este negocio alcanzó el límite de citas de su plan gratis'
   ) {
     super(message)
     this.name = 'LimiteDePlanError'
