@@ -65,7 +65,6 @@ const formatearFechaResumen = (fecha: Date): string => {
   }).format(fecha)
 }
 
-
 export const FlujoReservarPasos = ({
   servicios,
   servicioId,
@@ -88,8 +87,13 @@ export const FlujoReservarPasos = ({
   onConfirmar
 }: FlujoReservarPasosProps) => {
   const tema = useTheme()
-  const esEscritorio = useMediaQuery(tema.breakpoints.up('md'))
+  const esEscritorio = useMediaQuery(tema.breakpoints.up('md'), {
+    defaultMatches: false,
+    noSsr: true
+  })
   const [pestana, setPestana] = useState<PasoReservar>('servicio')
+  const [pasoPendienteScroll, setPasoPendienteScroll] =
+    useState<PasoReservar | null>(null)
 
   const refFecha = useRef<HTMLDivElement | null>(null)
   const refHorario = useRef<HTMLDivElement | null>(null)
@@ -105,25 +109,68 @@ export const FlujoReservarPasos = ({
     clienteCorreo
   )
 
+  const obtenerRefPaso = (paso: PasoReservar): HTMLElement | null => {
+    if (paso === 'fecha') {
+      return refFecha.current
+    }
+    if (paso === 'horario') {
+      return refHorario.current
+    }
+    if (paso === 'datos') {
+      return refDatos.current
+    }
+    return null
+  }
+
   const enfocarPaso = (paso: PasoReservar) => {
     if (esEscritorio) {
       setPestana(paso)
+      setPasoPendienteScroll(null)
       return
     }
 
-    const destino =
-      paso === 'fecha'
-        ? refFecha.current
-        : paso === 'horario'
-          ? refHorario.current
-          : paso === 'datos'
-            ? refDatos.current
-            : null
-
-    window.setTimeout(() => {
-      desplazarAElemento(destino)
-    }, 80)
+    setPasoPendienteScroll(paso)
   }
+
+  useEffect(() => {
+    if (esEscritorio || !pasoPendienteScroll) {
+      return
+    }
+
+    let intentos = 0
+    let temporizador: number | undefined
+
+    const intentarDesplazar = () => {
+      const destino = obtenerRefPaso(pasoPendienteScroll)
+
+      if (destino) {
+        desplazarAElemento(destino)
+        setPasoPendienteScroll(null)
+        return
+      }
+
+      intentos += 1
+      if (intentos < 12) {
+        temporizador = window.setTimeout(intentarDesplazar, 50)
+      } else {
+        setPasoPendienteScroll(null)
+      }
+    }
+
+    temporizador = window.setTimeout(intentarDesplazar, 50)
+
+    return () => {
+      if (temporizador !== undefined) {
+        window.clearTimeout(temporizador)
+      }
+    }
+  }, [
+    esEscritorio,
+    pasoPendienteScroll,
+    puedeFecha,
+    puedeHorario,
+    puedeDatos
+  ])
 
   useEffect(() => {
     if (!esEscritorio) {
@@ -221,29 +268,31 @@ export const FlujoReservarPasos = ({
   ) : null
 
   const bloqueDatos = puedeDatos && servicioSeleccionado && slotSeleccionado ? (
-    <Stack spacing={2.5} ref={refDatos}>
-      <FormularioCliente
-        clienteNombre={clienteNombre}
-        clienteTelefono={clienteTelefono}
-        clienteCorreo={clienteCorreo}
-        enviando={enviando}
-        onCambiarNombre={onCambiarNombre}
-        onCambiarTelefono={onCambiarTelefono}
-        onCambiarCorreo={onCambiarCorreo}
-        onConfirmar={onConfirmar}
-        mostrarBoton={false}
-      />
-      <ResumenReserva
-        servicioNombre={servicioSeleccionado.nombre}
-        precioFormateado={formatearPrecio(precioFinal)}
-        fechaFormateada={formatearFechaResumen(slotSeleccionado.inicio)}
-        horaFormateada={formatearHoraLegible(slotSeleccionado.inicio)}
-        mostrarBoton
-        botonDeshabilitado={!formularioValido || enviando}
-        textoBoton={enviando ? 'Reservando...' : 'Confirmar reserva'}
-        onConfirmar={onConfirmar}
-      />
-    </Stack>
+    <Box ref={refDatos}>
+      <Stack spacing={2.5}>
+        <FormularioCliente
+          clienteNombre={clienteNombre}
+          clienteTelefono={clienteTelefono}
+          clienteCorreo={clienteCorreo}
+          enviando={enviando}
+          onCambiarNombre={onCambiarNombre}
+          onCambiarTelefono={onCambiarTelefono}
+          onCambiarCorreo={onCambiarCorreo}
+          onConfirmar={onConfirmar}
+          mostrarBoton={false}
+        />
+        <ResumenReserva
+          servicioNombre={servicioSeleccionado.nombre}
+          precioFormateado={formatearPrecio(precioFinal)}
+          fechaFormateada={formatearFechaResumen(slotSeleccionado.inicio)}
+          horaFormateada={formatearHoraLegible(slotSeleccionado.inicio)}
+          mostrarBoton
+          botonDeshabilitado={!formularioValido || enviando}
+          textoBoton={enviando ? 'Reservando...' : 'Confirmar reserva'}
+          onConfirmar={onConfirmar}
+        />
+      </Stack>
+    </Box>
   ) : null
 
   if (esEscritorio) {

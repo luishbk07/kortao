@@ -16,18 +16,30 @@ export const desplazarAlInicio = (): void => {
   }
 }
 
+const OFFSET_SUPERIOR_PX = 20
+
 /** Smoothly scrolls an element into view when present in the document. */
 export const desplazarAElemento = (
   elemento: HTMLElement | null,
-  bloque: ScrollLogicalPosition = 'start'
+  _bloque: ScrollLogicalPosition = 'start'
 ): void => {
-  if (!elemento) {
+  if (!elemento || typeof window === 'undefined') {
     return
   }
 
+  const reduceMotion = window.matchMedia(
+    '(prefers-reduced-motion: reduce)'
+  ).matches
+
+  const destino =
+    elemento.getBoundingClientRect().top + window.scrollY - OFFSET_SUPERIOR_PX
+
   try {
-    elemento.scrollIntoView({ behavior: 'smooth', block: bloque })
+    window.scrollTo({
+      top: Math.max(0, destino),
+      behavior: reduceMotion ? 'auto' : 'smooth'
+    })
   } catch {
-    elemento.scrollIntoView(true)
+    window.scrollTo(0, Math.max(0, destino))
   }
 }
