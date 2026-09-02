@@ -22,10 +22,7 @@ import { CLAVE_MODO_COLOR } from '@/presentation/theme/palette'
 import { desplazarAlInicio } from '@/shared/utils/desplazamiento'
 import { esPlanPremium } from '@/shared/utils/planes'
 import { construirUrlMapas } from '@/shared/utils/sitio'
-import { FormularioCliente } from './FormularioCliente'
-import { ListaServicios } from './ListaServicios'
-import { ListaSlots } from './ListaSlots'
-import { SelectorFecha } from './SelectorFecha'
+import { FlujoReservarPasos } from './FlujoReservarPasos'
 import type { NegocioPublico, ServicioPublico } from './tiposReservar'
 
 type ReservarNegocioProps = {
@@ -218,7 +215,7 @@ export const ReservarNegocio = ({
       ) : (
         <EncabezadoMarca mostrarModoColor={false} />
       )}
-      <Container maxWidth='sm' sx={{ py: { xs: 3, sm: 5 }, flex: 1 }}>
+      <Container maxWidth='md' sx={{ py: { xs: 3, sm: 5 }, flex: 1 }}>
         <Stack spacing={3}>
           <Stack spacing={1}>
             {!tieneLogo ? (
@@ -338,48 +335,29 @@ export const ReservarNegocio = ({
             ) : null}
           </Box>
 
-          <Stack spacing={1.5}>
-            <Typography variant='h6' component='h2'>
-              Elige un servicio
-            </Typography>
-            <ListaServicios
-              servicios={servicios}
-              servicioSeleccionadoId={flujo.servicioId}
-              onSeleccionar={flujo.seleccionarServicio}
-            />
-          </Stack>
-
-          {flujo.servicioSeleccionado ? (
-            <SelectorFecha
-              fecha={flujo.fecha}
-              fechaMinima={flujo.fechaMinima}
-              onCambiarFecha={flujo.cambiarFecha}
-            />
-          ) : null}
-
-          {flujo.servicioSeleccionado && flujo.fecha ? (
-            <ListaSlots
-              slots={flujo.slots}
-              slotSeleccionado={flujo.slotSeleccionado}
-              cargando={flujo.cargandoSlots}
-              onSeleccionar={flujo.seleccionarSlot}
-            />
-          ) : null}
-
-          {flujo.slotSeleccionado ? (
-            <FormularioCliente
-              clienteNombre={flujo.clienteNombre}
-              clienteTelefono={flujo.clienteTelefono}
-              clienteCorreo={flujo.clienteCorreo}
-              enviando={flujo.enviando}
-              onCambiarNombre={flujo.setClienteNombre}
-              onCambiarTelefono={flujo.setClienteTelefono}
-              onCambiarCorreo={flujo.setClienteCorreo}
-              onConfirmar={() => {
-                void flujo.confirmarReserva()
-              }}
-            />
-          ) : null}
+          <FlujoReservarPasos
+            servicios={servicios}
+            servicioId={flujo.servicioId}
+            servicioSeleccionado={flujo.servicioSeleccionado}
+            fecha={flujo.fecha}
+            fechaMinima={flujo.fechaMinima}
+            slots={flujo.slots}
+            slotSeleccionado={flujo.slotSeleccionado}
+            cargandoSlots={flujo.cargandoSlots}
+            clienteNombre={flujo.clienteNombre}
+            clienteTelefono={flujo.clienteTelefono}
+            clienteCorreo={flujo.clienteCorreo}
+            enviando={flujo.enviando}
+            onSeleccionarServicio={flujo.seleccionarServicio}
+            onCambiarFecha={flujo.cambiarFecha}
+            onSeleccionarSlot={flujo.seleccionarSlot}
+            onCambiarNombre={flujo.setClienteNombre}
+            onCambiarTelefono={flujo.setClienteTelefono}
+            onCambiarCorreo={flujo.setClienteCorreo}
+            onConfirmar={() => {
+              void flujo.confirmarReserva()
+            }}
+          />
         </Stack>
       </Container>
       <Container maxWidth='sm' sx={{ pb: 3 }}>

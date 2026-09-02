@@ -1,8 +1,11 @@
 'use client'
 
 import type { FormEvent } from 'react'
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined'
+import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined'
 import Button from '@mui/material/Button'
+import InputAdornment from '@mui/material/InputAdornment'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
@@ -26,6 +29,7 @@ type FormularioClienteProps = {
   textoBoton?: string
   textoBotonCargando?: string
   helperCorreo?: string
+  mostrarBoton?: boolean
 }
 
 export const FormularioCliente = ({
@@ -40,7 +44,8 @@ export const FormularioCliente = ({
   titulo = 'Tus datos',
   textoBoton = 'Confirmar reserva',
   textoBotonCargando = 'Reservando...',
-  helperCorreo = 'Opcional. Te enviamos la confirmación por correo.'
+  helperCorreo = 'Opcional. Te enviamos la confirmación por correo.',
+  mostrarBoton = true
 }: FormularioClienteProps) => {
   const correoTrim = clienteCorreo.trim()
   const correoOk = correoTrim.length === 0 || esCorreoValido(correoTrim)
@@ -52,6 +57,9 @@ export const FormularioCliente = ({
 
   const handleSubmit = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault()
+    if (!mostrarBoton || !formularioValido || enviando) {
+      return
+    }
     onConfirmar()
   }
 
@@ -63,7 +71,7 @@ export const FormularioCliente = ({
     <Stack spacing={2} component='form' onSubmit={handleSubmit}>
       <Stack direction='row' spacing={1} alignItems='center'>
         <PersonOutlineOutlinedIcon color='primary' />
-        <Typography variant='h6' component='h2'>
+        <Typography variant='h6' component='h2' color='primary'>
           {titulo}
         </Typography>
       </Stack>
@@ -74,6 +82,13 @@ export const FormularioCliente = ({
         autoComplete='name'
         fullWidth
         required
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position='start'>
+              <PersonOutlineOutlinedIcon fontSize='small' color='action' />
+            </InputAdornment>
+          )
+        }}
       />
       <TextField
         label='Teléfono'
@@ -87,6 +102,13 @@ export const FormularioCliente = ({
         }}
         fullWidth
         required
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position='start'>
+              <PhoneOutlinedIcon fontSize='small' color='action' />
+            </InputAdornment>
+          )
+        }}
       />
       <TextField
         label='Correo electrónico'
@@ -97,17 +119,41 @@ export const FormularioCliente = ({
         helperText={helperCorreo}
         error={correoTrim.length > 0 && !correoOk}
         fullWidth
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position='start'>
+              <EmailOutlinedIcon fontSize='small' color='action' />
+            </InputAdornment>
+          )
+        }}
       />
-      <Button
-        type='submit'
-        variant='contained'
-        color='secondary'
-        size='large'
-        disabled={!formularioValido || enviando}
-        fullWidth
-      >
-        {enviando ? textoBotonCargando : textoBoton}
-      </Button>
+      {mostrarBoton ? (
+        <Button
+          type='submit'
+          variant='contained'
+          color='secondary'
+          size='large'
+          disabled={!formularioValido || enviando}
+          fullWidth
+        >
+          {enviando ? textoBotonCargando : textoBoton}
+        </Button>
+      ) : null}
     </Stack>
+  )
+}
+
+export const esFormularioClienteValido = (
+  clienteNombre: string,
+  clienteTelefono: string,
+  clienteCorreo: string
+): boolean => {
+  const correoTrim = clienteCorreo.trim()
+  const correoOk = correoTrim.length === 0 || esCorreoValido(correoTrim)
+
+  return (
+    clienteNombre.trim().length > 1 &&
+    esTelefonoCompleto(clienteTelefono) &&
+    correoOk
   )
 }

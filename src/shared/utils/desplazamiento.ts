@@ -15,3 +15,19 @@ export const desplazarAlInicio = (): void => {
     // Older browsers may not support ScrollToOptions.
   }
 }
+
+/** Smoothly scrolls an element into view when present in the document. */
+export const desplazarAElemento = (
+  elemento: HTMLElement | null,
+  bloque: ScrollLogicalPosition = 'start'
+): void => {
+  if (!elemento) {
+    return
+  }
+
+  try {
+    elemento.scrollIntoView({ behavior: 'smooth', block: bloque })
+  } catch {
+    elemento.scrollIntoView(true)
+  }
+}
