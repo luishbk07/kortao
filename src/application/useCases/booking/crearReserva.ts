@@ -10,7 +10,7 @@ import {
 } from '@/domain/booking/booking.errors'
 import { esHorarioDisponible } from '@/domain/booking/booking.rules'
 import type { Booking, BusinessHours } from '@/domain/booking/booking.types'
-import { calcularPrecioFinal } from '@/domain/business/servicio.rules'
+import { calcularPrecioFinal, tienePrecioFijo } from '@/domain/business/servicio.rules'
 import { finDelDia, inicioDelDia } from '@/shared/utils/fechas'
 import {
   esPlanPremium,
@@ -66,11 +66,13 @@ export const crearCrearReserva = (
       throw new Error('El servicio no está disponible')
     }
 
-    const precio = calcularPrecioFinal(
-      servicio.precio,
-      servicio.descuentoTipo,
-      servicio.descuentoValor
-    )
+    const precio = tienePrecioFijo(servicio.precio)
+      ? calcularPrecioFinal(
+          servicio.precio,
+          servicio.descuentoTipo,
+          servicio.descuentoValor
+        )
+      : null
 
     const cita = await bookingRepository.crearCita({
       ...input,

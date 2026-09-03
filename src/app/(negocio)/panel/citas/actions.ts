@@ -147,7 +147,8 @@ export const cancelarCitaAction = async (citaId: string): Promise<Booking> => {
 }
 
 export const marcarAtendidaAction = async (
-  citaId: string
+  citaId: string,
+  precioFinal?: number | null
 ): Promise<Booking> => {
   const { bookingRepository, negocioId } = await obtenerContextoPanel()
 
@@ -168,5 +169,5 @@ export const marcarAtendidaAction = async (
   }
 
   const marcarCitaAtendida = crearMarcarCitaAtendida(bookingRepository)
-  return marcarCitaAtendida(citaId)
+  return marcarCitaAtendida(citaId, precioFinal)
 }

@@ -8,7 +8,8 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import {
   calcularPrecioFinal,
-  tieneDescuentoActivo
+  tieneDescuentoActivo,
+  tienePrecioFijo
 } from '@/domain/business/servicio.rules'
 import type { ServicioPublico } from './tiposReservar'
 
@@ -42,15 +43,17 @@ export const ListaServicios = ({
     <Stack spacing={1.5}>
       {servicios.map((servicio) => {
         const seleccionado = servicio.id === servicioSeleccionadoId
-        const conDescuento = tieneDescuentoActivo(
-          servicio.descuentoTipo,
-          servicio.descuentoValor
-        )
-        const precioFinal = calcularPrecioFinal(
-          servicio.precio,
-          servicio.descuentoTipo,
-          servicio.descuentoValor
-        )
+        const precioBase = servicio.precio
+        const conDescuento =
+          tienePrecioFijo(precioBase) &&
+          tieneDescuentoActivo(servicio.descuentoTipo, servicio.descuentoValor)
+        const precioFinal = tienePrecioFijo(precioBase)
+          ? calcularPrecioFinal(
+              precioBase,
+              servicio.descuentoTipo,
+              servicio.descuentoValor
+            )
+          : null
 
         return (
           <Card
@@ -84,14 +87,23 @@ export const ListaServicios = ({
                       </Typography>
                     </Stack>
                   </Stack>
-                  {conDescuento ? (
+                  {!tienePrecioFijo(precioBase) ? (
+                    <Typography
+                      variant='subtitle1'
+                      color='text.secondary'
+                      fontStyle='italic'
+                      fontWeight={500}
+                    >
+                      Precio a evaluar
+                    </Typography>
+                  ) : conDescuento && precioFinal !== null ? (
                     <Stack alignItems='flex-end' spacing={0.25}>
                       <Typography
                         variant='body2'
                         color='text.secondary'
                         sx={{ textDecoration: 'line-through' }}
                       >
-                        {formatearPrecio(servicio.precio)}
+                        {formatearPrecio(precioBase)}
                       </Typography>
                       <Typography
                         variant='subtitle1'
@@ -103,7 +115,7 @@ export const ListaServicios = ({
                     </Stack>
                   ) : (
                     <Typography variant='subtitle1' fontWeight={600}>
-                      {formatearPrecio(servicio.precio)}
+                      {formatearPrecio(precioBase)}
                     </Typography>
                   )}
                 </Stack>

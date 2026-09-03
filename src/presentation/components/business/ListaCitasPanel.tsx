@@ -2,7 +2,13 @@
 
 import { useMemo, useState } from 'react'
 import Alert from '@mui/material/Alert'
+import Button from '@mui/material/Button'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
 import Stack from '@mui/material/Stack'
+import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import {
   cancelarCitaAction,
@@ -36,6 +42,11 @@ export const ListaCitasPanel = ({
 }: ListaCitasPanelProps) => {
   const [accionEnCurso, setAccionEnCurso] = useState<AccionEnCurso | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [citaCobroPendiente, setCitaCobroPendiente] = useState<Booking | null>(
+    null
+  )
+  const [precioCobrado, setPrecioCobrado] = useState('')
+  const [errorCobro, setErrorCobro] = useState<string | null>(null)
 
   const grupos = useMemo(
     () => agruparPorMomentoDia(citas, (cita) => cita.fechaHora),
@@ -56,18 +67,60 @@ export const ListaCitasPanel = ({
     }
   }
 
-  const handleMarcarAtendida = async (citaId: string) => {
+  const confirmarMarcarAtendida = async (
+    citaId: string,
+    precioFinal?: number
+  ) => {
     setAccionEnCurso({ citaId, tipo: 'atendida' })
     setError(null)
 
     try {
-      await marcarAtendidaAction(citaId)
+      await marcarAtendidaAction(citaId, precioFinal)
+      setCitaCobroPendiente(null)
+      setPrecioCobrado('')
+      setErrorCobro(null)
       onCitaActualizada()
     } catch {
       setError('No se pudo marcar la cita como atendida. Inténtalo de nuevo.')
     } finally {
       setAccionEnCurso(null)
     }
+  }
+
+  const handleSolicitarMarcarAtendida = (cita: Booking) => {
+    if (cita.precio === null) {
+      setCitaCobroPendiente(cita)
+      setPrecioCobrado('')
+      setErrorCobro(null)
+      return
+    }
+
+    void confirmarMarcarAtendida(cita.id)
+  }
+
+  const handleConfirmarCobro = () => {
+    if (!citaCobroPendiente) {
+      return
+    }
+
+    const valor = Number(precioCobrado)
+
+    if (!Number.isFinite(valor) || valor < 0 || precioCobrado.trim() === '') {
+      setErrorCobro('Indica el monto cobrado.')
+      return
+    }
+
+    void confirmarMarcarAtendida(citaCobroPendiente.id, valor)
+  }
+
+  const cerrarDialogoCobro = () => {
+    if (accionEnCurso?.tipo === 'atendida') {
+      return
+    }
+
+    setCitaCobroPendiente(null)
+    setPrecioCobrado('')
+    setErrorCobro(null)
   }
 
   if (citas.length === 0) {
@@ -77,6 +130,11 @@ export const ListaCitasPanel = ({
       </Typography>
     )
   }
+
+  const marcandoCobro =
+    citaCobroPendiente !== null &&
+    accionEnCurso?.citaId === citaCobroPendiente.id &&
+    accionEnCurso.tipo === 'atendida'
 
   return (
     <Stack spacing={2.5}>
@@ -108,13 +166,64 @@ export const ListaCitasPanel = ({
                   void handleCancelar(citaId)
                 }}
                 onMarcarAtendida={(citaId) => {
-                  void handleMarcarAtendida(citaId)
+                  const encontrada = citas.find((item) => item.id === citaId)
+                  if (!encontrada) {
+                    return
+                  }
+                  handleSolicitarMarcarAtendida(encontrada)
                 }}
               />
             ))}
           </Stack>
         </Stack>
       ))}
+
+      <Dialog
+        open={citaCobroPendiente !== null}
+        onClose={cerrarDialogoCobro}
+        fullWidth
+        maxWidth='xs'
+      >
+        <DialogTitle>¿Cuánto se cobró por este servicio?</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            {citaCobroPendiente ? (
+              <Typography color='text.secondary'>
+                {citaCobroPendiente.servicioNombre} ·{' '}
+                {citaCobroPendiente.clienteNombre}
+              </Typography>
+            ) : null}
+            <TextField
+              label='Monto cobrado (RD$)'
+              type='number'
+              value={precioCobrado}
+              onChange={(evento) => {
+                setPrecioCobrado(evento.target.value)
+                setErrorCobro(null)
+              }}
+              inputProps={{ min: 0, step: 50 }}
+              error={Boolean(errorCobro)}
+              helperText={errorCobro ?? 'Requerido para marcar la cita como atendida'}
+              fullWidth
+              autoFocus
+              required
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={cerrarDialogoCobro} disabled={marcandoCobro}>
+            Cancelar
+          </Button>
+          <Button
+            variant='contained'
+            color='secondary'
+            onClick={handleConfirmarCobro}
+            disabled={marcandoCobro}
+          >
+            {marcandoCobro ? 'Guardando...' : 'Marcar como atendida'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   )
 }

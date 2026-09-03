@@ -1,5 +1,11 @@
 export type DescuentoTipo = 'monto' | 'porcentaje'
 
+export const tienePrecioFijo = (
+  precio: number | null
+): precio is number => {
+  return precio !== null && Number.isFinite(precio)
+}
+
 export const calcularPrecioFinal = (
   precio: number,
   descuentoTipo: DescuentoTipo | null,

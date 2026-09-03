@@ -38,7 +38,7 @@ type ServicioFila = {
   negocio_id: string
   nombre: string
   duracion_minutos: number
-  precio: number | string
+  precio: number | string | null
   descuento_tipo: DescuentoTipo | null
   descuento_valor: number | string | null
   activo: boolean
@@ -117,7 +117,7 @@ const mapearServicio = (fila: ServicioFila): Servicio => ({
   negocioId: fila.negocio_id,
   nombre: fila.nombre,
   duracionMinutos: fila.duracion_minutos,
-  precio: Number(fila.precio),
+  precio: mapearNumeroOpcional(fila.precio),
   descuentoTipo: mapearDescuentoTipo(fila.descuento_tipo),
   descuentoValor: mapearNumeroOpcional(fila.descuento_valor),
   activo: fila.activo

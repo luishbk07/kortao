@@ -12,7 +12,7 @@ export type CrearCitaInput = {
   clienteCorreo: string | null
   fechaHora: Date
   duracionMinutos: number
-  precio: number
+  precio: number | null
 }
 
 export type SolicitudCrearReserva = Omit<CrearCitaInput, 'precio'>
@@ -38,5 +38,8 @@ export type BookingRepository = {
   crearCita: (input: CrearCitaInput) => Promise<Booking>
   obtenerCitaPorId: (citaId: string) => Promise<Booking | null>
   cancelarCita: (citaId: string) => Promise<Booking>
-  marcarCitaAtendida: (citaId: string) => Promise<Booking>
+  marcarCitaAtendida: (
+    citaId: string,
+    precioFinal?: number | null
+  ) => Promise<Booking>
 }

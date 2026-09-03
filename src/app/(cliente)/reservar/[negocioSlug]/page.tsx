@@ -50,7 +50,7 @@ type ServicioFila = {
   id: string
   nombre: string
   duracion_minutos: number
-  precio: number | string
+  precio: number | string | null
   descuento_tipo: 'monto' | 'porcentaje' | null
   descuento_valor: number | string | null
 }
@@ -88,7 +88,7 @@ const mapearServicio = (fila: ServicioFila): ServicioPublico => {
     id: fila.id,
     nombre: fila.nombre,
     duracionMinutos: fila.duracion_minutos,
-    precio: Number(fila.precio),
+    precio: mapearNumeroOpcional(fila.precio),
     descuentoTipo,
     descuentoValor: Number.isFinite(descuentoValor) ? descuentoValor : null
   }

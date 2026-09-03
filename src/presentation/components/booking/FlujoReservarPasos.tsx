@@ -8,7 +8,7 @@ import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
-import { calcularPrecioFinal } from '@/domain/business/servicio.rules'
+import { calcularPrecioFinal, tienePrecioFijo } from '@/domain/business/servicio.rules'
 import type { TimeSlot } from '@/domain/booking/booking.types'
 import type { ServicioPublico } from '@/presentation/components/booking/tiposReservar'
 import {
@@ -226,12 +226,17 @@ export const FlujoReservarPasos = ({
   }
 
   const precioFinal = servicioSeleccionado
-    ? calcularPrecioFinal(
-        servicioSeleccionado.precio,
-        servicioSeleccionado.descuentoTipo,
-        servicioSeleccionado.descuentoValor
-      )
-    : 0
+    ? tienePrecioFijo(servicioSeleccionado.precio)
+      ? calcularPrecioFinal(
+          servicioSeleccionado.precio,
+          servicioSeleccionado.descuentoTipo,
+          servicioSeleccionado.descuentoValor
+        )
+      : null
+    : null
+
+  const precioResumen =
+    precioFinal === null ? 'Precio a evaluar' : formatearPrecio(precioFinal)
 
   const bloqueServicio = (
     <Stack spacing={1.5}>
@@ -283,7 +288,8 @@ export const FlujoReservarPasos = ({
         />
         <ResumenReserva
           servicioNombre={servicioSeleccionado.nombre}
-          precioFormateado={formatearPrecio(precioFinal)}
+          precioFormateado={precioResumen}
+          precioEsEvaluar={precioFinal === null}
           fechaFormateada={formatearFechaResumen(slotSeleccionado.inicio)}
           horaFormateada={formatearHoraLegible(slotSeleccionado.inicio)}
           mostrarBoton

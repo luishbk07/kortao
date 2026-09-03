@@ -44,7 +44,7 @@ type CitaInsertFila = {
   cliente_correo: string | null
   fecha_hora: string
   duracion_minutos: number
-  precio: number
+  precio: number | null
   estado: EstadoCita
   creado_en: string
 }
@@ -212,6 +212,7 @@ export const crearBookingRepository = (
       .select('precio, fecha_hora, servicios ( nombre )')
       .eq('negocio_id', negocioId)
       .eq('estado', 'completada')
+      .not('precio', 'is', null)
       .order('fecha_hora', { ascending: false })
 
     if (error) {
@@ -279,10 +280,18 @@ export const crearBookingRepository = (
     return mapearFilaACita(data as CitaFila)
   },
 
-  marcarCitaAtendida: async (citaId) => {
+  marcarCitaAtendida: async (citaId, precioFinal) => {
+    const actualizacion: { estado: 'completada'; precio?: number } = {
+      estado: 'completada'
+    }
+
+    if (precioFinal !== undefined && precioFinal !== null) {
+      actualizacion.precio = precioFinal
+    }
+
     const { data, error } = await cliente
       .from('citas')
-      .update({ estado: 'completada' })
+      .update(actualizacion)
       .eq('id', citaId)
       .in('estado', ['pendiente', 'confirmada'])
       .select(columnasCita)
@@ -331,6 +340,9 @@ export const bookingRepositorySupabase: BookingRepository = {
     crearBookingRepository(crearClienteNavegador()).obtenerCitaPorId(citaId),
   cancelarCita: (citaId) =>
     crearBookingRepository(crearClienteNavegador()).cancelarCita(citaId),
-  marcarCitaAtendida: (citaId) =>
-    crearBookingRepository(crearClienteNavegador()).marcarCitaAtendida(citaId)
+  marcarCitaAtendida: (citaId, precioFinal) =>
+    crearBookingRepository(crearClienteNavegador()).marcarCitaAtendida(
+      citaId,
+      precioFinal
+    )
 }

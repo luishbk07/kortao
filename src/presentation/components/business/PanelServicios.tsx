@@ -28,7 +28,8 @@ import type { Servicio } from '@/domain/business/business.types'
 import type { DescuentoTipo } from '@/domain/business/servicio.rules'
 import {
   calcularPrecioFinal,
-  tieneDescuentoActivo
+  tieneDescuentoActivo,
+  tienePrecioFijo
 } from '@/domain/business/servicio.rules'
 import { crearDependenciasPanelNavegador } from '@/presentation/lib/crearDependenciasPanelNavegador'
 
@@ -49,7 +50,7 @@ type FormularioServicioEstado = {
 const formularioVacio: FormularioServicioEstado = {
   nombre: '',
   duracionMinutos: '30',
-  precio: '0',
+  precio: '',
   agregarPromocion: false,
   descuentoTipo: 'monto',
   descuentoValor: ''
@@ -63,12 +64,13 @@ const formatearPrecio = (precio: number): string => {
 }
 
 const obtenerDescuentoGuardado = (
-  formulario: FormularioServicioEstado
+  formulario: FormularioServicioEstado,
+  tienePrecio: boolean
 ): {
   descuentoTipo: DescuentoTipo | null
   descuentoValor: number | null
 } => {
-  if (!formulario.agregarPromocion) {
+  if (!tienePrecio || !formulario.agregarPromocion) {
     return { descuentoTipo: null, descuentoValor: null }
   }
 
@@ -104,16 +106,16 @@ export const PanelServicios = ({
   }
 
   const abrirEditar = (servicio: Servicio) => {
-    const conPromocion = tieneDescuentoActivo(
-      servicio.descuentoTipo,
-      servicio.descuentoValor
-    )
+    const conPromocion =
+      tienePrecioFijo(servicio.precio) &&
+      tieneDescuentoActivo(servicio.descuentoTipo, servicio.descuentoValor)
 
     setEditando(servicio)
     setFormulario({
       nombre: servicio.nombre,
       duracionMinutos: String(servicio.duracionMinutos),
-      precio: String(servicio.precio),
+      precio:
+        servicio.precio !== null ? String(servicio.precio) : '',
       agregarPromocion: conPromocion,
       descuentoTipo: servicio.descuentoTipo ?? 'monto',
       descuentoValor:
@@ -125,15 +127,24 @@ export const PanelServicios = ({
 
   const handleGuardar = async () => {
     const duracionMinutos = Number(formulario.duracionMinutos)
-    const precio = Number(formulario.precio)
-    const descuento = obtenerDescuentoGuardado(formulario)
+    const precioTexto = formulario.precio.trim()
+    const precio =
+      precioTexto === '' ? null : Number(precioTexto)
+    const tienePrecio = tienePrecioFijo(precio)
+    const descuento = obtenerDescuentoGuardado(formulario, tienePrecio)
 
-    if (!formulario.nombre.trim() || duracionMinutos <= 0 || precio < 0) {
-      setError('Revisa el nombre, la duración y el precio.')
+    if (!formulario.nombre.trim() || duracionMinutos <= 0) {
+      setError('Revisa el nombre y la duración.')
+      return
+    }
+
+    if (precioTexto !== '' && (!Number.isFinite(precio) || (precio ?? 0) < 0)) {
+      setError('El precio no es válido.')
       return
     }
 
     if (
+      tienePrecio &&
       formulario.agregarPromocion &&
       (descuento.descuentoValor === null || descuento.descuentoValor <= 0)
     ) {
@@ -142,6 +153,7 @@ export const PanelServicios = ({
     }
 
     if (
+      tienePrecio &&
       formulario.agregarPromocion &&
       formulario.descuentoTipo === 'porcentaje' &&
       (descuento.descuentoValor ?? 0) > 100
@@ -245,15 +257,20 @@ export const PanelServicios = ({
       ) : (
         <Stack spacing={1.5}>
           {servicios.map((servicio) => {
-            const conDescuento = tieneDescuentoActivo(
-              servicio.descuentoTipo,
-              servicio.descuentoValor
-            )
-            const precioFinal = calcularPrecioFinal(
-              servicio.precio,
-              servicio.descuentoTipo,
-              servicio.descuentoValor
-            )
+            const precioBase = servicio.precio
+            const conDescuento =
+              tienePrecioFijo(precioBase) &&
+              tieneDescuentoActivo(
+                servicio.descuentoTipo,
+                servicio.descuentoValor
+              )
+            const precioFinal = tienePrecioFijo(precioBase)
+              ? calcularPrecioFinal(
+                  precioBase,
+                  servicio.descuentoTipo,
+                  servicio.descuentoValor
+                )
+              : null
 
             return (
               <Card key={servicio.id} variant='outlined'>
@@ -269,9 +286,11 @@ export const PanelServicios = ({
                       </Typography>
                       <Typography color='text.secondary'>
                         {servicio.duracionMinutos} min ·{' '}
-                        {conDescuento
-                          ? `${formatearPrecio(servicio.precio)} → ${formatearPrecio(precioFinal)}`
-                          : formatearPrecio(servicio.precio)}
+                        {!tienePrecioFijo(precioBase)
+                          ? 'Precio a evaluar'
+                          : conDescuento && precioFinal !== null
+                            ? `${formatearPrecio(precioBase)} → ${formatearPrecio(precioFinal)}`
+                            : formatearPrecio(precioBase)}
                       </Typography>
                       {conDescuento ? (
                         <Typography variant='body2' color='secondary.main'>
@@ -348,79 +367,91 @@ export const PanelServicios = ({
               label='Precio (RD$)'
               type='number'
               value={formulario.precio}
-              onChange={(evento) =>
+              onChange={(evento) => {
+                const valor = evento.target.value
                 setFormulario((actual) => ({
                   ...actual,
-                  precio: evento.target.value
+                  precio: valor,
+                  agregarPromocion:
+                    valor.trim() === '' ? false : actual.agregarPromocion
                 }))
-              }
+              }}
               inputProps={{ min: 0, step: 50 }}
+              helperText='Déjalo vacío si el precio se evalúa en la cita'
               fullWidth
-              required
             />
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={formulario.agregarPromocion}
-                  onChange={(evento) =>
-                    setFormulario((actual) => ({
-                      ...actual,
-                      agregarPromocion: evento.target.checked
-                    }))
+            {formulario.precio.trim() !== '' ? (
+              <>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formulario.agregarPromocion}
+                      onChange={(evento) =>
+                        setFormulario((actual) => ({
+                          ...actual,
+                          agregarPromocion: evento.target.checked
+                        }))
+                      }
+                      color='secondary'
+                    />
                   }
-                  color='secondary'
+                  label='Agregar promoción'
                 />
-              }
-              label='Agregar promoción'
-            />
-            {formulario.agregarPromocion ? (
-              <Stack spacing={2}>
-                <FormControl fullWidth>
-                  <InputLabel id='descuento-tipo-label'>
-                    Tipo de descuento
-                  </InputLabel>
-                  <Select
-                    labelId='descuento-tipo-label'
-                    label='Tipo de descuento'
-                    value={formulario.descuentoTipo}
-                    onChange={(evento) =>
-                      setFormulario((actual) => ({
-                        ...actual,
-                        descuentoTipo: evento.target.value as DescuentoTipo
-                      }))
-                    }
-                  >
-                    <MenuItem value='monto'>Monto fijo</MenuItem>
-                    <MenuItem value='porcentaje'>Porcentaje</MenuItem>
-                  </Select>
-                </FormControl>
-                <TextField
-                  label={
-                    formulario.descuentoTipo === 'porcentaje'
-                      ? 'Descuento (%)'
-                      : 'Descuento (RD$)'
-                  }
-                  type='number'
-                  value={formulario.descuentoValor}
-                  onChange={(evento) =>
-                    setFormulario((actual) => ({
-                      ...actual,
-                      descuentoValor: evento.target.value
-                    }))
-                  }
-                  inputProps={{
-                    min: 0,
-                    step: formulario.descuentoTipo === 'porcentaje' ? 1 : 50,
-                    max:
-                      formulario.descuentoTipo === 'porcentaje'
-                        ? 100
-                        : undefined
-                  }}
-                  fullWidth
-                  required
-                />
-              </Stack>
-            ) : null}
+                {formulario.agregarPromocion ? (
+                  <Stack spacing={2}>
+                    <FormControl fullWidth>
+                      <InputLabel id='descuento-tipo-label'>
+                        Tipo de descuento
+                      </InputLabel>
+                      <Select
+                        labelId='descuento-tipo-label'
+                        label='Tipo de descuento'
+                        value={formulario.descuentoTipo}
+                        onChange={(evento) =>
+                          setFormulario((actual) => ({
+                            ...actual,
+                            descuentoTipo: evento.target.value as DescuentoTipo
+                          }))
+                        }
+                      >
+                        <MenuItem value='monto'>Monto fijo</MenuItem>
+                        <MenuItem value='porcentaje'>Porcentaje</MenuItem>
+                      </Select>
+                    </FormControl>
+                    <TextField
+                      label={
+                        formulario.descuentoTipo === 'porcentaje'
+                          ? 'Descuento (%)'
+                          : 'Descuento (RD$)'
+                      }
+                      type='number'
+                      value={formulario.descuentoValor}
+                      onChange={(evento) =>
+                        setFormulario((actual) => ({
+                          ...actual,
+                          descuentoValor: evento.target.value
+                        }))
+                      }
+                      inputProps={{
+                        min: 0,
+                        step: formulario.descuentoTipo === 'porcentaje' ? 1 : 50,
+                        max:
+                          formulario.descuentoTipo === 'porcentaje'
+                            ? 100
+                            : undefined
+                      }}
+                      fullWidth
+                      required
+                    />
+                  </Stack>
+                ) : null}
+              </>
+            ) : (
+              <Typography variant='body2' color='text.secondary'>
+                Sin precio fijo: se evalúa en la cita. Las promociones no
+                aplican.
+              </Typography>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>

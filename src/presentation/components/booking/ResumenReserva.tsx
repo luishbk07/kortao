@@ -12,6 +12,7 @@ import Typography from '@mui/material/Typography'
 type ResumenReservaProps = {
   servicioNombre: string
   precioFormateado: string
+  precioEsEvaluar?: boolean
   fechaFormateada: string
   horaFormateada: string
   mostrarBoton?: boolean
@@ -55,6 +56,7 @@ const FilaSimple = ({
 export const ResumenReserva = ({
   servicioNombre,
   precioFormateado,
+  precioEsEvaluar = false,
   fechaFormateada,
   horaFormateada,
   mostrarBoton = false,
@@ -99,8 +101,9 @@ export const ResumenReserva = ({
               </Stack>
             </Stack>
             <Typography
-              color='primary'
-              fontWeight={700}
+              color={precioEsEvaluar ? 'text.secondary' : 'primary'}
+              fontWeight={precioEsEvaluar ? 500 : 700}
+              fontStyle={precioEsEvaluar ? 'italic' : 'normal'}
               textAlign='right'
               sx={{ opacity: 1 }}
             >

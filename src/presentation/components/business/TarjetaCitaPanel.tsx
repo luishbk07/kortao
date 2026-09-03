@@ -107,10 +107,19 @@ export const TarjetaCitaPanel = ({
                   : formatearHoraLegible(cita.fechaHora)}
               </Typography>
               <Typography color='text.secondary'>
-                {cita.servicioNombre} · {cita.duracionMinutos} min
-                {cita.precio !== null
-                  ? ` · ${formatearPrecio(cita.precio)}`
-                  : ''}
+                {cita.servicioNombre} · {cita.duracionMinutos} min ·{' '}
+                {cita.precio !== null ? (
+                  formatearPrecio(cita.precio)
+                ) : (
+                  <Typography
+                    component='span'
+                    variant='body2'
+                    color='text.secondary'
+                    fontStyle='italic'
+                  >
+                    Por evaluar
+                  </Typography>
+                )}
               </Typography>
             </Stack>
             <Chip

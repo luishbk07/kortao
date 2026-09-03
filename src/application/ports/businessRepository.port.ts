@@ -11,7 +11,7 @@ export type CrearServicioInput = {
   negocioId: string
   nombre: string
   duracionMinutos: number
-  precio: number
+  precio: number | null
   descuentoTipo: DescuentoTipo | null
   descuentoValor: number | null
 }
@@ -19,7 +19,7 @@ export type CrearServicioInput = {
 export type ActualizarServicioInput = {
   nombre: string
   duracionMinutos: number
-  precio: number
+  precio: number | null
   descuentoTipo: DescuentoTipo | null
   descuentoValor: number | null
   activo: boolean

@@ -33,7 +33,12 @@ const MESES_ETIQUETA = [
 ] as const
 
 const sumarPrecios = (citas: CitaParaReportes[]): number => {
-  return citas.reduce((total, cita) => total + (cita.precio ?? 0), 0)
+  return citas.reduce((total, cita) => {
+    if (cita.precio === null) {
+      return total
+    }
+    return total + cita.precio
+  }, 0)
 }
 
 const nombreServicio = (cita: CitaParaReportes): string => {
@@ -171,10 +176,13 @@ const construirIngresosPorDia = (
   }
 
   const porDia = citas.reduce<Record<string, number>>((acumulado, cita) => {
+    if (cita.precio === null) {
+      return acumulado
+    }
     const clave = formatearFechaCalendario(cita.fechaHora)
     return {
       ...acumulado,
-      [clave]: (acumulado[clave] ?? 0) + (cita.precio ?? 0)
+      [clave]: (acumulado[clave] ?? 0) + cita.precio
     }
   }, {})
 
@@ -222,10 +230,13 @@ const construirIngresosPorMes = (
   }
 
   const porMes = citas.reduce<Record<string, number>>((acumulado, cita) => {
+    if (cita.precio === null) {
+      return acumulado
+    }
     const clave = claveMes(cita.fechaHora)
     return {
       ...acumulado,
-      [clave]: (acumulado[clave] ?? 0) + (cita.precio ?? 0)
+      [clave]: (acumulado[clave] ?? 0) + cita.precio
     }
   }, {})
 
@@ -242,7 +253,10 @@ const agruparPorServicio = (
 ): IngresoPorServicio[] => {
   const acumulado = citas.reduce<Record<string, number>>((mapa, cita) => {
     const nombre = nombreServicio(cita)
-    const valor = porMonto ? (cita.precio ?? 0) : 1
+    if (porMonto && cita.precio === null) {
+      return mapa
+    }
+    const valor = porMonto ? (cita.precio as number) : 1
     return {
       ...mapa,
       [nombre]: (mapa[nombre] ?? 0) + valor
