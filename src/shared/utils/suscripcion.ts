@@ -4,7 +4,7 @@ import {
   parsearFechaCalendario
 } from '@/shared/utils/fechas'
 import {
-  esPlanPremium,
+  esPlanPagado,
   type CicloFacturacion
 } from '@/shared/utils/planes'
 
@@ -99,7 +99,7 @@ export const debeMostrarAvisoPagoSuscripcion = (
   hoy: Date = new Date()
 ): boolean => {
   if (
-    !esPlanPremium(plan) ||
+    !esPlanPagado(plan) ||
     !suscripcionActiva ||
     fechaInicioSuscripcion === null
   ) {

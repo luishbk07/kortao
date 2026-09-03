@@ -11,7 +11,8 @@ import {
 import {
   calcularMontoCiclo,
   construirEnlaceWhatsappSoporte,
-  esPlanPremium,
+  esPlanPagado,
+  etiquetaPlanNegocio,
   formatearPrecioMensual,
   PRECIO_LISTA_PLAN_PREMIUM,
   TELEFONO_SOPORTE_KORTAO,
@@ -42,7 +43,8 @@ export const PanelPlan = ({
   fechaUltimoPago = null,
   telefonoSoporte
 }: PanelPlanProps) => {
-  const esPremium = esPlanPremium(plan)
+  const esPremium = esPlanPagado(plan)
+  const etiquetaPlan = etiquetaPlanNegocio(plan)
   const precioLista = formatearPrecioMensual(PRECIO_LISTA_PLAN_PREMIUM)
   const precioBase = precioMensual ?? PRECIO_LISTA_PLAN_PREMIUM
   const montoCiclo = calcularMontoCiclo(precioBase, cicloFacturacion)
@@ -74,7 +76,7 @@ export const PanelPlan = ({
         </Typography>
         <Typography color='text.secondary'>
           {esPremium
-            ? 'Tu negocio ya tiene acceso a las herramientas Premium.'
+            ? `Tu negocio ya tiene acceso a las herramientas del plan ${etiquetaPlan}.`
             : 'Compara los planes y elige el que mejor se adapte a tu negocio.'}
         </Typography>
       </Stack>
@@ -92,7 +94,7 @@ export const PanelPlan = ({
         >
           <Stack spacing={0.5}>
             <Typography variant='h6' component='h2' fontWeight={700}>
-              Tu plan actual: Premium
+              Tu plan actual: {etiquetaPlan}
             </Typography>
             <Typography color='text.secondary'>
               {precioPremiumActual}

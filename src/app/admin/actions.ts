@@ -81,7 +81,7 @@ export const actualizarPrecioMensualAction = async (
   }
 }
 
-const PLANES_PERMITIDOS = ['estandar', 'premium'] as const
+const PLANES_PERMITIDOS = ['estandar', 'personal', 'premium'] as const
 
 export const actualizarPlanAction = async (
   negocioId: string,
@@ -99,7 +99,10 @@ export const actualizarPlanAction = async (
     fecha_inicio_suscripcion?: string
   } = { plan }
 
-  if (planAnterior === 'estandar' && plan === 'premium') {
+  if (
+    planAnterior === 'estandar' &&
+    (plan === 'personal' || plan === 'premium')
+  ) {
     actualizacion.fecha_inicio_suscripcion = new Date().toISOString()
   }
 

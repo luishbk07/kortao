@@ -14,7 +14,7 @@ import { crearBusinessRepository } from '@/infrastructure/supabase/businessRepos
 import { crearClienteServidor } from '@/infrastructure/supabase/clienteServidor'
 import { whatsappNotificationService } from '@/infrastructure/whatsapp/whatsappNotificationService'
 import { normalizarCorreo } from '@/shared/utils/correo'
-import { esPlanPremium } from '@/shared/utils/planes'
+import { esPlanPagado } from '@/shared/utils/planes'
 
 const mapearHorarioABusinessHours = (horario: {
   diaSemana: number
@@ -75,7 +75,7 @@ export const crearCitaManualAction = async (
     throw new Error('No se encontraron los datos del negocio')
   }
 
-  if (!esPlanPremium(negocio.plan)) {
+  if (!esPlanPagado(negocio.plan)) {
     throw new Error(
       'La creación manual de citas está disponible solo en el Plan Premium'
     )

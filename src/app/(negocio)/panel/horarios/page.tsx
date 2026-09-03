@@ -1,10 +1,10 @@
 import { crearListarHorarios } from '@/application/useCases/business/listarHorarios'
 import { PanelHorarios } from '@/presentation/components/business/PanelHorarios'
 import { crearDependenciasPanelServidor } from '@/presentation/lib/crearDependenciasPanelServidor'
-import { obtenerNegocioIdORedirigir } from '@/presentation/lib/obtenerNegocioIdORedirigir'
+import { exigirRolDueñoORedirigir } from '@/presentation/lib/obtenerNegocioIdORedirigir'
 
 const HorariosPanelPage = async () => {
-  const negocioId = await obtenerNegocioIdORedirigir()
+  const { negocioId } = await exigirRolDueñoORedirigir()
   const { businessRepository } = crearDependenciasPanelServidor()
   const listarHorarios = crearListarHorarios(businessRepository)
   const horarios = await listarHorarios(negocioId)

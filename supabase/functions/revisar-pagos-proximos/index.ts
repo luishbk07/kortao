@@ -341,7 +341,7 @@ Deno.serve(async () => {
     }
 
     const owner = obtenerMiembros(negocio.usuarios_negocio).find(
-      (miembro) => miembro.rol === "owner",
+      (miembro) => miembro.rol === "dueño" || miembro.rol === "owner",
     );
 
     if (!owner) {

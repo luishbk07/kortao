@@ -14,7 +14,7 @@ import type { NegocioDetalle } from '@/application/ports/businessRepository.port
 import { crearActualizarNegocio } from '@/application/useCases/business/actualizarNegocio'
 import { crearDependenciasPanelNavegador } from '@/presentation/lib/crearDependenciasPanelNavegador'
 import { palette } from '@/presentation/theme/palette'
-import { esPlanPremium } from '@/shared/utils/planes'
+import { esPlanPagado } from '@/shared/utils/planes'
 import {
   esTelefonoCompleto,
   formatearTelefonoVisual,
@@ -45,7 +45,7 @@ type PanelNegocioProps = {
 
 export const PanelNegocio = ({ negocio }: PanelNegocioProps) => {
   const router = useRouter()
-  const esPremium = esPlanPremium(negocio.plan)
+  const esPremium = esPlanPagado(negocio.plan)
   const [nombre, setNombre] = useState(negocio.nombre)
   const [telefonoWhatsapp, setTelefonoWhatsapp] = useState(
     normalizarTelefonoValor(negocio.telefonoWhatsapp)

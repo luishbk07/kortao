@@ -4,7 +4,7 @@ import type {
   Afiliado,
   AfiliadoOpcion
 } from '@/domain/admin/afiliado.types'
-import { esPlanPremium } from '@/shared/utils/planes'
+import { esPlanPagado } from '@/shared/utils/planes'
 import { normalizarCodigoAfiliado } from '@/shared/utils/afiliado'
 
 type AfiliadoFila = {
@@ -56,7 +56,7 @@ export const crearAfiliadosRepository = (
     return ((data as AfiliadoConNegociosFila[] | null) ?? []).map((fila) => {
       const referidos = obtenerNegocios(fila.negocios)
       const premium = referidos.filter((negocio) =>
-        esPlanPremium(negocio.plan ?? 'estandar')
+        esPlanPagado(negocio.plan ?? 'estandar')
       )
 
       return {

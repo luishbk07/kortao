@@ -27,6 +27,8 @@ import {
 import { formatearFechaLegible } from '@/shared/utils/fechas'
 import {
   calcularMontoCiclo,
+  OPCIONES_PLAN_ADMIN,
+  PLANES_ASIGNABLES_ADMIN,
   type CicloFacturacion
 } from '@/shared/utils/planes'
 import {
@@ -49,17 +51,20 @@ type TablaNegociosAdminProps = {
   negociosIniciales: NegocioAdminFila[]
 }
 
-const OPCIONES_PLAN = [
-  { valor: 'estandar', etiqueta: 'Estándar' },
-  { valor: 'premium', etiqueta: 'Premium' }
-] as const
-
 const normalizarPlanSelect = (plan: string): string => {
-  if (plan === 'estandar') {
-    return 'estandar'
+  if (
+    PLANES_ASIGNABLES_ADMIN.includes(
+      plan as (typeof PLANES_ASIGNABLES_ADMIN)[number]
+    )
+  ) {
+    return plan
   }
 
-  return 'premium'
+  if (plan === 'max') {
+    return 'premium'
+  }
+
+  return 'estandar'
 }
 
 const parsearPrecioMensual = (valor: string): number | null => {
@@ -160,9 +165,10 @@ export const TablaNegociosAdmin = ({
       return
     }
 
-    const iniciaFacturacionPremium =
-      planAnteriorNormalizado === 'estandar' && plan === 'premium'
-    const fechaInicioSuscripcion = iniciaFacturacionPremium
+    const iniciaFacturacionPagada =
+      planAnteriorNormalizado === 'estandar' &&
+      (plan === 'personal' || plan === 'premium')
+    const fechaInicioSuscripcion = iniciaFacturacionPagada
       ? new Date().toISOString()
       : negocioActual?.fechaInicioSuscripcion
 
@@ -313,8 +319,12 @@ export const TablaNegociosAdmin = ({
                           'aria-label': `Plan de ${fila.nombre}`
                         }}
                       >
-                        {OPCIONES_PLAN.map((opcion) => (
-                          <MenuItem key={opcion.valor} value={opcion.valor}>
+                        {OPCIONES_PLAN_ADMIN.map((opcion) => (
+                          <MenuItem
+                            key={opcion.valor}
+                            value={opcion.valor}
+                            disabled={opcion.deshabilitado}
+                          >
                             {opcion.etiqueta}
                           </MenuItem>
                         ))}

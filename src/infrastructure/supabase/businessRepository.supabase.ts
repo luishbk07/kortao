@@ -12,6 +12,7 @@ import type {
   HorarioNegocio,
   Servicio
 } from '@/domain/business/business.types'
+import { normalizarRolUsuarioNegocio } from '@/domain/business/rolUsuario.types'
 import type { DescuentoTipo } from '@/domain/business/servicio.rules'
 import type { EstadoCita } from '@/domain/booking/booking.types'
 import { finDelDia, inicioDelDia, parsearFechaCalendario } from '@/shared/utils/fechas'
@@ -158,11 +159,11 @@ const mapearCitaPanel = (fila: CitaPanelFila): CitaPanel => ({
 
 export const crearBusinessRepository = (
   cliente: SupabaseClient
-): BusinessRepository => ({
-  obtenerNegocioIdPorUsuario: async (authUserId) => {
+): BusinessRepository => {
+  const obtenerMembresiaPorUsuario = async (authUserId: string) => {
     const { data, error } = await cliente
       .from('usuarios_negocio')
-      .select('negocio_id')
+      .select('negocio_id, rol')
       .eq('auth_user_id', authUserId)
       .maybeSingle()
 
@@ -170,10 +171,25 @@ export const crearBusinessRepository = (
       lanzarErrorSupabase(error)
     }
 
-    return data?.negocio_id ?? null
-  },
+    if (!data?.negocio_id) {
+      return null
+    }
 
-  obtenerSlugPorNegocioId: async (negocioId) => {
+    return {
+      negocioId: data.negocio_id as string,
+      rol: normalizarRolUsuarioNegocio(data.rol as string | null)
+    }
+  }
+
+  return {
+    obtenerNegocioIdPorUsuario: async (authUserId) => {
+      const membresia = await obtenerMembresiaPorUsuario(authUserId)
+      return membresia?.negocioId ?? null
+    },
+
+    obtenerMembresiaPorUsuario,
+
+    obtenerSlugPorNegocioId: async (negocioId) => {
     const { data, error } = await cliente
       .from('negocios')
       .select('slug')
@@ -413,4 +429,5 @@ export const crearBusinessRepository = (
 
     return ((data as CitaPanelFila[] | null) ?? []).map(mapearCitaPanel)
   }
-})
+  }
+}

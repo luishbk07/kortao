@@ -18,15 +18,23 @@ const obtenerContextoSoporte = async () => {
     throw new Error('No hay una sesión activa')
   }
 
-  const negocioId = await businessRepository.obtenerNegocioIdPorUsuario(
+  const membresia = await businessRepository.obtenerMembresiaPorUsuario(
     usuario.id
   )
 
-  if (!negocioId) {
+  if (!membresia) {
     throw new Error('Tu usuario no está vinculado a un negocio')
   }
 
-  return { businessRepository, supportRepository, negocioId }
+  if (membresia.rol !== 'dueño') {
+    throw new Error('Solo el dueño puede enviar reportes de soporte')
+  }
+
+  return {
+    businessRepository,
+    supportRepository,
+    negocioId: membresia.negocioId
+  }
 }
 
 export const enviarReporteSoporteAction = async (

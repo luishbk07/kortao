@@ -17,6 +17,7 @@ import { crearSolicitarRestablecimientoContrasena } from '@/application/useCases
 import { crearDependenciasPanelNavegador } from '@/presentation/lib/crearDependenciasPanelNavegador'
 import { EncabezadoMarca } from '@/presentation/components/ui/EncabezadoMarca'
 import { EnlaceAyudaCrearCuenta } from '@/presentation/components/auth/EnlaceAyudaCrearCuenta'
+import { leerCodigoInvitacionPendiente } from '@/shared/utils/codigoInvitacionPendiente'
 
 type VistaLogin = 'entrar' | 'olvidar'
 
@@ -47,7 +48,12 @@ export const FormularioLogin = ({
       const { authService } = crearDependenciasPanelNavegador()
       const iniciarSesion = crearIniciarSesion(authService)
       await iniciarSesion(email, password)
-      router.replace('/')
+      const codigoPendiente = leerCodigoInvitacionPendiente()
+      if (codigoPendiente) {
+        router.replace(`/unirse?codigo=${encodeURIComponent(codigoPendiente)}`)
+      } else {
+        router.replace('/')
+      }
       router.refresh()
     } catch {
       setError('Correo o contraseña incorrectos. Inténtalo de nuevo.')

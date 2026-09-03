@@ -4,8 +4,14 @@ import type {
   HorarioNegocio,
   Servicio
 } from '@/domain/business/business.types'
+import type { RolUsuarioNegocio } from '@/domain/business/rolUsuario.types'
 import type { DescuentoTipo } from '@/domain/business/servicio.rules'
 import type { CicloFacturacion } from '@/shared/utils/planes'
+
+export type MembresiaUsuarioNegocio = {
+  negocioId: string
+  rol: RolUsuarioNegocio
+}
 
 export type CrearServicioInput = {
   negocioId: string
@@ -59,6 +65,9 @@ export type NegocioDetalle = {
 
 export type BusinessRepository = {
   obtenerNegocioIdPorUsuario: (authUserId: string) => Promise<string | null>
+  obtenerMembresiaPorUsuario: (
+    authUserId: string
+  ) => Promise<MembresiaUsuarioNegocio | null>
   obtenerSlugPorNegocioId: (negocioId: string) => Promise<string | null>
   obtenerNegocioPublicoPorId: (
     negocioId: string

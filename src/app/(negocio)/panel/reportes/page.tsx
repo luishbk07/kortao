@@ -2,16 +2,16 @@ import { crearObtenerReportesNegocio } from '@/application/useCases/business/obt
 import { MensajePlanPremiumBloqueado } from '@/presentation/components/business/MensajePlanPremiumBloqueado'
 import { PanelReportes } from '@/presentation/components/business/PanelReportes'
 import { crearDependenciasPanelServidor } from '@/presentation/lib/crearDependenciasPanelServidor'
-import { obtenerNegocioIdORedirigir } from '@/presentation/lib/obtenerNegocioIdORedirigir'
-import { esPlanPremium } from '@/shared/utils/planes'
+import { exigirRolDueñoORedirigir } from '@/presentation/lib/obtenerNegocioIdORedirigir'
+import { esPlanPagado } from '@/shared/utils/planes'
 
 const ReportesPanelPage = async () => {
-  const negocioId = await obtenerNegocioIdORedirigir()
+  const { negocioId } = await exigirRolDueñoORedirigir()
   const { businessRepository, bookingRepository } =
     crearDependenciasPanelServidor()
   const negocio = await businessRepository.obtenerNegocioPorId(negocioId)
 
-  if (!negocio || !esPlanPremium(negocio.plan)) {
+  if (!negocio || !esPlanPagado(negocio.plan)) {
     return <MensajePlanPremiumBloqueado titulo='Reportes' />
   }
 

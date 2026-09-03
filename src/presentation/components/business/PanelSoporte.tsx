@@ -20,7 +20,7 @@ import {
   formatearFechaLegible,
   formatearHoraLegible
 } from '@/shared/utils/fechas'
-import { esPlanPremium } from '@/shared/utils/planes'
+import { esPlanPagado } from '@/shared/utils/planes'
 import { useContadorReportesPendientes } from '@/presentation/lib/contadorReportesPendientes'
 import { AvisoPlanPremium } from './AvisoPlanPremium'
 
@@ -64,7 +64,7 @@ export const PanelSoporte = ({
   const [exito, setExito] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const contador = useContadorReportesPendientes()
-  const esPremium = esPlanPremium(plan)
+  const esPremium = esPlanPagado(plan)
   const enlaceWhatsapp =
     esPremium && telefonoWhatsappSoporte
       ? construirEnlaceWhatsappSoporte(telefonoWhatsappSoporte, nombreNegocio)

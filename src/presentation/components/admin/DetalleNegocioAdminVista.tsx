@@ -19,7 +19,8 @@ import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import {
   actualizarAfiliadoNegocioAction,
-  actualizarCicloFacturacionAction
+  actualizarCicloFacturacionAction,
+  actualizarPlanAction
 } from '@/app/admin/actions'
 import type {
   DetalleNegocioAdmin,
@@ -34,8 +35,10 @@ import {
 } from '@/shared/utils/fechas'
 import {
   calcularMontoCiclo,
-  esPlanPremium,
+  esPlanPagado,
   formatearPrecioMensual,
+  OPCIONES_PLAN_ADMIN,
+  PLANES_ASIGNABLES_ADMIN,
   type CicloFacturacion
 } from '@/shared/utils/planes'
 import {
@@ -51,16 +54,20 @@ type DetalleNegocioAdminVistaProps = {
   afiliadosActivos: AfiliadoOpcion[]
 }
 
-const etiquetaPlan = (plan: string): string => {
-  if (plan === 'estandar') {
-    return 'Estándar'
+const normalizarPlanSelect = (plan: string): string => {
+  if (
+    PLANES_ASIGNABLES_ADMIN.includes(
+      plan as (typeof PLANES_ASIGNABLES_ADMIN)[number]
+    )
+  ) {
+    return plan
   }
 
-  if (plan === 'premium') {
-    return 'Premium'
+  if (plan === 'max') {
+    return 'premium'
   }
 
-  return plan
+  return 'estandar'
 }
 
 const etiquetaEstado = (estado: EstadoCita): string => {
@@ -151,6 +158,8 @@ export const DetalleNegocioAdminVista = ({
   const [pagos, setPagos] = useState(historialPagos)
   const [errorCiclo, setErrorCiclo] = useState<string | null>(null)
   const [guardandoCiclo, setGuardandoCiclo] = useState(false)
+  const [errorPlan, setErrorPlan] = useState<string | null>(null)
+  const [guardandoPlan, setGuardandoPlan] = useState(false)
   const [errorAfiliado, setErrorAfiliado] = useState<string | null>(null)
   const [guardandoAfiliado, setGuardandoAfiliado] = useState(false)
 
@@ -166,7 +175,7 @@ export const DetalleNegocioAdminVista = ({
     negocio.cicloFacturacion
   )
   const puedeRegistrarPago =
-    esPlanPremium(negocio.plan) &&
+    esPlanPagado(negocio.plan) &&
     negocio.suscripcionActiva &&
     negocio.precioMensual !== null
 
@@ -192,6 +201,43 @@ export const DetalleNegocioAdminVista = ({
       setErrorCiclo('No se pudo actualizar el ciclo de facturación.')
     } finally {
       setGuardandoCiclo(false)
+    }
+  }
+
+  const handleCambiarPlan = async (plan: string) => {
+    const planAnterior = normalizarPlanSelect(negocio.plan)
+
+    if (planAnterior === plan) {
+      return
+    }
+
+    setErrorPlan(null)
+    setGuardandoPlan(true)
+    const anterior = negocio.plan
+    const iniciaFacturacion =
+      planAnterior === 'estandar' &&
+      (plan === 'personal' || plan === 'premium')
+    const fechaInicioSuscripcion = iniciaFacturacion
+      ? new Date()
+      : negocio.fechaInicioSuscripcion
+
+    setNegocio((actual) => ({
+      ...actual,
+      plan,
+      fechaInicioSuscripcion
+    }))
+
+    try {
+      await actualizarPlanAction(negocio.id, plan, planAnterior)
+    } catch {
+      setNegocio((actual) => ({
+        ...actual,
+        plan: anterior,
+        fechaInicioSuscripcion: negocio.fechaInicioSuscripcion
+      }))
+      setErrorPlan('No se pudo actualizar el plan.')
+    } finally {
+      setGuardandoPlan(false)
     }
   }
 
@@ -281,7 +327,49 @@ export const DetalleNegocioAdminVista = ({
         <Stack direction='row' flexWrap='wrap' useFlexGap spacing={1.5}>
           <TarjetaDato etiqueta='Nombre' valor={negocio.nombre} />
           <TarjetaDato etiqueta='Slug' valor={negocio.slug} />
-          <TarjetaDato etiqueta='Plan' valor={etiquetaPlan(negocio.plan)} />
+          <Box
+            sx={{
+              flex: '1 1 180px',
+              minWidth: 0,
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 3,
+              bgcolor: 'background.paper',
+              px: 2,
+              py: 1.75
+            }}
+          >
+            <Typography variant='body2' color='text.secondary' gutterBottom>
+              Plan
+            </Typography>
+            <FormControl size='small' fullWidth>
+              <Select
+                value={normalizarPlanSelect(negocio.plan)}
+                disabled={guardandoPlan}
+                onChange={(evento) => {
+                  void handleCambiarPlan(evento.target.value)
+                }}
+                inputProps={{
+                  'aria-label': 'Plan del negocio'
+                }}
+              >
+                {OPCIONES_PLAN_ADMIN.map((opcion) => (
+                  <MenuItem
+                    key={opcion.valor}
+                    value={opcion.valor}
+                    disabled={opcion.deshabilitado}
+                  >
+                    {opcion.etiqueta}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            {errorPlan ? (
+              <Typography variant='caption' color='error' sx={{ mt: 0.5, display: 'block' }}>
+                {errorPlan}
+              </Typography>
+            ) : null}
+          </Box>
           <TarjetaDato
             etiqueta='Precio mensual'
             valor={

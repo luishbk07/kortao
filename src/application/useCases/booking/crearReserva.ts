@@ -13,7 +13,7 @@ import type { Booking, BusinessHours } from '@/domain/booking/booking.types'
 import { calcularPrecioFinal, tienePrecioFijo } from '@/domain/business/servicio.rules'
 import { finDelDia, inicioDelDia } from '@/shared/utils/fechas'
 import {
-  esPlanPremium,
+  esPlanPagado,
   LIMITE_CITAS_PLAN_GRATIS
 } from '@/shared/utils/planes'
 
@@ -30,7 +30,7 @@ export const crearCrearReserva = (
     negocioLogoUrl: string | null = null,
     negocioPlan = 'estandar'
   ): Promise<Booking> => {
-    if (!esPlanPremium(negocioPlan)) {
+    if (!esPlanPagado(negocioPlan)) {
       const citasTotales = await bookingRepository.contarCitasTotales(
         input.negocioId
       )

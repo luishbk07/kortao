@@ -9,7 +9,7 @@ import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import { esPlanPremium } from '@/shared/utils/planes'
+import { esPlanPagado } from '@/shared/utils/planes'
 
 type BannerPromocionalProps = {
   plan: string
@@ -18,7 +18,7 @@ type BannerPromocionalProps = {
 export const BannerPromocional = ({ plan }: BannerPromocionalProps) => {
   const [descartado, setDescartado] = useState(false)
 
-  if (esPlanPremium(plan) || descartado) {
+  if (esPlanPagado(plan) || descartado) {
     return null
   }
 

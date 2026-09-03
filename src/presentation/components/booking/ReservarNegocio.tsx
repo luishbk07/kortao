@@ -20,7 +20,7 @@ import { useFlujoReservar } from '@/presentation/hooks/useFlujoReservar'
 import { crearTema } from '@/presentation/theme/theme'
 import { CLAVE_MODO_COLOR } from '@/presentation/theme/palette'
 import { desplazarAlInicio } from '@/shared/utils/desplazamiento'
-import { esPlanPremium } from '@/shared/utils/planes'
+import { esPlanPagado } from '@/shared/utils/planes'
 import { construirUrlMapas } from '@/shared/utils/sitio'
 import { FlujoReservarPasos } from './FlujoReservarPasos'
 import type { NegocioPublico, ServicioPublico } from './tiposReservar'
@@ -37,7 +37,7 @@ const crearTemaReservar = (
   plan: string,
   colorAcento: string | null
 ) => {
-  if (!esPlanPremium(plan) || !colorAcento?.trim()) {
+  if (!esPlanPagado(plan) || !colorAcento?.trim()) {
     return temaBase
   }
 

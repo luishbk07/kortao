@@ -20,6 +20,11 @@ import {
 } from '@/shared/utils/suscripcion'
 import type { AccesoAdminPanel } from '@/presentation/components/business/NavegacionPanel'
 import { crearNotificacionesRepository } from '@/infrastructure/supabase/notificacionesRepository.supabase'
+import {
+  normalizarRolUsuarioNegocio,
+  type RolUsuarioNegocio
+} from '@/domain/business/rolUsuario.types'
+import { redirect } from 'next/navigation'
 
 export const metadata: Metadata = {
   robots: {
@@ -42,7 +47,25 @@ type NegocioMembresia = {
 
 type MembresiaFila = {
   negocio_id: string
+  rol: string | null
   negocios: NegocioMembresia | NegocioMembresia[] | null
+}
+
+const RUTAS_SOLO_DUENO = [
+  '/panel/servicios',
+  '/panel/horarios',
+  '/panel/negocio',
+  '/panel/clientes',
+  '/panel/reportes',
+  '/panel/plan',
+  '/panel/empleados',
+  '/panel/soporte'
+] as const
+
+const esRutaSoloDueño = (pathname: string): boolean => {
+  return RUTAS_SOLO_DUENO.some(
+    (ruta) => pathname === ruta || pathname.startsWith(`${ruta}/`)
+  )
 }
 
 const obtenerNegocioMembresia = (
@@ -99,6 +122,7 @@ const PanelLayout = async ({ children }: PanelLayoutProps) => {
   }
 
   let plan = 'estandar'
+  let rol: RolUsuarioNegocio = 'dueño'
   let recordatorioPago: {
     montoCiclo: number
     cicloFacturacion: CicloFacturacion
@@ -111,14 +135,19 @@ const PanelLayout = async ({ children }: PanelLayoutProps) => {
     const { data: membresia } = await supabase
       .from('usuarios_negocio')
       .select(
-        'negocio_id, negocios(suscripcion_activa, plan, precio_mensual, ciclo_facturacion, fecha_inicio_suscripcion)'
+        'negocio_id, rol, negocios(suscripcion_activa, plan, precio_mensual, ciclo_facturacion, fecha_inicio_suscripcion)'
       )
       .eq('auth_user_id', user.id)
       .maybeSingle()
 
-    const negocio = obtenerNegocioMembresia(
-      (membresia as MembresiaFila | null)?.negocios ?? null
-    )
+    const membresiaFila = membresia as MembresiaFila | null
+    rol = normalizarRolUsuarioNegocio(membresiaFila?.rol)
+
+    if (rol === 'empleado' && esRutaSoloDueño(pathname)) {
+      redirect('/panel/citas')
+    }
+
+    const negocio = obtenerNegocioMembresia(membresiaFila?.negocios ?? null)
 
     if (negocio?.suscripcion_activa === false) {
       return <CuentaPausada />
@@ -136,7 +165,7 @@ const PanelLayout = async ({ children }: PanelLayoutProps) => {
           )
         : null
 
-    const negocioId = (membresia as MembresiaFila | null)?.negocio_id ?? null
+    const negocioId = membresiaFila?.negocio_id ?? null
 
     let fechaUltimoPago: Date | null = null
 
@@ -199,7 +228,7 @@ const PanelLayout = async ({ children }: PanelLayoutProps) => {
       .eq('auth_user_id', user.id)
       .maybeSingle()
 
-    if (admin) {
+    if (admin && rol === 'dueño') {
       const { count } = await supabase
         .from('reportes_soporte')
         .select('*', { count: 'exact', head: true })
@@ -214,6 +243,7 @@ const PanelLayout = async ({ children }: PanelLayoutProps) => {
   return (
     <PanelShell
       plan={plan}
+      rol={rol}
       recordatorioPago={recordatorioPago}
       notificacionesNoLeidas={notificacionesNoLeidas}
       {...(accesoAdmin ? { accesoAdmin } : {})}

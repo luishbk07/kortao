@@ -8,6 +8,7 @@ import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined'
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined'
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined'
 import ContentCutOutlinedIcon from '@mui/icons-material/ContentCutOutlined'
+import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined'
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined'
 import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined'
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined'
@@ -34,6 +35,8 @@ import { LogoKortao } from '@/presentation/components/ui/LogoKortao'
 import { MenuNotificacionesPanel } from '@/presentation/components/business/MenuNotificacionesPanel'
 import { crearDependenciasPanelNavegador } from '@/presentation/lib/crearDependenciasPanelNavegador'
 import { useContadorReportesPendientes } from '@/presentation/lib/contadorReportesPendientes'
+import type { RolUsuarioNegocio } from '@/domain/business/rolUsuario.types'
+import { esRolDueño } from '@/domain/business/rolUsuario.types'
 
 export type AccesoAdminPanel = {
   reportesPendientes: number
@@ -42,9 +45,10 @@ export type AccesoAdminPanel = {
 type NavegacionPanelProps = {
   accesoAdmin?: AccesoAdminPanel
   notificacionesNoLeidas?: number
+  rol?: RolUsuarioNegocio
 }
 
-const enlaces = [
+const enlacesDueño = [
   {
     href: '/panel/citas',
     etiqueta: 'Citas',
@@ -76,9 +80,22 @@ const enlaces = [
     icono: StorefrontOutlinedIcon
   },
   {
+    href: '/panel/empleados',
+    etiqueta: 'Empleados',
+    icono: GroupsOutlinedIcon
+  },
+  {
     href: '/panel/soporte',
     etiqueta: 'Soporte',
     icono: SupportAgentOutlinedIcon
+  }
+]
+
+const enlacesEmpleado = [
+  {
+    href: '/panel/citas',
+    etiqueta: 'Citas',
+    icono: CalendarMonthOutlinedIcon
   }
 ]
 
@@ -112,7 +129,8 @@ const estilosEnlaceAdmin = {
 
 export const NavegacionPanel = ({
   accesoAdmin,
-  notificacionesNoLeidas = 0
+  notificacionesNoLeidas = 0,
+  rol = 'dueño'
 }: NavegacionPanelProps) => {
   const pathname = usePathname()
   const router = useRouter()
@@ -121,6 +139,9 @@ export const NavegacionPanel = ({
   const adminActivo = pathname.startsWith('/admin')
   const reportesPendientes =
     contador?.reportesPendientes ?? accesoAdmin?.reportesPendientes ?? 0
+  const esDueño = esRolDueño(rol)
+  const enlaces = esDueño ? enlacesDueño : enlacesEmpleado
+  const accesoAdminVisible = esDueño ? accesoAdmin : undefined
 
   useEffect(() => {
     setMenuAbierto(false)
@@ -135,7 +156,7 @@ export const NavegacionPanel = ({
   }
 
   const enlaceAdmin =
-    accesoAdmin !== undefined ? (
+    accesoAdminVisible !== undefined ? (
       <Button
         component={Link}
         href='/admin'
@@ -162,7 +183,7 @@ export const NavegacionPanel = ({
     ) : null
 
   const enlaceAdminDrawer =
-    accesoAdmin !== undefined ? (
+    accesoAdminVisible !== undefined ? (
       <ListItemButton
         component={Link}
         href='/admin'

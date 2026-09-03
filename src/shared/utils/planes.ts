@@ -1,7 +1,16 @@
 export const LIMITE_CITAS_PLAN_GRATIS = 5
 
-/** Free/default plan is `estandar`; any other value is treated as premium. */
-export const esPlanPremium = (plan: string): boolean => plan !== 'estandar'
+export type PlanNegocio = 'estandar' | 'personal' | 'premium' | 'max'
+
+/** Paid single-user features: no ads, Clientes, Reportes, Personalización, QR, manual booking. */
+export const esPlanPagado = (plan: string): boolean => {
+  return plan === 'personal' || plan === 'premium' || plan === 'max'
+}
+
+/** Employee management (Premium / Max). */
+export const esPlanMultiUsuario = (plan: string): boolean => {
+  return plan === 'premium' || plan === 'max'
+}
 
 export const PRECIO_LISTA_PLAN_PREMIUM = 1000
 
@@ -16,6 +25,43 @@ export const BENEFICIOS_PLAN_PREMIUM = [
   'Reportes extendidos',
   'Personalización de color'
 ] as const
+
+export const OPCIONES_PLAN_ADMIN = [
+  { valor: 'estandar', etiqueta: 'Estándar', deshabilitado: false },
+  { valor: 'personal', etiqueta: 'Personal', deshabilitado: false },
+  { valor: 'premium', etiqueta: 'Premium', deshabilitado: false },
+  {
+    valor: 'max',
+    etiqueta: 'Max (próximamente)',
+    deshabilitado: true
+  }
+] as const
+
+export const PLANES_ASIGNABLES_ADMIN = [
+  'estandar',
+  'personal',
+  'premium'
+] as const
+
+export const etiquetaPlanNegocio = (plan: string): string => {
+  if (plan === 'estandar') {
+    return 'Estándar'
+  }
+
+  if (plan === 'personal') {
+    return 'Personal'
+  }
+
+  if (plan === 'premium') {
+    return 'Premium'
+  }
+
+  if (plan === 'max') {
+    return 'Max'
+  }
+
+  return plan
+}
 
 export const normalizarCicloFacturacion = (
   valor: string | null | undefined

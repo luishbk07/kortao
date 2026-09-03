@@ -1,12 +1,12 @@
 import { notFound } from 'next/navigation'
 import { PanelSoporte } from '@/presentation/components/business/PanelSoporte'
 import { crearDependenciasPanelServidor } from '@/presentation/lib/crearDependenciasPanelServidor'
-import { obtenerNegocioIdORedirigir } from '@/presentation/lib/obtenerNegocioIdORedirigir'
+import { exigirRolDueñoORedirigir } from '@/presentation/lib/obtenerNegocioIdORedirigir'
 import { crearSupportRepository } from '@/infrastructure/supabase/supportRepository.supabase'
 import { crearClienteServidor } from '@/infrastructure/supabase/clienteServidor'
 
 const SoportePanelPage = async () => {
-  const negocioId = await obtenerNegocioIdORedirigir()
+  const { negocioId } = await exigirRolDueñoORedirigir()
   const { businessRepository } = crearDependenciasPanelServidor()
   const negocio = await businessRepository.obtenerNegocioPorId(negocioId)
 

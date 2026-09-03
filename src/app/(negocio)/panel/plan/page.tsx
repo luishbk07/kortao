@@ -1,12 +1,12 @@
 import { notFound } from 'next/navigation'
 import { PanelPlan } from '@/presentation/components/business/PanelPlan'
 import { crearDependenciasPanelServidor } from '@/presentation/lib/crearDependenciasPanelServidor'
-import { obtenerNegocioIdORedirigir } from '@/presentation/lib/obtenerNegocioIdORedirigir'
+import { exigirRolDueñoORedirigir } from '@/presentation/lib/obtenerNegocioIdORedirigir'
 import { crearClienteServidor } from '@/infrastructure/supabase/clienteServidor'
 import { parsearFechaCalendario } from '@/shared/utils/fechas'
 
 const PlanPage = async () => {
-  const negocioId = await obtenerNegocioIdORedirigir()
+  const { negocioId } = await exigirRolDueñoORedirigir()
   const { businessRepository } = crearDependenciasPanelServidor()
   const negocio = await businessRepository.obtenerNegocioPorId(negocioId)
 

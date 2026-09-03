@@ -5,7 +5,7 @@ import type { ServicioPublico } from '@/presentation/components/booking/tiposRes
 import { PanelCitas } from '@/presentation/components/business/PanelCitas'
 import { crearDependenciasPanelServidor } from '@/presentation/lib/crearDependenciasPanelServidor'
 import { obtenerNegocioIdORedirigir } from '@/presentation/lib/obtenerNegocioIdORedirigir'
-import { esPlanPremium } from '@/shared/utils/planes'
+import { esPlanPagado } from '@/shared/utils/planes'
 
 const mapearServicioPublico = (servicio: {
   id: string
@@ -49,7 +49,7 @@ const CitasPanelPage = async () => {
     listarHorarios(negocioId)
   ])
 
-  const esPremium = Boolean(negocio && esPlanPremium(negocio.plan))
+  const esPremium = Boolean(negocio && esPlanPagado(negocio.plan))
   const mostrarLimitePlanGratis = Boolean(negocio && !esPremium)
 
   const citasTotales = mostrarLimitePlanGratis
