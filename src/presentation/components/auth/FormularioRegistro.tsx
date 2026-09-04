@@ -14,13 +14,25 @@ import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { crearAfiliadosRepository } from '@/infrastructure/supabase/afiliadosRepository.supabase'
 import { crearClienteNavegador } from '@/infrastructure/supabase/clienteNavegador'
+import { CamposIdentidadUsuario } from '@/presentation/components/auth/CamposIdentidadUsuario'
 import { EncabezadoMarca } from '@/presentation/components/ui/EncabezadoMarca'
 import { normalizarCodigoAfiliado } from '@/shared/utils/afiliado'
+import {
+  esIdentidadUsuarioValida,
+  type DatosIdentidadUsuario
+} from '@/domain/business/identidadUsuario.types'
 import {
   esTelefonoCompleto,
   formatearTelefonoVisual,
   normalizarTelefonoValor
 } from '@/shared/utils/telefono'
+
+const identidadVacia: DatosIdentidadUsuario = {
+  nombre: '',
+  tipoDocumento: 'cedula',
+  numeroDocumento: '',
+  telefono: ''
+}
 
 export const FormularioRegistro = () => {
   const router = useRouter()
@@ -29,6 +41,7 @@ export const FormularioRegistro = () => {
   const [nombreNegocio, setNombreNegocio] = useState('')
   const [telefonoWhatsapp, setTelefonoWhatsapp] = useState('')
   const [direccion, setDireccion] = useState('')
+  const [identidad, setIdentidad] = useState(identidadVacia)
   const [codigoAfiliado, setCodigoAfiliado] = useState('')
   const [errorCodigoAfiliado, setErrorCodigoAfiliado] = useState<string | null>(
     null
@@ -41,7 +54,8 @@ export const FormularioRegistro = () => {
     email.trim().length > 3 &&
     password.length >= 6 &&
     nombreNegocio.trim().length > 1 &&
-    esTelefonoCompleto(telefonoWhatsapp)
+    esTelefonoCompleto(telefonoWhatsapp) &&
+    esIdentidadUsuarioValida(identidad)
 
   const handleSubmit = async (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault()
@@ -85,6 +99,10 @@ export const FormularioRegistro = () => {
             nombreNegocio: nombreNegocio.trim(),
             telefonoWhatsapp,
             direccion: direccion.trim(),
+            nombre: identidad.nombre.trim(),
+            tipoDocumento: identidad.tipoDocumento,
+            numeroDocumento: identidad.numeroDocumento,
+            telefono: identidad.telefono,
             ...(afiliadoId ? { afiliadoId } : {})
           }
         }
@@ -189,6 +207,18 @@ export const FormularioRegistro = () => {
                   fullWidth
                   required
                 />
+                <Typography variant='subtitle2' color='text.secondary'>
+                  Datos del dueño
+                </Typography>
+                <CamposIdentidadUsuario
+                  valor={identidad}
+                  onChange={setIdentidad}
+                  etiquetaNombre='Nombre completo del dueño'
+                  etiquetaTelefono='Teléfono del dueño'
+                />
+                <Typography variant='subtitle2' color='text.secondary'>
+                  Datos del negocio
+                </Typography>
                 <TextField
                   label='Nombre del negocio'
                   value={nombreNegocio}

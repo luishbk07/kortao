@@ -102,7 +102,13 @@ export const quitarEmpleadoAction = async (
 }
 
 export const registrarEmpleadoConCodigoAction = async (
-  codigo: string
+  codigo: string,
+  identidad: {
+    nombre: string
+    tipoDocumento: 'cedula' | 'rnc' | 'pasaporte'
+    numeroDocumento: string
+    telefono: string
+  }
 ): Promise<void> => {
   const supabase = crearClienteServidor()
   const authService = crearAuthService(supabase)
@@ -115,7 +121,7 @@ export const registrarEmpleadoConCodigoAction = async (
   }
 
   try {
-    await empleadosRepository.registrarConCodigo(codigo)
+    await empleadosRepository.registrarConCodigo(codigo, identidad)
   } catch (error) {
     if (
       error instanceof Error &&

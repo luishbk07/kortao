@@ -7,7 +7,13 @@ import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { crearGuardarHorarios } from '@/application/useCases/business/guardarHorarios'
+import {
+  esIdentidadUsuarioValida,
+  esTipoDocumentoUsuario,
+  type DatosIdentidadUsuario
+} from '@/domain/business/identidadUsuario.types'
 import { crearClienteNavegador } from '@/infrastructure/supabase/clienteNavegador'
+import { CamposIdentidadUsuario } from '@/presentation/components/auth/CamposIdentidadUsuario'
 import { crearDependenciasPanelNavegador } from '@/presentation/lib/crearDependenciasPanelNavegador'
 import {
   esTelefonoCompleto,
@@ -26,13 +32,15 @@ type OnboardingNegocioProps = {
   telefonoWhatsappInicial: string
   direccionInicial: string
   afiliadoIdInicial?: string | null
+  identidadInicial?: Partial<DatosIdentidadUsuario> | null
 }
 
 export const OnboardingNegocio = ({
   nombreNegocioInicial,
   telefonoWhatsappInicial,
   direccionInicial,
-  afiliadoIdInicial = null
+  afiliadoIdInicial = null,
+  identidadInicial = null
 }: OnboardingNegocioProps) => {
   const router = useRouter()
   const [nombreNegocio, setNombreNegocio] = useState(nombreNegocioInicial)
@@ -40,11 +48,23 @@ export const OnboardingNegocio = ({
     normalizarTelefonoValor(telefonoWhatsappInicial)
   )
   const [direccion, setDireccion] = useState(direccionInicial)
+  const [identidad, setIdentidad] = useState<DatosIdentidadUsuario>({
+    nombre: identidadInicial?.nombre ?? '',
+    tipoDocumento: esTipoDocumentoUsuario(identidadInicial?.tipoDocumento ?? '')
+      ? identidadInicial!.tipoDocumento!
+      : 'cedula',
+    numeroDocumento: identidadInicial?.numeroDocumento ?? '',
+    telefono:
+      identidadInicial?.telefono ??
+      normalizarTelefonoValor(telefonoWhatsappInicial)
+  })
   const [ubicacion, setUbicacion] = useState<CoordenadasUbicacion | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const datosNegocioValidos =
-    nombreNegocio.trim().length > 1 && esTelefonoCompleto(telefonoWhatsapp)
+    nombreNegocio.trim().length > 1 &&
+    esTelefonoCompleto(telefonoWhatsapp) &&
+    esIdentidadUsuarioValida(identidad)
 
   return (
     <Stack spacing={3}>
@@ -62,6 +82,18 @@ export const OnboardingNegocio = ({
           {error}
         </Alert>
       ) : null}
+
+      <Stack spacing={2}>
+        <Typography variant='h6' component='h2'>
+          Datos del dueño
+        </Typography>
+        <CamposIdentidadUsuario
+          valor={identidad}
+          onChange={setIdentidad}
+          etiquetaNombre='Nombre completo del dueño'
+          etiquetaTelefono='Teléfono del dueño'
+        />
+      </Stack>
 
       <Stack spacing={2}>
         <Typography variant='h6' component='h2'>
@@ -108,8 +140,10 @@ export const OnboardingNegocio = ({
         etiquetaBoton='Finalizar y ir al panel'
         onSave={async (horarios) => {
           if (!datosNegocioValidos) {
-            setError('Completa el nombre y el teléfono del negocio.')
-            throw new Error('Datos del negocio incompletos')
+            setError(
+              'Completa los datos del dueño (nombre, documento y teléfono) y del negocio.'
+            )
+            throw new Error('Datos incompletos')
           }
 
           setError(null)
@@ -124,7 +158,11 @@ export const OnboardingNegocio = ({
               direccion_param: direccion.trim() || null,
               latitud_param: ubicacion?.latitud ?? null,
               longitud_param: ubicacion?.longitud ?? null,
-              afiliado_id_param: afiliadoIdInicial || null
+              afiliado_id_param: afiliadoIdInicial || null,
+              nombre_persona_param: identidad.nombre.trim(),
+              tipo_documento_param: identidad.tipoDocumento,
+              numero_documento_param: identidad.numeroDocumento,
+              telefono_persona_param: identidad.telefono
             }
           )
 

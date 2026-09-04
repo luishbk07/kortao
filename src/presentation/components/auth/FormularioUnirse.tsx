@@ -13,8 +13,13 @@ import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { registrarEmpleadoConCodigoAction } from '@/app/(negocio)/panel/empleados/actions'
+import { CamposIdentidadUsuario } from '@/presentation/components/auth/CamposIdentidadUsuario'
 import { EncabezadoMarca } from '@/presentation/components/ui/EncabezadoMarca'
 import { crearClienteNavegador } from '@/infrastructure/supabase/clienteNavegador'
+import {
+  esIdentidadUsuarioValida,
+  type DatosIdentidadUsuario
+} from '@/domain/business/identidadUsuario.types'
 import {
   guardarCodigoInvitacionPendiente,
   limpiarCodigoInvitacionPendiente
@@ -25,6 +30,13 @@ type FormularioUnirseProps = {
   yaAutenticado: boolean
 }
 
+const identidadVacia: DatosIdentidadUsuario = {
+  nombre: '',
+  tipoDocumento: 'cedula',
+  numeroDocumento: '',
+  telefono: ''
+}
+
 export const FormularioUnirse = ({
   codigoInicial,
   yaAutenticado
@@ -33,13 +45,20 @@ export const FormularioUnirse = ({
   const [codigo, setCodigo] = useState(codigoInicial)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [identidad, setIdentidad] = useState(identidadVacia)
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [correoEnviado, setCorreoEnviado] = useState(false)
 
+  const formularioValido =
+    codigo.trim().length >= 6 &&
+    esIdentidadUsuarioValida(identidad) &&
+    (yaAutenticado ||
+      (email.trim().length > 3 && password.length >= 6))
+
   const unirseConSesion = async () => {
     const codigoNormalizado = codigo.trim().toUpperCase()
-    await registrarEmpleadoConCodigoAction(codigoNormalizado)
+    await registrarEmpleadoConCodigoAction(codigoNormalizado, identidad)
     limpiarCodigoInvitacionPendiente()
     router.replace('/panel/citas')
     router.refresh()
@@ -47,6 +66,12 @@ export const FormularioUnirse = ({
 
   const handleSubmit = async (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault()
+
+    if (!formularioValido) {
+      setError('Completa todos los datos obligatorios.')
+      return
+    }
+
     setEnviando(true)
     setError(null)
 
@@ -62,7 +87,15 @@ export const FormularioUnirse = ({
       const supabase = crearClienteNavegador()
       const { data, error: errorSignup } = await supabase.auth.signUp({
         email: email.trim(),
-        password
+        password,
+        options: {
+          data: {
+            nombre: identidad.nombre.trim(),
+            tipoDocumento: identidad.tipoDocumento,
+            numeroDocumento: identidad.numeroDocumento,
+            telefono: identidad.telefono
+          }
+        }
       })
 
       if (errorSignup) {
@@ -96,6 +129,17 @@ export const FormularioUnirse = ({
         mensaje.includes('ya pertenece')
       ) {
         setError('Tu cuenta ya está vinculada a un negocio.')
+      } else if (
+        mensaje.includes('cédula') ||
+        mensaje.includes('cedula') ||
+        mensaje.includes('rnc') ||
+        mensaje.includes('pasaporte') ||
+        mensaje.includes('nombre') ||
+        mensaje.includes('teléfono') ||
+        mensaje.includes('telefono') ||
+        mensaje.includes('documento')
+      ) {
+        setError(err instanceof Error ? err.message : 'Revisa tus datos personales.')
       } else {
         setError('No se pudo completar el registro. Inténtalo de nuevo.')
       }
@@ -115,8 +159,7 @@ export const FormularioUnirse = ({
               Unirse al equipo
             </Typography>
             <Typography color='text.secondary' textAlign='center'>
-              Crea tu cuenta con el código de invitación que te compartió el
-              dueño del negocio.
+              Crea tu cuenta con el código de invitación y tus datos personales.
             </Typography>
           </Stack>
 
@@ -160,6 +203,10 @@ export const FormularioUnirse = ({
                   fullWidth
                   required
                 />
+                <CamposIdentidadUsuario
+                  valor={identidad}
+                  onChange={setIdentidad}
+                />
                 {!yaAutenticado ? (
                   <>
                     <TextField
@@ -184,15 +231,15 @@ export const FormularioUnirse = ({
                   </>
                 ) : (
                   <Alert severity='info'>
-                    Ya tienes sesión iniciada. Solo confirma el código para
-                    unirte.
+                    Ya tienes sesión iniciada. Completa tus datos y el código
+                    para unirte.
                   </Alert>
                 )}
                 <Button
                   type='submit'
                   variant='contained'
                   color='secondary'
-                  disabled={enviando}
+                  disabled={enviando || !formularioValido}
                   fullWidth
                 >
                   {enviando ? 'Procesando...' : 'Unirme al negocio'}

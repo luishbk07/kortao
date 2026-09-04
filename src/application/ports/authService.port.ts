@@ -6,6 +6,10 @@ export type UsuarioAutenticado = {
     telefonoWhatsapp?: string
     direccion?: string
     afiliadoId?: string
+    nombre?: string
+    tipoDocumento?: string
+    numeroDocumento?: string
+    telefono?: string
   }
 }
 

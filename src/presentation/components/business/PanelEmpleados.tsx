@@ -9,6 +9,7 @@ import Alert from '@mui/material/Alert'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+import Link from '@mui/material/Link'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import {
@@ -20,7 +21,9 @@ import type {
   EmpleadoNegocio,
   InvitacionEmpleado
 } from '@/application/ports/empleadosRepository.port'
+import { etiquetaTipoDocumento } from '@/domain/business/identidadUsuario.types'
 import { obtenerOrigenSitio } from '@/shared/utils/sitio'
+import { formatearTelefonoVisual } from '@/shared/utils/telefono'
 
 type PanelEmpleadosProps = {
   negocioNombre: string
@@ -286,10 +289,36 @@ export const PanelEmpleados = ({
                     alignItems={{ xs: 'stretch', sm: 'center' }}
                     justifyContent='space-between'
                   >
-                    <Typography>
-                      {empleado.correo ??
-                        `Empleado ${empleado.authUserId.slice(0, 8)}`}
-                    </Typography>
+                    <Stack spacing={0.25} sx={{ minWidth: 0 }}>
+                      <Typography fontWeight={600}>
+                        {empleado.nombre?.trim() || 'Empleado'}
+                      </Typography>
+                      {empleado.tipoDocumento && empleado.numeroDocumento ? (
+                        <Typography variant='body2' color='text.secondary'>
+                          {etiquetaTipoDocumento(empleado.tipoDocumento)}{' '}
+                          {empleado.numeroDocumento}
+                        </Typography>
+                      ) : null}
+                      {empleado.telefono ? (
+                        <Typography variant='body2' color='text.secondary'>
+                          {formatearTelefonoVisual(empleado.telefono)}
+                        </Typography>
+                      ) : null}
+                      {empleado.correo ? (
+                        <Link
+                          href={`mailto:${empleado.correo}`}
+                          underline='hover'
+                          variant='body2'
+                          sx={{ wordBreak: 'break-all' }}
+                        >
+                          {empleado.correo}
+                        </Link>
+                      ) : (
+                        <Typography variant='body2' color='text.secondary'>
+                          Correo no disponible
+                        </Typography>
+                      )}
+                    </Stack>
                     <Button
                       size='small'
                       color='error'

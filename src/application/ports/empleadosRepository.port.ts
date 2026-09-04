@@ -1,7 +1,16 @@
+import type {
+  DatosIdentidadUsuario,
+  TipoDocumentoUsuario
+} from '@/domain/business/identidadUsuario.types'
+
 export type EmpleadoNegocio = {
   id: string
   authUserId: string
   correo: string | null
+  nombre: string | null
+  tipoDocumento: TipoDocumentoUsuario | null
+  numeroDocumento: string | null
+  telefono: string | null
 }
 
 export type InvitacionEmpleado = {
@@ -22,5 +31,8 @@ export type EmpleadosRepository = {
     codigo: string
   ) => Promise<InvitacionEmpleado>
   revocarInvitacion: (negocioId: string, invitacionId: string) => Promise<void>
-  registrarConCodigo: (codigo: string) => Promise<string>
+  registrarConCodigo: (
+    codigo: string,
+    identidad: DatosIdentidadUsuario
+  ) => Promise<string>
 }

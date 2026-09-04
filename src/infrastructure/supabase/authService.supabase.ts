@@ -31,7 +31,11 @@ const mapearUsuario = (user: User): UsuarioAutenticado | null => {
       nombreNegocio: leerTextoMetadata(userMetadata, 'nombreNegocio'),
       telefonoWhatsapp: leerTextoMetadata(userMetadata, 'telefonoWhatsapp'),
       direccion: leerTextoMetadata(userMetadata, 'direccion'),
-      afiliadoId: leerTextoMetadata(userMetadata, 'afiliadoId')
+      afiliadoId: leerTextoMetadata(userMetadata, 'afiliadoId'),
+      nombre: leerTextoMetadata(userMetadata, 'nombre'),
+      tipoDocumento: leerTextoMetadata(userMetadata, 'tipoDocumento'),
+      numeroDocumento: leerTextoMetadata(userMetadata, 'numeroDocumento'),
+      telefono: leerTextoMetadata(userMetadata, 'telefono')
     }
   }
 }

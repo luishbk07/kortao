@@ -24,6 +24,16 @@ const OnboardingPage = async () => {
       telefonoWhatsappInicial={usuario.metadata?.telefonoWhatsapp ?? ''}
       direccionInicial={usuario.metadata?.direccion ?? ''}
       afiliadoIdInicial={usuario.metadata?.afiliadoId ?? null}
+      identidadInicial={{
+        nombre: usuario.metadata?.nombre,
+        tipoDocumento: usuario.metadata?.tipoDocumento as
+          | 'cedula'
+          | 'rnc'
+          | 'pasaporte'
+          | undefined,
+        numeroDocumento: usuario.metadata?.numeroDocumento,
+        telefono: usuario.metadata?.telefono
+      }}
     />
   )
 }
